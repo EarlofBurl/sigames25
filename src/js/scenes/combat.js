@@ -3,12 +3,13 @@
 
 import { initRenderer, drawGrid, getGridData, setSelectedTarget, clearSelectedTarget } from '../engine/renderer.js';
 import { setupKeyboardControls, setupMouseControls, isPassable, getMovementCost } from '../engine/input.js';
-import { getHeroPosition, setHeroPosition, setHeroMp, refillHeroMp, getHeroAttributes } from '../entities/hero.js';
+import { getHeroPosition, setHeroPosition, setHeroMp, refillHeroMp, getHeroAttributes, setHeroHp } from '../entities/hero.js';
 import { getEnemies, initEnemies, _internal as enemyInternal } from '../entities/enemy.js';
 import { saveGame, loadGame, resetGame } from '../engine/storage.js';
 import { mission01 } from '../data/missions/mission_01.js';
 import { initConsole, log, setUnitDetails } from '../engine/console.js';
 import { initDialog, playDialog } from '../engine/dialog.js';
+import { terrainTypes } from '../data/terrain.js';
 
 let grid;
 let selectedUnit = null;
@@ -143,12 +144,13 @@ export class CombatScene {
             });
         }
         
-        // Event-Listener für den "Einheit abwählen"-Button
+         // Event-Listener für den "Einheit abwählen"-Button
         const deselectButton = document.getElementById('deselect-button');
         if (deselectButton) {
             deselectButton.addEventListener('click', () => {
                 selectedUnit = null;
-                document.getElementById('unit-name').textContent = '';
+                document.getElementById('unit-title').textContent = 'Einheiten-Details';
+                document.getElementById('unit-type').textContent = '';
                 document.getElementById('unit-hp').textContent = '';
                 document.getElementById('unit-max-hp').textContent = '';
                 document.getElementById('unit-mp').textContent = '';
@@ -156,8 +158,16 @@ export class CombatScene {
                 document.getElementById('unit-attack').textContent = '';
                 document.getElementById('unit-defense').textContent = '';
                 
-                setUnitDetails('Keine Einheit ausgewählt.');
                 log('Einheit abgewählt.');
+            });
+        }
+        
+        // Event-Listener für den "Warten"-Button
+        const waitButton = document.getElementById('wait-button');
+        if (waitButton) {
+            waitButton.addEventListener('click', () => {
+                const heroAttr = getHeroAttributes();
+                log(`Montesquieu wartet. Bewegungspunkte: ${heroAttr.mp}/${heroAttr.maxMp}`);
             });
         }
         
@@ -214,16 +224,14 @@ export class CombatScene {
                 document.getElementById('unit-attack').textContent = updatedHeroAttr.attack;
                 document.getElementById('unit-defense').textContent = updatedHeroAttr.defense;
                 
-                 setUnitDetails(`Held positioniert bei: (${updatedHeroPos.col}, ${updatedHeroPos.row})`);
-                 
-                 log(`Bewegung kostete ${movementCost} MP. Verbleibende MP: ${updatedHeroAttr.mp}`);
-                 
-                 // Überprüfe, ob keine MPs mehr übrig sind
-                 if (updatedHeroAttr.mp === 0) {
-                     log('Keine Einheit mehr zu bewegen. Neue Runde mit (Enter).');
-                 }
-             } else if (!isPassable(newRow, newCol, grid)) {
-                log('Dieses Feld ist nicht passierbar!');
+                   log(`Bewegung kostete ${movementCost} MP. Verbleibende MP: ${updatedHeroAttr.mp}`, 'movement');
+                  
+                  // Überprüfe, ob keine MPs mehr übrig sind
+                  if (updatedHeroAttr.mp === 0) {
+                      log('Keine Einheit mehr zu bewegen. Neue Runde mit (Enter).', 'error');
+                  }
+              } else if (!isPassable(newRow, newCol, grid)) {
+                 log('Dieses Feld ist nicht passierbar!', 'error');
             } else {
                 log('Nicht genug Bewegungspunkte!');
             }
@@ -269,17 +277,17 @@ export class CombatScene {
                 
                  setUnitDetails(`Held positioniert bei: (${heroPos.col}, ${heroPos.row})`);
                  
-                 log(`Bewegung kostete ${movementCost} MP. Verbleibende MP: ${updatedHeroAttr.mp}`);
-                 
-                 // Überprüfe, ob keine MPs mehr übrig sind
-                 if (updatedHeroAttr.mp === 0) {
-                     log('Keine Einheit mehr zu bewegen. Neue Runde mit (Enter).');
-                 }
+                  log(`Bewegung kostete ${movementCost} MP. Verbleibende MP: ${updatedHeroAttr.mp}`, 'movement');
+                  
+                  // Überprüfe, ob keine MPs mehr übrig sind
+                  if (updatedHeroAttr.mp === 0) {
+                      log('Keine Einheit mehr zu bewegen. Neue Runde mit (Enter).', 'error');
+                  }
             } else if (!isPassable(row, col, grid)) {
-                log('Dieses Feld ist nicht passierbar!');
-            } else {
-                log('Nicht genug Bewegungspunkte!');
-            }
+                 log('Dieses Feld ist nicht passierbar!', 'error');
+             } else {
+                 log('Nicht genug Bewegungspunkte!', 'error');
+             }
         });
         
          // Event-Listener für Links-Klick
@@ -299,31 +307,50 @@ export class CombatScene {
                  selectedTarget = null;
                  const heroAttr = getHeroAttributes();
                  
-                 // Aktualisiere die Stats in der UI
-                 document.getElementById('unit-name').textContent = 'Montesquieu';
-                 document.getElementById('unit-hp').textContent = heroAttr.hp;
-                 document.getElementById('unit-max-hp').textContent = heroAttr.maxHp;
-                 document.getElementById('unit-mp').textContent = heroAttr.mp;
-                 document.getElementById('unit-max-mp').textContent = heroAttr.maxMp;
-                 document.getElementById('unit-attack').textContent = heroAttr.attack;
-                 document.getElementById('unit-defense').textContent = heroAttr.defense;
-                 
-                 setUnitDetails('Held ausgewählt: Montesquieu');
-                 log('Montesquieu ausgewählt.');
-             } else if (selectedUnit && !selectedTarget && (row !== heroPos.row || col !== heroPos.col)) {
-                 // Überprüfe, ob auf einen Feind geklickt wurde
-                 const enemies = getEnemies();
-                 const enemyIndex = enemies.findIndex(enemy => enemy.row === row && enemy.col === col);
-                 
-                  if (enemyIndex !== -1) {
-                      // Überprüfe, ob der Feind orthogonal benachbart ist
-                      const heroPos = getHeroPosition();
-                      const isAdjacent = Math.abs(row - heroPos.row) + Math.abs(col - heroPos.col) === 1;
-                      
-                      if (isAdjacent) {
-                          // Angriff auslösen
-                          const enemy = enemies[enemyIndex];
-                          const heroAttr = getHeroAttributes();
+                  // Aktualisiere die Stats in der UI
+                  document.getElementById('unit-title').textContent = 'Montesquieu';
+                  document.getElementById('unit-type').textContent = 'Nahkampf';
+                  document.getElementById('unit-hp').textContent = heroAttr.hp;
+                  document.getElementById('unit-max-hp').textContent = heroAttr.maxHp;
+                  document.getElementById('unit-mp').textContent = heroAttr.mp;
+                  document.getElementById('unit-max-mp').textContent = heroAttr.maxMp;
+                  document.getElementById('unit-attack').textContent = heroAttr.attack;
+                  document.getElementById('unit-defense').textContent = heroAttr.defense;
+                  
+                  log('Montesquieu ausgewählt.', 'default');
+              } else if (selectedUnit && !selectedTarget && (row !== heroPos.row || col !== heroPos.col)) {
+                  // Überprüfe, ob auf einen Feind geklickt wurde
+                  const enemies = getEnemies();
+                  const enemyIndex = enemies.findIndex(enemy => enemy.row === row && enemy.col === col);
+                   
+                   if (enemyIndex !== -1) {
+                        // Zeige die Stats des Feindes an
+                        const enemy = enemies[enemyIndex];
+                        document.getElementById('unit-title').textContent = enemy.name;
+                        document.getElementById('unit-type').textContent = 'Nahkampf';
+                        document.getElementById('unit-hp').textContent = enemy.hp;
+                        document.getElementById('unit-max-hp').textContent = enemy.maxHp;
+                        document.getElementById('unit-mp').textContent = '';
+                        document.getElementById('unit-max-mp').textContent = '';
+                        document.getElementById('unit-attack').textContent = enemy.attack;
+                        document.getElementById('unit-defense').textContent = enemy.defense;
+                        
+                        log(`${enemy.name} ausgewählt.`, 'default');
+                       
+                       // Überprüfe, ob der Feind orthogonal benachbart ist
+                       const heroPos = getHeroPosition();
+                       const isAdjacent = Math.abs(row - heroPos.row) + Math.abs(col - heroPos.col) === 1;
+                        
+                        if (isAdjacent) {
+                           // Überprüfe, ob genug MP vorhanden sind
+                           const heroAttr = getHeroAttributes();
+                           if (heroAttr.mp < 1) {
+                               log('Nicht genug Bewegungspunkte für einen Angriff!');
+                               return;
+                           }
+                           
+                           // Angriff auslösen
+                           const enemy = enemies[enemyIndex];
                           
                           // Berechne den Schaden
                           const damage = Math.max(1, heroAttr.attack - enemy.defense);
@@ -332,43 +359,84 @@ export class CombatScene {
                           const newHp = enemy.hp - damage;
                           enemyInternal.setEnemyHp(enemyIndex, newHp);
                           
-                          // Logge das Kampfergebnis
-                          log(`Montesquieu fügt ${enemy.name} ${damage} Schaden zu!`);
-                          
-                          // Überprüfe, ob der Feind besiegt wurde
-                          if (newHp <= 0) {
-                              enemyInternal.removeEnemy(enemyIndex);
-                              log(`${enemy.name} wurde besiegt!`);
-                              drawGrid();
-                          }
-                          
-                            // Beende die Aktion der Einheit
-                            setHeroMp(0);
-                            document.getElementById('unit-mp').textContent = '0';
+                           // Logge das Kampfergebnis
+                           log(`Montesquieu fügt ${enemy.name} ${damage} Schaden zu!`, 'attack');
                             
-                            setUnitDetails(`Angriff auf ${enemy.name} bei: (${col}, ${row})`);
+                            // Überprüfe, ob der Feind besiegt wurde
+                            if (newHp <= 0) {
+                                enemyInternal.removeEnemy(enemyIndex);
+                                log(`${enemy.name} wurde besiegt!`, 'attack');
+                                drawGrid();
+                            } else {
+                                // Gegenangriff
+                                const counterDamage = Math.max(1, enemy.attack - heroAttr.defense);
+                                const newHeroHp = heroAttr.hp - counterDamage;
+                                
+                                // Wende den Schaden an
+                                setHeroHp(newHeroHp);
+                                
+                                // Logge das Kampfergebnis
+                                log(`${enemy.name} schlägt zurück für ${counterDamage} Schaden!`, 'enemy');
+                                
+                                // Überprüfe, ob der Angreifer besiegt wurde
+                                if (newHeroHp <= 0) {
+                                    log('Montesquieu wurde besiegt!', 'enemy');
+                                   // Setze die Einheit zurück
+                                   setHeroPosition(0, 0);
+                                   setHeroHp(heroAttr.maxHp);
+                                   drawGrid();
+                                   
+                                   // Setze die ausgewählte Einheit auf null
+                                   selectedUnit = null;
+                                   document.getElementById('unit-name').textContent = '';
+                                   document.getElementById('unit-hp').textContent = '';
+                                   document.getElementById('unit-max-hp').textContent = '';
+                                   document.getElementById('unit-mp').textContent = '';
+                                   document.getElementById('unit-max-mp').textContent = '';
+                                   document.getElementById('unit-attack').textContent = '';
+                                   document.getElementById('unit-defense').textContent = '';
+                                   
+                                   // Zurücksetzen
+                                   selectedTarget = null;
+                                   clearSelectedTarget();
+                                   
+                                    // Überprüfe, ob alle Einheiten keine MPs mehr haben
+                                    const updatedHeroAttr = getHeroAttributes();
+                                    if (updatedHeroAttr.mp === 0) {
+                                        log('Keine Einheit mehr zu bewegen. Neue Runde mit (Enter).', 'error');
+                                    }
+                                   
+                                   return;
+                               }
+                           }
                             
-                            // Beende die Runde für die Einheit
-                            selectedUnit = null;
-                            document.getElementById('unit-name').textContent = '';
-                            document.getElementById('unit-hp').textContent = '';
-                            document.getElementById('unit-max-hp').textContent = '';
-                            document.getElementById('unit-mp').textContent = '';
-                            document.getElementById('unit-max-mp').textContent = '';
-                            document.getElementById('unit-attack').textContent = '';
-                            document.getElementById('unit-defense').textContent = '';
-                            
-                            // Zurücksetzen
-                            selectedTarget = null;
-                            clearSelectedTarget();
-                            
-                            // Überprüfe, ob alle Einheiten keine MPs mehr haben
-                            const updatedHeroAttr = getHeroAttributes();
-                            if (updatedHeroAttr.mp === 0) {
-                                log('Keine Einheit mehr zu bewegen. Neue Runde mit (Enter).');
-                            }
-                      } else {
-                          log('Angriff nur auf orthogonale Felder möglich!');
+                             // Beende die Aktion der Einheit
+                             setHeroMp(0);
+                             document.getElementById('unit-mp').textContent = '0';
+                              
+                             setUnitDetails(`Angriff auf ${enemy.name} bei: (${col}, ${row})`);
+                              
+                             // Beende die Runde für die Einheit
+                             selectedUnit = null;
+                             document.getElementById('unit-name').textContent = '';
+                             document.getElementById('unit-hp').textContent = '';
+                             document.getElementById('unit-max-hp').textContent = '';
+                             document.getElementById('unit-mp').textContent = '';
+                             document.getElementById('unit-max-mp').textContent = '';
+                             document.getElementById('unit-attack').textContent = '';
+                             document.getElementById('unit-defense').textContent = '';
+                              
+                             // Zurücksetzen
+                             selectedTarget = null;
+                             clearSelectedTarget();
+                              
+                              // Überprüfe, ob alle Einheiten keine MPs mehr haben
+                              const updatedHeroAttr = getHeroAttributes();
+                              if (updatedHeroAttr.mp === 0) {
+                                  log('Keine Einheit mehr zu bewegen. Neue Runde mit (Enter).', 'error');
+                              }
+                       } else {
+                           log('Angriff nur auf orthogonale Felder möglich!', 'error');
                       }
                   } else {
                      // Leeres Feld ausgewählt, zeige Pathlinie
@@ -380,10 +448,10 @@ export class CombatScene {
                          setSelectedTarget(selectedTarget);
                          log(`Ziel ausgewählt: (${col}, ${row}). Klicke erneut, um zu bewegen.`);
                      } else if (!isPassable(row, col, grid)) {
-                         log('Dieses Feld ist nicht passierbar!');
-                     } else {
-                         log('Nicht genug Bewegungspunkte!');
-                     }
+                          log('Dieses Feld ist nicht passierbar!', 'error');
+             } else {
+                 log('Nicht genug Bewegungspunkte!', 'error');
+             }
                  }
              } else if (selectedUnit && selectedTarget && selectedTarget.row === row && selectedTarget.col === col) {
                  // Bewegung auslösen
@@ -413,15 +481,14 @@ export class CombatScene {
                      const updatedHeroAttr = getHeroAttributes();
                      document.getElementById('unit-mp').textContent = updatedHeroAttr.mp;
                      
-                      setUnitDetails(`Held positioniert bei: (${selectedTarget.col}, ${selectedTarget.row})`);
-                      log(`Bewegung kostete ${totalMovementCost} MP. Verbleibende MP: ${updatedHeroAttr.mp}`);
+                       log(`Bewegung kostete ${totalMovementCost} MP. Verbleibende MP: ${updatedHeroAttr.mp}`, 'movement');
                       
-                      // Überprüfe, ob keine MPs mehr übrig sind
-                      if (updatedHeroAttr.mp === 0) {
-                          log('Keine Einheit mehr zu bewegen. Neue Runde mit (Enter).');
-                      }
-                  } else {
-                     log('Nicht genug Bewegungspunkte für die gesamte Strecke!');
+                       // Überprüfe, ob keine MPs mehr übrig sind
+                       if (updatedHeroAttr.mp === 0) {
+                           log('Keine Einheit mehr zu bewegen. Neue Runde mit (Enter).', 'error');
+                       }
+                   } else {
+                      log('Nicht genug Bewegungspunkte für die gesamte Strecke!', 'error');
                  }
                  
                  // Zurücksetzen
@@ -435,24 +502,33 @@ export class CombatScene {
              } else {
                  // Einheit abgewählt
                  selectedUnit = null;
-                 document.getElementById('unit-name').textContent = '';
-                 document.getElementById('unit-hp').textContent = '';
-                 document.getElementById('unit-max-hp').textContent = '';
-                 document.getElementById('unit-mp').textContent = '';
-                 document.getElementById('unit-max-mp').textContent = '';
-                 document.getElementById('unit-attack').textContent = '';
-                 document.getElementById('unit-defense').textContent = '';
-                 
-                 setUnitDetails('Keine Einheit ausgewählt.');
-                 log('Einheit abgewählt.');
+                  document.getElementById('unit-title').textContent = 'Einheiten-Details';
+                  document.getElementById('unit-type').textContent = '';
+                  document.getElementById('unit-hp').textContent = '';
+                  document.getElementById('unit-max-hp').textContent = '';
+                  document.getElementById('unit-mp').textContent = '';
+                  document.getElementById('unit-max-mp').textContent = '';
+                  document.getElementById('unit-attack').textContent = '';
+                  document.getElementById('unit-defense').textContent = '';
+                  
+                  log('Einheit abgewählt.');
              }
              
-             // Zeige Terrain-Infos an
-             const cell = grid[row][col];
-             const terrainInfo = document.getElementById('terrain-info-text');
-             if (terrainInfo) {
-                 terrainInfo.textContent = `Terrain: ${cell.type}`;
-             }
+              // Zeige Terrain-Infos an
+              const cell = grid[row][col];
+              const terrainInfo = document.getElementById('terrain-info-text');
+              const terrainStats = document.getElementById('terrain-stats');
+              if (terrainInfo) {
+                  terrainInfo.textContent = `Terrain: ${cell.type}`;
+              }
+              if (terrainStats) {
+                  const terrainType = terrainTypes[cell.type];
+                  terrainStats.innerHTML = `
+                      <p>MP: ${terrainType.movementCost}</p>
+                      <p>Ang.: ${terrainType.defenseBonus >= 0 ? '+' : ''}${terrainType.defenseBonus}</p>
+                      <p>Def.: ${terrainType.defenseBonus >= 0 ? '+' : ''}${terrainType.defenseBonus}</p>
+                  `;
+              }
          });
     }
 

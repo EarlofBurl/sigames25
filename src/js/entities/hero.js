@@ -50,3 +50,8 @@ export function setHeroMp(mp) {
 export function refillHeroMp() {
     player.mp = player.maxMp;
 }
+
+// Setzt die HP des Helden
+export function setHeroHp(hp) {
+    player.hp = hp;
+}

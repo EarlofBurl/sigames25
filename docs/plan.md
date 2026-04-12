@@ -60,12 +60,12 @@
 ## Meilenstein 11: Armee-Verwaltung & Mehrere Einheiten
 - [ ] Refactoring: Ersetze das einzelne `player`-Objekt durch ein Array `playerUnits[]` und `enemyUnits[]`.
 - [ ] Ermögliche das Durchschalten eigener Einheiten (z.B. per `TAB`-Taste oder durch Klick auf "Nächste Einheit"-Button).
-- [ ] Passe den "Zug beenden"-Ablauf an: Die Spieler-Runde endet erst, wenn der "Runde beenden"-Button geklickt wird oder alle Einheiten ihre MP verbraucht haben.
+- [ ] Platziere neben der Montesquieu Helden Einheit eine weitere Spieler Einheit "Ritter" auf dem Feld und zwei Feind-Goblin-Einheiten.
 
 ## Meilenstein 12: Feindliche KI (Enemy Phase)
 - [ ] Implementiere den Rundenwechsel: Wenn der Spieler die Runde beendet, startet die `Enemy Phase`.
 - [ ] Baue eine einfache KI für Feinde:
-  1. Finde die nächste Spielereinheit.
+  1. Finde die nächste Spielereinheit. Feindeinheiten haben Sichtradius um sich herum: 1 wäre nur oben unten links rechts. zwei wären zwei nach oben, aber auch eins nach oben und nach rechts oder links. Die goblins haben sicht von 2.
   2. Berechne den Pfad dorthin (unter Berücksichtigung der eigenen MP).
   3. Bewege die Feind-Einheit.
   4. Greife an, falls der Spieler in Reichweite (orthogonale Nachbarschaft) ist.

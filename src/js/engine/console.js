@@ -12,7 +12,7 @@ export function initConsole() {
 }
 
 // Fügt eine Nachricht zur Konsole hinzu
-export function log(message) {
+export function log(message, type = 'default') {
     if (!consoleOutput) {
         console.error('Konsole nicht initialisiert.');
         return;
@@ -20,6 +20,28 @@ export function log(message) {
 
     const messageElement = document.createElement('div');
     messageElement.textContent = message;
+    
+    // Farbcodierung basierend auf dem Typ
+    switch (type) {
+        case 'movement':
+            messageElement.style.color = 'blue';
+            break;
+        case 'attack':
+            messageElement.style.color = 'green';
+            messageElement.style.fontWeight = 'bold';
+            break;
+        case 'enemy':
+            messageElement.style.color = 'red';
+            messageElement.style.fontWeight = 'bold';
+            break;
+        case 'error':
+            messageElement.style.color = '#ff6b6b';
+            break;
+        default:
+            messageElement.style.color = 'black';
+            break;
+    }
+    
     consoleOutput.appendChild(messageElement);
 
     // Automatisch nach unten scrollen
