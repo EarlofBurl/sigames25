@@ -6,6 +6,7 @@ import { setupKeyboardControls, setupMouseControls, isPassable } from '../engine
 import { getHeroPosition, setHeroPosition } from '../entities/hero.js';
 import { saveGame, loadGame, resetGame } from '../engine/storage.js';
 import { mission01 } from '../data/missions/mission_01.js';
+import { initConsole, log, setUnitDetails } from '../engine/console.js';
 
 let grid;
 
@@ -40,6 +41,16 @@ export class CombatScene {
         // Lade das Grid für die Bewegungsprüfung
         const gridData = getGridData();
         grid = gridData.grid;
+        
+        // Zeige die UI-Panel an
+        const uiPanel = document.getElementById('ui-panel');
+        if (uiPanel) {
+            uiPanel.style.display = 'flex';
+        }
+        
+        // Initialisiere die Konsole
+        initConsole();
+        log('Willkommen beim SI-Games Jubiläum!');
         
         // UI-Container erstellen
         const uiContainer = document.createElement('div');
@@ -81,10 +92,19 @@ export class CombatScene {
         });
         
         setupMouseControls(canvas, (row, col) => {
+            // Logge den Klick auf das Feld
+            log(`Feld geklickt: ${col}, ${row}`);
+            
             // Überprüfe, ob das neue Feld passierbar ist
             if (isPassable(row, col, grid)) {
                 setHeroPosition(row, col);
                 drawGrid();
+                
+                // Zeige die Einheiten-Details an
+                const heroPos = getHeroPosition();
+                setUnitDetails(`Held positioniert bei: (${heroPos.col}, ${heroPos.row})`);
+            } else {
+                log('Dieses Feld ist nicht passierbar!');
             }
         });
     }

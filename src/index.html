@@ -10,6 +10,24 @@
     <div id="app">
         <p>Falls dieser Text sichtbar ist, wird das JavaScript nicht korrekt geladen.</p>
     </div>
+    <div id="ui-panel" style="display: none;">
+        <div id="unit-details">
+            <h3>Einheiten-Details</h3>
+            <p id="unit-info">Wähle eine Einheit aus, um Details anzuzeigen.</p>
+        </div>
+        <div id="action-console">
+            <h3>Aktions-Log</h3>
+            <div id="console-output"></div>
+        </div>
+    </div>
     <script type="module" src="js/main.js"></script>
+    <style>
+        #app {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 20px;
+        }
+    </style>
 </body>
 </html>

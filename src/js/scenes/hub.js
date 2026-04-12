@@ -43,6 +43,10 @@ export class HubScene {
 
     // Wird aufgerufen, wenn die Szene verlassen wird
     onExit() {
-        // Aufräumen, falls nötig
+        // Verstecke die UI-Panel
+        const uiPanel = document.getElementById('ui-panel');
+        if (uiPanel) {
+            uiPanel.style.display = 'none';
+        }
     }
 }
