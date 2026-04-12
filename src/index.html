@@ -7,27 +7,40 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div id="app">
-        <p>Falls dieser Text sichtbar ist, wird das JavaScript nicht korrekt geladen.</p>
+    <div id="top-bar" style="display: none;">
+        <button id="options-button">Optionen</button>
+        <button id="save-button">Speichern</button>
+        <button id="reset-button">Zurücksetzen</button>
     </div>
-    <div id="ui-panel" style="display: none;">
-        <div id="unit-details">
-            <h3>Einheiten-Details</h3>
-            <p id="unit-info">Wähle eine Einheit aus, um Details anzuzeigen.</p>
+    <div id="main-area">
+        <div id="info-panel" style="display: none;">
+            <div id="unit-details">
+                <h3>Einheiten-Details</h3>
+                <p id="unit-info">Wähle eine Einheit aus, um Details anzuzeigen.</p>
+            </div>
+            <div id="terrain-info">
+                <h3>Terrain-Infos</h3>
+                <p id="terrain-info-text">Klicke auf ein Feld, um Terrain-Infos anzuzeigen.</p>
+            </div>
         </div>
-        <div id="action-console">
-            <h3>Aktions-Log</h3>
-            <div id="console-output"></div>
+        <div id="game-area">
+            <div id="app">
+                <p>Falls dieser Text sichtbar ist, wird das JavaScript nicht korrekt geladen.</p>
+            </div>
         </div>
+    </div>
+    <div id="action-console" style="display: none;">
+        <h3>Aktions-Log</h3>
+        <div id="console-output"></div>
+    </div>
+    <div id="dialog-overlay" style="display: none;">
+        <div id="dialog-box">
+            <div id="left-portrait"></div>
+            <div id="dialog-text"></div>
+            <div id="right-portrait"></div>
+        </div>
+        <div id="dialog-hint">Klicken zum Fortfahren</div>
     </div>
     <script type="module" src="js/main.js"></script>
-    <style>
-        #app {
-            display: flex;
-            flex-direction: row;
-            align-items: flex-start;
-            gap: 20px;
-        }
-    </style>
 </body>
 </html>

@@ -7,6 +7,7 @@ import { getHeroPosition, setHeroPosition } from '../entities/hero.js';
 import { saveGame, loadGame, resetGame } from '../engine/storage.js';
 import { mission01 } from '../data/missions/mission_01.js';
 import { initConsole, log, setUnitDetails } from '../engine/console.js';
+import { initDialog, playDialog } from '../engine/dialog.js';
 
 let grid;
 
@@ -42,38 +43,52 @@ export class CombatScene {
         const gridData = getGridData();
         grid = gridData.grid;
         
-        // Zeige die UI-Panel an
-        const uiPanel = document.getElementById('ui-panel');
-        if (uiPanel) {
-            uiPanel.style.display = 'flex';
-        }
+        // Zeige die Top-Bar, Info-Panel und Action-Console an
+        const topBar = document.getElementById('top-bar');
+        const infoPanel = document.getElementById('info-panel');
+        const actionConsole = document.getElementById('action-console');
+        
+        if (topBar) topBar.style.display = 'flex';
+        if (infoPanel) infoPanel.style.display = 'flex';
+        if (actionConsole) actionConsole.style.display = 'block';
         
         // Initialisiere die Konsole
         initConsole();
         log('Willkommen beim SI-Games Jubiläum!');
         
+        // Initialisiere das Dialog-Overlay
+        initDialog();
+        
+        // Starte den Dialog, falls vorhanden
+        if (this.mission.dialogues && this.mission.dialogues.length > 0) {
+            playDialog(this.mission.dialogues);
+        }
+        
         // UI-Container erstellen
         const uiContainer = document.createElement('div');
         uiContainer.className = 'ui-container';
         
-        const saveButton = document.createElement('button');
-        saveButton.textContent = 'Speichern';
-        saveButton.addEventListener('click', () => {
-            const heroPos = getHeroPosition();
-            saveGame({ player: heroPos });
-        });
+        // Die Buttons in der Top-Bar werden jetzt verwendet
+        const saveButton = document.getElementById('save-button');
+        const resetButton = document.getElementById('reset-button');
         
-        const resetButton = document.createElement('button');
-        resetButton.textContent = 'Zurücksetzen';
-        resetButton.addEventListener('click', () => {
-            resetGame();
-            // Setze die Position des Helden zurück
-            setHeroPosition(0, 0);
-            drawGrid();
-        });
+        if (saveButton) {
+            saveButton.addEventListener('click', () => {
+                const heroPos = getHeroPosition();
+                saveGame({ player: heroPos });
+                log('Spielstand gespeichert!');
+            });
+        }
         
-        uiContainer.appendChild(saveButton);
-        uiContainer.appendChild(resetButton);
+        if (resetButton) {
+            resetButton.addEventListener('click', () => {
+                resetGame();
+                // Setze die Position des Helden zurück
+                setHeroPosition(0, 0);
+                drawGrid();
+                log('Spielstand zurückgesetzt!');
+            });
+        }
         
         appElement.appendChild(canvas);
         appElement.appendChild(uiContainer);
@@ -95,6 +110,13 @@ export class CombatScene {
             // Logge den Klick auf das Feld
             log(`Feld geklickt: ${col}, ${row}`);
             
+            // Zeige Terrain-Infos an
+            const cell = grid[row][col];
+            const terrainInfo = document.getElementById('terrain-info-text');
+            if (terrainInfo) {
+                terrainInfo.textContent = `Terrain: ${cell.type}`;
+            }
+            
             // Überprüfe, ob das neue Feld passierbar ist
             if (isPassable(row, col, grid)) {
                 setHeroPosition(row, col);
@@ -111,6 +133,10 @@ export class CombatScene {
 
     // Wird aufgerufen, wenn die Szene verlassen wird
     onExit() {
-        // Aufräumen, falls nötig
+        // Verstecke die UI-Panel
+        const uiPanel = document.getElementById('ui-panel');
+        if (uiPanel) {
+            uiPanel.style.display = 'none';
+        }
     }
 }

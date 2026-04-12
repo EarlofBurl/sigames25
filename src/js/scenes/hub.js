@@ -38,6 +38,21 @@ export class HubScene {
         hubContainer.appendChild(title);
         hubContainer.appendChild(startButton);
         hubContainer.appendChild(loadButton);
+        
+        // Verstecke die Top-Bar, Info-Panel und Action-Console im Hub
+        const topBar = document.getElementById('top-bar');
+        const infoPanel = document.getElementById('info-panel');
+        const actionConsole = document.getElementById('action-console');
+        
+        if (topBar) topBar.style.display = 'none';
+        if (infoPanel) infoPanel.style.display = 'none';
+        if (actionConsole) actionConsole.style.display = 'none';
+        
+        // Verstecke die UI-Panel im Hub
+        const uiPanel = document.getElementById('ui-panel');
+        if (uiPanel) {
+            uiPanel.style.display = 'none';
+        }
         appElement.appendChild(hubContainer);
     }
 
