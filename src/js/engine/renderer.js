@@ -4,7 +4,7 @@
 import { getHeroPosition, getHeroColor } from '../entities/hero.js';
 import { getEnemies } from '../entities/enemy.js';
 import { terrainThemes } from '../data/terrain.js';
-import { getMovementCost } from '../engine/input.js';
+import { getMovementCost, isPassable } from '../engine/input.js';
 
 const GRID_SIZE = 10;
 const CELL_SIZE = 50;
@@ -80,40 +80,114 @@ function drawPathLine(target) {
     const dCol = Math.abs(target.col - heroPos.col);
     const manhattanDistance = dRow + dCol;
     
-    // Berechne die Bewegungskosten für jeden Schritt
+    // Berechne die Bewegungskosten für den kürzesten Weg
     let totalMovementCost = 0;
-    for (let i = 1; i <= manhattanDistance; i++) {
-        const stepRow = heroPos.row + Math.sign(target.row - heroPos.row) * Math.min(i, dRow);
-        const stepCol = heroPos.col + Math.sign(target.col - heroPos.col) * Math.min(i, dCol);
-        totalMovementCost += getMovementCost(stepRow, stepCol, grid);
+    let path = [];
+    
+    // Finde den kürzesten Weg mit A*
+    const openSet = [];
+    const closedSet = new Set();
+    const gScore = {};
+    const fScore = {};
+    const cameFrom = {};
+    
+    // Initialisiere die Scores
+    for (let row = 0; row < GRID_SIZE; row++) {
+        for (let col = 0; col < GRID_SIZE; col++) {
+            gScore[`${row},${col}`] = Infinity;
+            fScore[`${row},${col}`] = Infinity;
+        }
     }
     
-    // Zeichne die Pathlinie schrittweise
+    gScore[`${heroPos.row},${heroPos.col}`] = 0;
+    fScore[`${heroPos.row},${heroPos.col}`] = manhattanDistance;
+    openSet.push({ row: heroPos.row, col: heroPos.col });
+    
+    while (openSet.length > 0) {
+        // Finde den Knoten mit dem niedrigsten fScore
+        let current = openSet[0];
+        for (const node of openSet) {
+            if (fScore[`${node.row},${node.col}`] < fScore[`${current.row},${current.col}`]) {
+                current = node;
+            }
+        }
+        
+        if (current.row === target.row && current.col === target.col) {
+            // Ziel erreicht, rekonstruiere den Pfad
+            let currentNode = current;
+            while (currentNode.row !== heroPos.row || currentNode.col !== heroPos.col) {
+                path.unshift(currentNode);
+                currentNode = cameFrom[`${currentNode.row},${currentNode.col}`];
+            }
+            break;
+        }
+        
+        openSet.splice(openSet.indexOf(current), 1);
+        closedSet.add(`${current.row},${current.col}`);
+        
+        // Überprüfe die Nachbarn
+        const neighbors = [
+            { row: current.row - 1, col: current.col },
+            { row: current.row + 1, col: current.col },
+            { row: current.row, col: current.col - 1 },
+            { row: current.row, col: current.col + 1 }
+        ];
+        
+        for (const neighbor of neighbors) {
+            if (closedSet.has(`${neighbor.row},${neighbor.col}`)) {
+                continue;
+            }
+            
+            if (neighbor.row < 0 || neighbor.row >= GRID_SIZE || neighbor.col < 0 || neighbor.col >= GRID_SIZE) {
+                continue;
+            }
+            
+             if (!isPassable(neighbor.row, neighbor.col, grid)) {
+                 continue;
+             }
+             
+             // Überprüfe, ob ein Feind auf dem Feld steht
+             const enemies = getEnemies();
+             const enemyOnField = enemies.some(enemy => enemy.row === neighbor.row && enemy.col === neighbor.col);
+             if (enemyOnField) {
+                 continue;
+             }
+            
+            const tentativeGScore = gScore[`${current.row},${current.col}`] + getMovementCost(neighbor.row, neighbor.col, grid);
+            
+            if (!openSet.some(node => node.row === neighbor.row && node.col === neighbor.col)) {
+                openSet.push(neighbor);
+            }
+            
+            if (tentativeGScore < gScore[`${neighbor.row},${neighbor.col}`]) {
+                cameFrom[`${neighbor.row},${neighbor.col}`] = current;
+                gScore[`${neighbor.row},${neighbor.col}`] = tentativeGScore;
+                fScore[`${neighbor.row},${neighbor.col}`] = tentativeGScore + (Math.abs(neighbor.row - target.row) + Math.abs(neighbor.col - target.col));
+            }
+        }
+    }
+    
+    // Berechne die Bewegungskosten für den kürzesten Weg
+    totalMovementCost = gScore[`${target.row},${target.col}`];
+    
+    // Zeichne die Pathlinie basierend auf dem kürzesten Weg
     ctx.strokeStyle = 'rgba(255, 0, 0, 0.7)';
     ctx.lineWidth = 3;
     
-    // Zeichne den orthogonalen Pfad
+    // Zeichne den kürzesten Pfad
     let currentRow = heroPos.row;
     let currentCol = heroPos.col;
     
-    // Zeichne die horizontale Bewegung
-    if (dCol > 0) {
-        const direction = Math.sign(target.col - heroPos.col);
-        ctx.beginPath();
-        ctx.moveTo(currentCol * CELL_SIZE + CELL_SIZE / 2, currentRow * CELL_SIZE + CELL_SIZE / 2);
-        currentCol += direction * dCol;
-        ctx.lineTo(currentCol * CELL_SIZE + CELL_SIZE / 2, currentRow * CELL_SIZE + CELL_SIZE / 2);
-        ctx.stroke();
-    }
+    ctx.beginPath();
+    ctx.moveTo(currentCol * CELL_SIZE + CELL_SIZE / 2, currentRow * CELL_SIZE + CELL_SIZE / 2);
     
-    // Zeichne die vertikale Bewegung
-    if (dRow > 0) {
-        const direction = Math.sign(target.row - heroPos.row);
-        ctx.beginPath();
-        ctx.moveTo(currentCol * CELL_SIZE + CELL_SIZE / 2, currentRow * CELL_SIZE + CELL_SIZE / 2);
-        currentRow += direction * dRow;
+    for (const node of path) {
+        currentRow = node.row;
+        currentCol = node.col;
         ctx.lineTo(currentCol * CELL_SIZE + CELL_SIZE / 2, currentRow * CELL_SIZE + CELL_SIZE / 2);
         ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(currentCol * CELL_SIZE + CELL_SIZE / 2, currentRow * CELL_SIZE + CELL_SIZE / 2);
     }
     
     // Zeichne die Bewegungskosten

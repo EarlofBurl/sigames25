@@ -104,28 +104,42 @@ export class CombatScene {
 
          const restartMissionButton = document.getElementById('restart-mission-button');
          if (restartMissionButton) {
-             restartMissionButton.addEventListener('click', () => {
-                 // Setze die Position des Helden zurück
-                 setHeroPosition(0, 0);
-                 refillHeroMp();
-                 
-                 // Initialisiere die Feinde neu
-                 if (this.mission.enemies) {
-                     initEnemies(this.mission.enemies);
-                 }
-                 
-                 drawGrid();
-                 log('Mission neu gestartet!');
-             });
+              restartMissionButton.addEventListener('click', () => {
+                  // Setze die Position des Helden zurück
+                  setHeroPosition(0, 0);
+                  refillHeroMp();
+                  
+                  // Initialisiere die Feinde neu
+                  if (this.mission.enemies) {
+                      initEnemies(this.mission.enemies);
+                  }
+                  
+                  // Setze den Runden-Counter zurück
+                  turnCounter = 1;
+                  const turnCounterElement = document.getElementById('turn-number');
+                  if (turnCounterElement) {
+                      turnCounterElement.textContent = turnCounter;
+                  }
+                  
+                  drawGrid();
+                  log('Mission neu gestartet!');
+              });
          }
         
-        // Der "Zug beenden"-Button ist jetzt in der Top-Bar
+         // Der "Zug beenden"-Button ist jetzt in der Top-Bar
         const endTurnButton = document.getElementById('end-turn-button');
+        let turnCounter = 1;
+        const turnCounterElement = document.getElementById('turn-number');
+        
         if (endTurnButton) {
             endTurnButton.addEventListener('click', () => {
                 refillHeroMp();
                 const heroAttr = getHeroAttributes();
-                log(`Zug beendet. Bewegungspunkte wieder aufgefüllt: ${heroAttr.mp}/${heroAttr.maxMp}`);
+                turnCounter++;
+                if (turnCounterElement) {
+                    turnCounterElement.textContent = turnCounter;
+                }
+                log(`Runde ${turnCounter} gestartet. Bewegungspunkte wieder aufgefüllt: ${heroAttr.mp}/${heroAttr.maxMp}`);
             });
         }
         
@@ -151,20 +165,23 @@ export class CombatScene {
         appElement.appendChild(uiContainer);
         
         // Eingaben einrichten
-        // Event-Listener für Tastatursteuerung
+         // Event-Listener für Tastatursteuerung
         document.addEventListener('keydown', (event) => {
             switch (event.key) {
-                case ' ': // Leertaste: Zug überspringen
+                case ' ': // Leertaste: Warten
                     event.preventDefault();
-                    refillHeroMp();
                     const heroAttr = getHeroAttributes();
-                    log(`Zug übersprungen. Bewegungspunkte wieder aufgefüllt: ${heroAttr.mp}/${heroAttr.maxMp}`);
+                    log(`Montesquieu wartet. Bewegungspunkte: ${heroAttr.mp}/${heroAttr.maxMp}`);
                     break;
                 case 'Enter': // Enter: Runde beenden
                     event.preventDefault();
                     refillHeroMp();
                     const updatedHeroAttr = getHeroAttributes();
-                    log(`Runde beendet. Bewegungspunkte wieder aufgefüllt: ${updatedHeroAttr.mp}/${updatedHeroAttr.maxMp}`);
+                    turnCounter++;
+                    if (turnCounterElement) {
+                        turnCounterElement.textContent = turnCounter;
+                    }
+                    log(`Runde ${turnCounter} gestartet. Bewegungspunkte wieder aufgefüllt: ${updatedHeroAttr.mp}/${updatedHeroAttr.maxMp}`);
                     break;
             }
         });
@@ -197,10 +214,15 @@ export class CombatScene {
                 document.getElementById('unit-attack').textContent = updatedHeroAttr.attack;
                 document.getElementById('unit-defense').textContent = updatedHeroAttr.defense;
                 
-                setUnitDetails(`Held positioniert bei: (${updatedHeroPos.col}, ${updatedHeroPos.row})`);
-                
-                log(`Bewegung kostete ${movementCost} MP. Verbleibende MP: ${updatedHeroAttr.mp}`);
-            } else if (!isPassable(newRow, newCol, grid)) {
+                 setUnitDetails(`Held positioniert bei: (${updatedHeroPos.col}, ${updatedHeroPos.row})`);
+                 
+                 log(`Bewegung kostete ${movementCost} MP. Verbleibende MP: ${updatedHeroAttr.mp}`);
+                 
+                 // Überprüfe, ob keine MPs mehr übrig sind
+                 if (updatedHeroAttr.mp === 0) {
+                     log('Keine Einheit mehr zu bewegen. Neue Runde mit (Enter).');
+                 }
+             } else if (!isPassable(newRow, newCol, grid)) {
                 log('Dieses Feld ist nicht passierbar!');
             } else {
                 log('Nicht genug Bewegungspunkte!');
@@ -245,9 +267,14 @@ export class CombatScene {
                 document.getElementById('unit-attack').textContent = updatedHeroAttr.attack;
                 document.getElementById('unit-defense').textContent = updatedHeroAttr.defense;
                 
-                setUnitDetails(`Held positioniert bei: (${heroPos.col}, ${heroPos.row})`);
-                
-                log(`Bewegung kostete ${movementCost} MP. Verbleibende MP: ${updatedHeroAttr.mp}`);
+                 setUnitDetails(`Held positioniert bei: (${heroPos.col}, ${heroPos.row})`);
+                 
+                 log(`Bewegung kostete ${movementCost} MP. Verbleibende MP: ${updatedHeroAttr.mp}`);
+                 
+                 // Überprüfe, ob keine MPs mehr übrig sind
+                 if (updatedHeroAttr.mp === 0) {
+                     log('Keine Einheit mehr zu bewegen. Neue Runde mit (Enter).');
+                 }
             } else if (!isPassable(row, col, grid)) {
                 log('Dieses Feld ist nicht passierbar!');
             } else {
@@ -315,15 +342,31 @@ export class CombatScene {
                               drawGrid();
                           }
                           
-                          // Beende die Aktion der Einheit
-                          setHeroMp(0);
-                          document.getElementById('unit-mp').textContent = '0';
-                          
-                          setUnitDetails(`Angriff auf ${enemy.name} bei: (${col}, ${row})`);
-                          
-                          // Zurücksetzen
-                          selectedTarget = null;
-                          clearSelectedTarget();
+                            // Beende die Aktion der Einheit
+                            setHeroMp(0);
+                            document.getElementById('unit-mp').textContent = '0';
+                            
+                            setUnitDetails(`Angriff auf ${enemy.name} bei: (${col}, ${row})`);
+                            
+                            // Beende die Runde für die Einheit
+                            selectedUnit = null;
+                            document.getElementById('unit-name').textContent = '';
+                            document.getElementById('unit-hp').textContent = '';
+                            document.getElementById('unit-max-hp').textContent = '';
+                            document.getElementById('unit-mp').textContent = '';
+                            document.getElementById('unit-max-mp').textContent = '';
+                            document.getElementById('unit-attack').textContent = '';
+                            document.getElementById('unit-defense').textContent = '';
+                            
+                            // Zurücksetzen
+                            selectedTarget = null;
+                            clearSelectedTarget();
+                            
+                            // Überprüfe, ob alle Einheiten keine MPs mehr haben
+                            const updatedHeroAttr = getHeroAttributes();
+                            if (updatedHeroAttr.mp === 0) {
+                                log('Keine Einheit mehr zu bewegen. Neue Runde mit (Enter).');
+                            }
                       } else {
                           log('Angriff nur auf orthogonale Felder möglich!');
                       }
@@ -370,9 +413,14 @@ export class CombatScene {
                      const updatedHeroAttr = getHeroAttributes();
                      document.getElementById('unit-mp').textContent = updatedHeroAttr.mp;
                      
-                     setUnitDetails(`Held positioniert bei: (${selectedTarget.col}, ${selectedTarget.row})`);
-                     log(`Bewegung kostete ${totalMovementCost} MP. Verbleibende MP: ${updatedHeroAttr.mp}`);
-                 } else {
+                      setUnitDetails(`Held positioniert bei: (${selectedTarget.col}, ${selectedTarget.row})`);
+                      log(`Bewegung kostete ${totalMovementCost} MP. Verbleibende MP: ${updatedHeroAttr.mp}`);
+                      
+                      // Überprüfe, ob keine MPs mehr übrig sind
+                      if (updatedHeroAttr.mp === 0) {
+                          log('Keine Einheit mehr zu bewegen. Neue Runde mit (Enter).');
+                      }
+                  } else {
                      log('Nicht genug Bewegungspunkte für die gesamte Strecke!');
                  }
                  
