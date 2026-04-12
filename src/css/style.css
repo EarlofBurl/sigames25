@@ -67,6 +67,11 @@ body {
     background-color: #eee;
 }
 
+#unit-stats {
+    margin-top: 10px;
+    font-size: 14px;
+}
+
 #unit-commands {
     display: flex;
     flex-direction: column;

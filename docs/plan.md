@@ -44,12 +44,39 @@
 - [x] Implementiere ein Dialog-Overlay-System für Missionseinführungen und Gespräche.
 
 ## Meilenstein 9: Einheiten-Attribute & Runden-Logik
-- [ ] Erweitere die Spielfigur (`hero.js`) um Attribute: `hp` (Lebenspunkte), `maxHp`, `mp` (Bewegungspunkte), `attack`, `defense`.
-- [ ] Implementiere den Runden-Ablauf: Ein "Zug beenden"-Button, der die MP der Figur wieder auffüllt.
-- [ ] Verbinde die Bewegung mit dem Terrain: Ein Schritt kostet MP abhängig vom Terrain. Wenn MP < Kosten, wird die Bewegung blockiert und eine Nachricht an die Konsole geschickt.
+- [x] Erweitere die Spielfigur (`hero.js`) um Attribute: `hp` (Lebenspunkte), `maxHp`, `mp` (Bewegungspunkte), `attack`, `defense`.
+- [x] Implementiere den Runden-Ablauf: Ein "Zug beenden"-Button, der die MP der Figur wieder auffüllt.
+- [x] Verbinde die Bewegung mit dem Terrain: Ein Schritt kostet MP abhängig vom Terrain. Wenn MP < Kosten, wird die Bewegung blockiert und eine Nachricht an die Konsole geschickt.
+- [x] Steuerung: Links-Klick wählt Einheit aus oder gibt Terrain-Infos, Rechtsklick bewegt Einheit. Sichtbar, wieviele Züge eine Bewegung kosten würde durch eine Bewegungslinie. Ziel-Feld-Cursor ein Symbol.
+- [x] Leertaste: Zug für Einheit überspringen (wie  bei Civ)
+- [x] Alle Einheiten Bewegung beendet: Enter beendet runde. Klick auf Button Runde beenden, beendet immer Zug.
 
 ## Meilenstein 10: Kampfsystem & Feinde
 - [ ] Erstelle eine Feind-Einheit (z.B. `entities/enemy.js`) und platziere einen Test-Gegner (z.B. "Goblin") auf der Karte.
 - [ ] Implementiere die Angriffslogik: Zieht man auf ein Feld mit einem Feind, wird angegriffen statt bewegt.
 - [ ] Berechne den Schaden (z.B. `Angreifer Attack - Verteidiger Defense + Terrain-Bonus`) und gib das Ergebnis über die Info-Konsole aus ("Montesquieu greift Goblin für 5 Schaden an!").
 - [ ] Entferne Einheiten mit 0 HP vom Spielfeld.
+
+## Meilenstein 11: Armee-Verwaltung & Mehrere Einheiten
+- [ ] Refactoring: Ersetze das einzelne `player`-Objekt durch ein Array `playerUnits[]` und `enemyUnits[]`.
+- [ ] Ermögliche das Durchschalten eigener Einheiten (z.B. per `TAB`-Taste oder durch Klick auf "Nächste Einheit"-Button).
+- [ ] Passe den "Zug beenden"-Ablauf an: Die Spieler-Runde endet erst, wenn der "Runde beenden"-Button geklickt wird oder alle Einheiten ihre MP verbraucht haben.
+
+## Meilenstein 12: Feindliche KI (Enemy Phase)
+- [ ] Implementiere den Rundenwechsel: Wenn der Spieler die Runde beendet, startet die `Enemy Phase`.
+- [ ] Baue eine einfache KI für Feinde:
+  1. Finde die nächste Spielereinheit.
+  2. Berechne den Pfad dorthin (unter Berücksichtigung der eigenen MP).
+  3. Bewege die Feind-Einheit.
+  4. Greife an, falls der Spieler in Reichweite (orthogonale Nachbarschaft) ist.
+- [ ] Wenn alle Feinde gehandelt haben, wechsle zurück zur `Player Phase`.
+
+## Meilenstein 13: Siegbedingungen & Fortschritt (Hub)
+- [ ] Definiere Sieg- und Niederlage-Bedingungen in `mission_01.js` (z.B. `winCondition: 'defeat_all'`).
+- [ ] Implementiere einen "Victory"- und "Defeat"-Screen über das `dialog.js` Overlay.
+- [ ] Kehre nach der Mission zum Hub (`hub.js`) zurück.
+- [ ] Füge Erfahrungspunkte (XP) und Level-Ups für überlebende Einheiten hinzu (können im Hub eingesehen werden).
+
+## Meilenstein 14: Das SI-Games Jubiläums-Szenario
+- [ ] Erstelle `mission_02.js` und richte den Fortschritt so ein, dass man nach Mission 1 im Hub die nächste Mission wählen kann.
+- [ ] Baue Terrain-Besonderheiten aus Civ 2 vollständig ein (z.B. Städte heilen am Rundenanfang).

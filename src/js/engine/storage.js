@@ -4,8 +4,8 @@
 const SAVE_KEY = 'siGamesSave';
 
 // Speichert den aktuellen Spielstand im LocalStorage
-export function saveGame(gridData) {
-    localStorage.setItem(SAVE_KEY, JSON.stringify(gridData));
+export function saveGame(playerData) {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(playerData));
     console.log('Spielstand gespeichert!');
 }
 

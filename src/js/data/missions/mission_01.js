@@ -26,6 +26,17 @@ export const mission01 = {
         'Erreiche das Zielgebiet',
         'Besiege alle Gegner'
     ],
+    enemies: [
+        {
+            name: 'Goblin',
+            row: 5,
+            col: 5,
+            hp: 8,
+            maxHp: 8,
+            attack: 2,
+            defense: 1
+        }
+    ],
     dialogues: [
         {
             character: 'Spielleiter',

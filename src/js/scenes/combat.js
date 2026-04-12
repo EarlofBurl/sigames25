@@ -1,15 +1,18 @@
 // combat.js
 // Kampf-Szene mit Grid und Spielfigur
 
-import { initRenderer, drawGrid, getGridData } from '../engine/renderer.js';
-import { setupKeyboardControls, setupMouseControls, isPassable } from '../engine/input.js';
-import { getHeroPosition, setHeroPosition } from '../entities/hero.js';
+import { initRenderer, drawGrid, getGridData, setSelectedTarget, clearSelectedTarget } from '../engine/renderer.js';
+import { setupKeyboardControls, setupMouseControls, isPassable, getMovementCost } from '../engine/input.js';
+import { getHeroPosition, setHeroPosition, setHeroMp, refillHeroMp, getHeroAttributes } from '../entities/hero.js';
+import { getEnemies, initEnemies, _internal as enemyInternal } from '../entities/enemy.js';
 import { saveGame, loadGame, resetGame } from '../engine/storage.js';
 import { mission01 } from '../data/missions/mission_01.js';
 import { initConsole, log, setUnitDetails } from '../engine/console.js';
 import { initDialog, playDialog } from '../engine/dialog.js';
 
 let grid;
+let selectedUnit = null;
+let selectedTarget = null;
 
 export class CombatScene {
     constructor(sceneManager, mission) {
@@ -31,9 +34,11 @@ export class CombatScene {
         const savedData = loadGame();
         if (savedData) {
             setHeroPosition(savedData.player.row, savedData.player.col);
+            setHeroMp(savedData.player.mp);
         } else {
             // Setze die Position des Helden auf den Startpunkt, falls kein Spielstand vorhanden ist
             setHeroPosition(0, 0);
+            refillHeroMp();
         }
         
         // Initialisiere den Renderer mit der Mission
@@ -42,6 +47,11 @@ export class CombatScene {
         // Lade das Grid für die Bewegungsprüfung
         const gridData = getGridData();
         grid = gridData.grid;
+        
+        // Initialisiere die Feinde
+        if (this.mission.enemies) {
+            initEnemies(this.mission.enemies);
+        }
         
         // Zeige die Top-Bar, Info-Panel und Action-Console an
         const topBar = document.getElementById('top-bar');
@@ -75,18 +85,65 @@ export class CombatScene {
         if (saveButton) {
             saveButton.addEventListener('click', () => {
                 const heroPos = getHeroPosition();
-                saveGame({ player: heroPos });
+                const heroAttr = getHeroAttributes();
+                saveGame({ player: { ...heroPos, ...heroAttr } });
                 log('Spielstand gespeichert!');
             });
         }
         
-        if (resetButton) {
-            resetButton.addEventListener('click', () => {
-                resetGame();
-                // Setze die Position des Helden zurück
-                setHeroPosition(0, 0);
-                drawGrid();
-                log('Spielstand zurückgesetzt!');
+         if (resetButton) {
+             resetButton.addEventListener('click', () => {
+                 resetGame();
+                 // Setze die Position des Helden zurück
+                 setHeroPosition(0, 0);
+                 refillHeroMp();
+                 drawGrid();
+                 log('Spielstand zurückgesetzt!');
+             });
+         }
+
+         const restartMissionButton = document.getElementById('restart-mission-button');
+         if (restartMissionButton) {
+             restartMissionButton.addEventListener('click', () => {
+                 // Setze die Position des Helden zurück
+                 setHeroPosition(0, 0);
+                 refillHeroMp();
+                 
+                 // Initialisiere die Feinde neu
+                 if (this.mission.enemies) {
+                     initEnemies(this.mission.enemies);
+                 }
+                 
+                 drawGrid();
+                 log('Mission neu gestartet!');
+             });
+         }
+        
+        // Der "Zug beenden"-Button ist jetzt in der Top-Bar
+        const endTurnButton = document.getElementById('end-turn-button');
+        if (endTurnButton) {
+            endTurnButton.addEventListener('click', () => {
+                refillHeroMp();
+                const heroAttr = getHeroAttributes();
+                log(`Zug beendet. Bewegungspunkte wieder aufgefüllt: ${heroAttr.mp}/${heroAttr.maxMp}`);
+            });
+        }
+        
+        // Event-Listener für den "Einheit abwählen"-Button
+        const deselectButton = document.getElementById('deselect-button');
+        if (deselectButton) {
+            deselectButton.addEventListener('click', () => {
+                selectedUnit = null;
+                document.getElementById('unit-name').textContent = '';
+                document.getElementById('unit-hp').textContent = '';
+                document.getElementById('unit-max-hp').textContent = '';
+                document.getElementById('unit-mp').textContent = '';
+                document.getElementById('unit-max-mp').textContent = '';
+                document.getElementById('unit-attack').textContent = '';
+                document.getElementById('unit-defense').textContent = '';
+                
+                setUnitDetails('Keine Einheit ausgewählt.');
+                log('Einheit abgewählt.');
             });
         }
         
@@ -94,41 +151,261 @@ export class CombatScene {
         appElement.appendChild(uiContainer);
         
         // Eingaben einrichten
-        setupKeyboardControls((rowOffset, colOffset) => {
-            const heroPos = getHeroPosition();
-            const newRow = heroPos.row + rowOffset;
-            const newCol = heroPos.col + colOffset;
-            
-            // Überprüfe, ob das neue Feld passierbar ist
-            if (isPassable(newRow, newCol, grid)) {
-                setHeroPosition(newRow, newCol);
-                drawGrid();
+        // Event-Listener für Tastatursteuerung
+        document.addEventListener('keydown', (event) => {
+            switch (event.key) {
+                case ' ': // Leertaste: Zug überspringen
+                    event.preventDefault();
+                    refillHeroMp();
+                    const heroAttr = getHeroAttributes();
+                    log(`Zug übersprungen. Bewegungspunkte wieder aufgefüllt: ${heroAttr.mp}/${heroAttr.maxMp}`);
+                    break;
+                case 'Enter': // Enter: Runde beenden
+                    event.preventDefault();
+                    refillHeroMp();
+                    const updatedHeroAttr = getHeroAttributes();
+                    log(`Runde beendet. Bewegungspunkte wieder aufgefüllt: ${updatedHeroAttr.mp}/${updatedHeroAttr.maxMp}`);
+                    break;
             }
         });
         
-        setupMouseControls(canvas, (row, col) => {
-            // Logge den Klick auf das Feld
-            log(`Feld geklickt: ${col}, ${row}`);
+        setupKeyboardControls((rowOffset, colOffset) => {
+            const heroPos = getHeroPosition();
+            const heroAttr = getHeroAttributes();
+            const newRow = heroPos.row + rowOffset;
+            const newCol = heroPos.col + colOffset;
             
-            // Zeige Terrain-Infos an
-            const cell = grid[row][col];
-            const terrainInfo = document.getElementById('terrain-info-text');
-            if (terrainInfo) {
-                terrainInfo.textContent = `Terrain: ${cell.type}`;
+            // Berechne die Bewegungskosten
+            const movementCost = getMovementCost(newRow, newCol, grid);
+            
+            // Überprüfe, ob das neue Feld passierbar ist und genug MP vorhanden sind
+            if (isPassable(newRow, newCol, grid) && heroAttr.mp >= movementCost) {
+                setHeroPosition(newRow, newCol);
+                setHeroMp(heroAttr.mp - movementCost);
+                drawGrid();
+                
+                // Zeige die Einheiten-Details an
+                const updatedHeroPos = getHeroPosition();
+                const updatedHeroAttr = getHeroAttributes();
+                
+                // Aktualisiere die Stats in der UI
+                document.getElementById('unit-name').textContent = 'Montesquieu';
+                document.getElementById('unit-hp').textContent = updatedHeroAttr.hp;
+                document.getElementById('unit-max-hp').textContent = updatedHeroAttr.maxHp;
+                document.getElementById('unit-mp').textContent = updatedHeroAttr.mp;
+                document.getElementById('unit-max-mp').textContent = updatedHeroAttr.maxMp;
+                document.getElementById('unit-attack').textContent = updatedHeroAttr.attack;
+                document.getElementById('unit-defense').textContent = updatedHeroAttr.defense;
+                
+                setUnitDetails(`Held positioniert bei: (${updatedHeroPos.col}, ${updatedHeroPos.row})`);
+                
+                log(`Bewegung kostete ${movementCost} MP. Verbleibende MP: ${updatedHeroAttr.mp}`);
+            } else if (!isPassable(newRow, newCol, grid)) {
+                log('Dieses Feld ist nicht passierbar!');
+            } else {
+                log('Nicht genug Bewegungspunkte!');
+            }
+        });
+        
+        // Event-Listener für Doppelklick (als Ersatz für Rechtsklick)
+        canvas.addEventListener('dblclick', (event) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            
+            const col = Math.floor(x / 50);
+            const row = Math.floor(y / 50);
+            
+            // Überprüfe, ob die Einheit ausgewählt ist
+            const unitName = document.getElementById('unit-name').textContent;
+            if (unitName !== 'Montesquieu') {
+                log('Wähle zuerst Montesquieu aus!');
+                return;
             }
             
             // Überprüfe, ob das neue Feld passierbar ist
-            if (isPassable(row, col, grid)) {
+            const heroAttr = getHeroAttributes();
+            const movementCost = getMovementCost(row, col, grid);
+            
+            if (isPassable(row, col, grid) && heroAttr.mp >= movementCost) {
                 setHeroPosition(row, col);
+                setHeroMp(heroAttr.mp - movementCost);
                 drawGrid();
                 
                 // Zeige die Einheiten-Details an
                 const heroPos = getHeroPosition();
+                const updatedHeroAttr = getHeroAttributes();
+                
+                // Aktualisiere die Stats in der UI
+                document.getElementById('unit-name').textContent = 'Montesquieu';
+                document.getElementById('unit-hp').textContent = updatedHeroAttr.hp;
+                document.getElementById('unit-max-hp').textContent = updatedHeroAttr.maxHp;
+                document.getElementById('unit-mp').textContent = updatedHeroAttr.mp;
+                document.getElementById('unit-max-mp').textContent = updatedHeroAttr.maxMp;
+                document.getElementById('unit-attack').textContent = updatedHeroAttr.attack;
+                document.getElementById('unit-defense').textContent = updatedHeroAttr.defense;
+                
                 setUnitDetails(`Held positioniert bei: (${heroPos.col}, ${heroPos.row})`);
-            } else {
+                
+                log(`Bewegung kostete ${movementCost} MP. Verbleibende MP: ${updatedHeroAttr.mp}`);
+            } else if (!isPassable(row, col, grid)) {
                 log('Dieses Feld ist nicht passierbar!');
+            } else {
+                log('Nicht genug Bewegungspunkte!');
             }
         });
+        
+         // Event-Listener für Links-Klick
+         canvas.addEventListener('click', (event) => {
+             const rect = canvas.getBoundingClientRect();
+             const x = event.clientX - rect.left;
+             const y = event.clientY - rect.top;
+             
+             const col = Math.floor(x / 50);
+             const row = Math.floor(y / 50);
+             
+             // Überprüfe, ob auf die Einheit geklickt wurde
+             const heroPos = getHeroPosition();
+             if (row === heroPos.row && col === heroPos.col) {
+                 // Einheit ausgewählt
+                 selectedUnit = 'Montesquieu';
+                 selectedTarget = null;
+                 const heroAttr = getHeroAttributes();
+                 
+                 // Aktualisiere die Stats in der UI
+                 document.getElementById('unit-name').textContent = 'Montesquieu';
+                 document.getElementById('unit-hp').textContent = heroAttr.hp;
+                 document.getElementById('unit-max-hp').textContent = heroAttr.maxHp;
+                 document.getElementById('unit-mp').textContent = heroAttr.mp;
+                 document.getElementById('unit-max-mp').textContent = heroAttr.maxMp;
+                 document.getElementById('unit-attack').textContent = heroAttr.attack;
+                 document.getElementById('unit-defense').textContent = heroAttr.defense;
+                 
+                 setUnitDetails('Held ausgewählt: Montesquieu');
+                 log('Montesquieu ausgewählt.');
+             } else if (selectedUnit && !selectedTarget && (row !== heroPos.row || col !== heroPos.col)) {
+                 // Überprüfe, ob auf einen Feind geklickt wurde
+                 const enemies = getEnemies();
+                 const enemyIndex = enemies.findIndex(enemy => enemy.row === row && enemy.col === col);
+                 
+                  if (enemyIndex !== -1) {
+                      // Überprüfe, ob der Feind orthogonal benachbart ist
+                      const heroPos = getHeroPosition();
+                      const isAdjacent = Math.abs(row - heroPos.row) + Math.abs(col - heroPos.col) === 1;
+                      
+                      if (isAdjacent) {
+                          // Angriff auslösen
+                          const enemy = enemies[enemyIndex];
+                          const heroAttr = getHeroAttributes();
+                          
+                          // Berechne den Schaden
+                          const damage = Math.max(1, heroAttr.attack - enemy.defense);
+                          
+                          // Wende den Schaden an
+                          const newHp = enemy.hp - damage;
+                          enemyInternal.setEnemyHp(enemyIndex, newHp);
+                          
+                          // Logge das Kampfergebnis
+                          log(`Montesquieu fügt ${enemy.name} ${damage} Schaden zu!`);
+                          
+                          // Überprüfe, ob der Feind besiegt wurde
+                          if (newHp <= 0) {
+                              enemyInternal.removeEnemy(enemyIndex);
+                              log(`${enemy.name} wurde besiegt!`);
+                              drawGrid();
+                          }
+                          
+                          // Beende die Aktion der Einheit
+                          setHeroMp(0);
+                          document.getElementById('unit-mp').textContent = '0';
+                          
+                          setUnitDetails(`Angriff auf ${enemy.name} bei: (${col}, ${row})`);
+                          
+                          // Zurücksetzen
+                          selectedTarget = null;
+                          clearSelectedTarget();
+                      } else {
+                          log('Angriff nur auf orthogonale Felder möglich!');
+                      }
+                  } else {
+                     // Leeres Feld ausgewählt, zeige Pathlinie
+                     const heroAttr = getHeroAttributes();
+                     const movementCost = getMovementCost(row, col, grid);
+                     
+                     if (isPassable(row, col, grid) && heroAttr.mp >= movementCost) {
+                         selectedTarget = { row, col };
+                         setSelectedTarget(selectedTarget);
+                         log(`Ziel ausgewählt: (${col}, ${row}). Klicke erneut, um zu bewegen.`);
+                     } else if (!isPassable(row, col, grid)) {
+                         log('Dieses Feld ist nicht passierbar!');
+                     } else {
+                         log('Nicht genug Bewegungspunkte!');
+                     }
+                 }
+             } else if (selectedUnit && selectedTarget && selectedTarget.row === row && selectedTarget.col === col) {
+                 // Bewegung auslösen
+                 const heroPos = getHeroPosition();
+                 const heroAttr = getHeroAttributes();
+                 
+                 // Berechne die Manhattan-Distanz
+                 const dRow = Math.abs(selectedTarget.row - heroPos.row);
+                 const dCol = Math.abs(selectedTarget.col - heroPos.col);
+                 const manhattanDistance = dRow + dCol;
+                 
+                 // Berechne die Bewegungskosten
+                 let totalMovementCost = 0;
+                 for (let i = 1; i <= manhattanDistance; i++) {
+                     const stepRow = heroPos.row + Math.sign(selectedTarget.row - heroPos.row) * Math.min(i, dRow);
+                     const stepCol = heroPos.col + Math.sign(selectedTarget.col - heroPos.col) * Math.min(i, dCol);
+                     totalMovementCost += getMovementCost(stepRow, stepCol, grid);
+                 }
+                 
+                 // Überprüfe, ob genug MP vorhanden sind
+                 if (heroAttr.mp >= totalMovementCost) {
+                     setHeroPosition(selectedTarget.row, selectedTarget.col);
+                     setHeroMp(heroAttr.mp - totalMovementCost);
+                     drawGrid();
+                     
+                     // Aktualisiere die Stats in der UI
+                     const updatedHeroAttr = getHeroAttributes();
+                     document.getElementById('unit-mp').textContent = updatedHeroAttr.mp;
+                     
+                     setUnitDetails(`Held positioniert bei: (${selectedTarget.col}, ${selectedTarget.row})`);
+                     log(`Bewegung kostete ${totalMovementCost} MP. Verbleibende MP: ${updatedHeroAttr.mp}`);
+                 } else {
+                     log('Nicht genug Bewegungspunkte für die gesamte Strecke!');
+                 }
+                 
+                 // Zurücksetzen
+                 selectedTarget = null;
+                 clearSelectedTarget();
+             } else if (selectedUnit) {
+                 // Bewegung abbrechen
+                 selectedTarget = null;
+                 clearSelectedTarget();
+                 log('Bewegung abgebrochen.');
+             } else {
+                 // Einheit abgewählt
+                 selectedUnit = null;
+                 document.getElementById('unit-name').textContent = '';
+                 document.getElementById('unit-hp').textContent = '';
+                 document.getElementById('unit-max-hp').textContent = '';
+                 document.getElementById('unit-mp').textContent = '';
+                 document.getElementById('unit-max-mp').textContent = '';
+                 document.getElementById('unit-attack').textContent = '';
+                 document.getElementById('unit-defense').textContent = '';
+                 
+                 setUnitDetails('Keine Einheit ausgewählt.');
+                 log('Einheit abgewählt.');
+             }
+             
+             // Zeige Terrain-Infos an
+             const cell = grid[row][col];
+             const terrainInfo = document.getElementById('terrain-info-text');
+             if (terrainInfo) {
+                 terrainInfo.textContent = `Terrain: ${cell.type}`;
+             }
+         });
     }
 
     // Wird aufgerufen, wenn die Szene verlassen wird
