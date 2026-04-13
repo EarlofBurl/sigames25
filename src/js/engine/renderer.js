@@ -1,10 +1,5 @@
-// renderer.js
-// Zeichnet das Grid und die Spielfigur auf das Canvas
-
-import { getHeroPosition, getHeroColor } from '../entities/hero.js';
-import { getEnemies } from '../entities/enemy.js';
-import { terrainThemes } from '../data/terrain.js';
-import { getMovementCost, isPassable } from '../engine/input.js';
+import { getPlayerUnits, getEnemyUnits } from '../entities/units.js';
+import { terrainThemes, terrainTypes } from '../data/terrain.js';
 
 const GRID_SIZE = 10;
 const CELL_SIZE = 50;
@@ -14,215 +9,162 @@ let canvas;
 let ctx;
 let currentTheme = 'classic';
 let selectedTarget = null;
+let selectedUnit = null;
 
-// Initialisiert das Grid
 export function initGrid(mission) {
     currentTheme = mission.theme || 'classic';
-    
-    for (let row = 0; row < GRID_SIZE; row++) {
-        grid[row] = [];
-        for (let col = 0; col < GRID_SIZE; col++) {
-            // Verwende das Terrain aus der Mission
-            const terrainType = mission.mapData.terrain[row][col];
-            const color = terrainThemes[currentTheme][terrainType];
-            
-            grid[row][col] = { type: terrainType, color };
-        }
-    }
+    grid = mission.mapData.terrain.map(row => 
+        row.map(type => ({ type, color: terrainThemes[currentTheme][type] }))
+    );
 }
 
-// Zeichnet das Grid
 export function drawGrid() {
+    if (!ctx) return;
+    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    for (let row = 0; row < GRID_SIZE; row++) {
-        for (let col = 0; col < GRID_SIZE; col++) {
-            const cell = grid[row][col];
-            ctx.fillStyle = cell.color;
-            ctx.fillRect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-            ctx.strokeStyle = '#333';
-            ctx.strokeRect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    
+    for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+            ctx.fillStyle = grid[r][c].color;
+            ctx.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+            
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.strokeRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
         }
     }
-
-    drawPlayer();
-    drawEnemies();
-
-    // Zeichne die Pathlinie, falls ein Ziel ausgewählt ist
-    if (selectedTarget) {
-        drawPathLine(selectedTarget);
-    }
-}
-
-// Zeichnet die Spielfigur
-function drawPlayer() {
-    const heroPos = getHeroPosition();
-    const heroColor = getHeroColor();
-    ctx.fillStyle = heroColor;
-    ctx.fillRect(heroPos.col * CELL_SIZE, heroPos.row * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-}
-
-// Zeichnet die Feinde
-function drawEnemies() {
-    const enemies = getEnemies();
-    enemies.forEach(enemy => {
-        ctx.fillStyle = '#ff0000';
-        ctx.fillRect(enemy.col * CELL_SIZE, enemy.row * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    
+    const allUnits = [...getEnemyUnits(), ...getPlayerUnits()];
+    allUnits.forEach(u => {
+        ctx.fillStyle = u.color;
+        ctx.fillRect(u.col * CELL_SIZE + 10, u.row * CELL_SIZE + 10, 30, 30);
     });
+    
+    drawSelectionHighlight();
 }
 
-// Zeichnet die Pathlinie
-function drawPathLine(target) {
-    const heroPos = getHeroPosition();
-    
-    // Berechne die Manhattan-Distanz
-    const dRow = Math.abs(target.row - heroPos.row);
-    const dCol = Math.abs(target.col - heroPos.col);
-    const manhattanDistance = dRow + dCol;
-    
-    // Berechne die Bewegungskosten für den kürzesten Weg
-    let totalMovementCost = 0;
-    let path = [];
-    
-    // Finde den kürzesten Weg mit A*
-    const openSet = [];
-    const closedSet = new Set();
-    const gScore = {};
-    const fScore = {};
-    const cameFrom = {};
-    
-    // Initialisiere die Scores
-    for (let row = 0; row < GRID_SIZE; row++) {
-        for (let col = 0; col < GRID_SIZE; col++) {
-            gScore[`${row},${col}`] = Infinity;
-            fScore[`${row},${col}`] = Infinity;
-        }
-    }
-    
-    gScore[`${heroPos.row},${heroPos.col}`] = 0;
-    fScore[`${heroPos.row},${heroPos.col}`] = manhattanDistance;
-    openSet.push({ row: heroPos.row, col: heroPos.col });
-    
-    while (openSet.length > 0) {
-        // Finde den Knoten mit dem niedrigsten fScore
-        let current = openSet[0];
-        for (const node of openSet) {
-            if (fScore[`${node.row},${node.col}`] < fScore[`${current.row},${current.col}`]) {
-                current = node;
-            }
-        }
-        
-        if (current.row === target.row && current.col === target.col) {
-            // Ziel erreicht, rekonstruiere den Pfad
-            let currentNode = current;
-            while (currentNode.row !== heroPos.row || currentNode.col !== heroPos.col) {
-                path.unshift(currentNode);
-                currentNode = cameFrom[`${currentNode.row},${currentNode.col}`];
-            }
-            break;
-        }
-        
-        openSet.splice(openSet.indexOf(current), 1);
-        closedSet.add(`${current.row},${current.col}`);
-        
-        // Überprüfe die Nachbarn
-        const neighbors = [
-            { row: current.row - 1, col: current.col },
-            { row: current.row + 1, col: current.col },
-            { row: current.row, col: current.col - 1 },
-            { row: current.row, col: current.col + 1 }
-        ];
-        
-        for (const neighbor of neighbors) {
-            if (closedSet.has(`${neighbor.row},${neighbor.col}`)) {
-                continue;
-            }
-            
-            if (neighbor.row < 0 || neighbor.row >= GRID_SIZE || neighbor.col < 0 || neighbor.col >= GRID_SIZE) {
-                continue;
-            }
-            
-             if (!isPassable(neighbor.row, neighbor.col, grid)) {
-                 continue;
-             }
-             
-             // Überprüfe, ob ein Feind auf dem Feld steht
-             const enemies = getEnemies();
-             const enemyOnField = enemies.some(enemy => enemy.row === neighbor.row && enemy.col === neighbor.col);
-             if (enemyOnField) {
-                 continue;
-             }
-            
-            const tentativeGScore = gScore[`${current.row},${current.col}`] + getMovementCost(neighbor.row, neighbor.col, grid);
-            
-            if (!openSet.some(node => node.row === neighbor.row && node.col === neighbor.col)) {
-                openSet.push(neighbor);
-            }
-            
-            if (tentativeGScore < gScore[`${neighbor.row},${neighbor.col}`]) {
-                cameFrom[`${neighbor.row},${neighbor.col}`] = current;
-                gScore[`${neighbor.row},${neighbor.col}`] = tentativeGScore;
-                fScore[`${neighbor.row},${neighbor.col}`] = tentativeGScore + (Math.abs(neighbor.row - target.row) + Math.abs(neighbor.col - target.col));
-            }
-        }
-    }
-    
-    // Berechne die Bewegungskosten für den kürzesten Weg
-    totalMovementCost = gScore[`${target.row},${target.col}`];
-    
-    // Zeichne die Pathlinie basierend auf dem kürzesten Weg
-    ctx.strokeStyle = 'rgba(255, 0, 0, 0.7)';
-    ctx.lineWidth = 3;
-    
-    // Zeichne den kürzesten Pfad
-    let currentRow = heroPos.row;
-    let currentCol = heroPos.col;
-    
-    ctx.beginPath();
-    ctx.moveTo(currentCol * CELL_SIZE + CELL_SIZE / 2, currentRow * CELL_SIZE + CELL_SIZE / 2);
-    
-    for (const node of path) {
-        currentRow = node.row;
-        currentCol = node.col;
-        ctx.lineTo(currentCol * CELL_SIZE + CELL_SIZE / 2, currentRow * CELL_SIZE + CELL_SIZE / 2);
-        ctx.stroke();
+function drawSelectionHighlight() {
+    // 1. Pfad-Linie zeichnen
+    if (selectedUnit && selectedTarget && selectedTarget.path && selectedTarget.path.length > 0) {
         ctx.beginPath();
-        ctx.moveTo(currentCol * CELL_SIZE + CELL_SIZE / 2, currentRow * CELL_SIZE + CELL_SIZE / 2);
+        ctx.moveTo(selectedUnit.col * CELL_SIZE + 25, selectedUnit.row * CELL_SIZE + 25);
+        
+        if (selectedTarget.type === 'unreachable') {
+            ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+        } else {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+        }
+        
+        ctx.lineWidth = 3; 
+        ctx.setLineDash([5, 5]);
+        
+        selectedTarget.path.forEach(n => {
+            ctx.lineTo(n.col * CELL_SIZE + 25, n.row * CELL_SIZE + 25);
+        });
+        
+        ctx.stroke(); 
+        ctx.setLineDash([]);
     }
     
-    // Zeichne die Bewegungskosten
-    ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
-    ctx.font = '16px Arial';
-    ctx.fillText(`MP: ${totalMovementCost}`, target.col * CELL_SIZE + 10, target.row * CELL_SIZE + 30);
+    // 2. Aktive Einheit (Gelber Rahmen)
+    if (selectedUnit) {
+        ctx.strokeStyle = 'yellow'; 
+        ctx.lineWidth = 3;
+        ctx.strokeRect(selectedUnit.col * CELL_SIZE + 2, selectedUnit.row * CELL_SIZE + 2, 46, 46);
+    }
+    
+    // 3. Ziel-Icons und Kosten
+    if (selectedTarget) {
+        const x = selectedTarget.col * CELL_SIZE + 25;
+        const y = selectedTarget.row * CELL_SIZE + 25;
+        
+        if (selectedTarget.type === 'attack') {
+            drawCrosshair(x, y);
+            drawCostText(selectedTarget.col, selectedTarget.row, selectedTarget.cost, true);
+        } else if (selectedTarget.type === 'reachable' || selectedTarget.type === 'unreachable') {
+            drawBoot(x, y, selectedTarget.type === 'reachable');
+            drawCostText(selectedTarget.col, selectedTarget.row, selectedTarget.cost, selectedTarget.type === 'unreachable');
+        } else if (selectedTarget.type === 'info') {
+            // Nur Info (grauer Rahmen)
+            ctx.strokeStyle = 'gray'; 
+            ctx.lineWidth = 3;
+            ctx.strokeRect(selectedTarget.col * CELL_SIZE + 5, selectedTarget.row * CELL_SIZE + 5, CELL_SIZE - 10, CELL_SIZE - 10);
+        }
+    }
 }
 
-// Initialisiert den Renderer
-export function initRenderer(canvasElement, mission) {
-    canvas = canvasElement;
-    ctx = canvas.getContext('2d');
-    initGrid(mission);
-    drawGrid();
+function drawBoot(x, y, filled) {
+    ctx.beginPath(); 
+    ctx.moveTo(x - 5, y - 10); 
+    ctx.lineTo(x - 5, y + 5); 
+    ctx.lineTo(x + 10, y + 5); 
+    ctx.lineTo(x + 10, y + 12); 
+    ctx.lineTo(x - 12, y + 12); 
+    ctx.lineTo(x - 12, y - 10); 
+    ctx.closePath();
+    
+    if (filled) { 
+        ctx.fillStyle = 'gold'; 
+        ctx.fill(); 
+    }
+    
+    ctx.strokeStyle = filled ? 'black' : 'red'; 
+    ctx.lineWidth = 2; 
+    ctx.stroke();
 }
 
-// Gibt die aktuelle Grid-Daten zurück
-export function getGridData() {
-    return { grid };
+function drawCrosshair(x, y) {
+    ctx.strokeStyle = 'red'; 
+    ctx.lineWidth = 3; 
+    
+    ctx.beginPath(); 
+    ctx.arc(x, y, 12, 0, Math.PI * 2);
+    ctx.moveTo(x - 18, y); 
+    ctx.lineTo(x - 6, y); 
+    ctx.moveTo(x + 6, y); 
+    ctx.lineTo(x + 18, y); 
+    ctx.moveTo(x, y - 18); 
+    ctx.lineTo(x, y - 6); 
+    ctx.moveTo(x, y + 6); 
+    ctx.lineTo(x, y + 18); 
+    
+    ctx.stroke();
 }
 
-// Setzt die Grid-Daten
-export function setGridData(data) {
-    grid = data.grid;
-    drawGrid();
+function drawCostText(col, row, cost, isRed) {
+    if (cost === Infinity || cost === undefined) return;
+    
+    ctx.fillStyle = isRed ? '#ff4444' : 'white'; 
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText(`${cost} MP`, col * CELL_SIZE + 5, row * CELL_SIZE + 45);
 }
 
-// Setzt das ausgewählte Ziel
-export function setSelectedTarget(target) {
-    selectedTarget = target;
-    drawGrid();
+export function setSelectedUnit(u) { 
+    selectedUnit = u; 
+    drawGrid(); 
 }
 
-// Löscht das ausgewählte Ziel
-export function clearSelectedTarget() {
-    selectedTarget = null;
-    drawGrid();
+export function clearSelectedUnit() { 
+    selectedUnit = null; 
+    drawGrid(); 
+}
+
+export function setSelectedTarget(t) { 
+    selectedTarget = t; 
+    drawGrid(); 
+}
+
+export function clearSelectedTarget() { 
+    selectedTarget = null; 
+    drawGrid(); 
+}
+
+export function initRenderer(canvasElement, mission) { 
+    canvas = canvasElement; 
+    ctx = canvas.getContext('2d'); 
+    initGrid(mission); 
+    drawGrid(); 
+}
+
+export function getGridData() { 
+    return { grid }; 
 }

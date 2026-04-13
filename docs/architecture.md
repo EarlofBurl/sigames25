@@ -13,16 +13,19 @@ src/
     ├── main.js               # Hauptmodul, das die Anwendung startet
     ├── engine/
     │   ├── renderer.js        # Zeichnet das Grid und die Spielfigur
-    │   ├── input.js           # Verwaltet die Eingaben (Tastatur und Maus)
-    │   ├── storage.js          # Verwaltet das Speichern und Laden des Spielstands
-    │   ├── scene-manager.js    # Verwaltet den Wechsel zwischen verschiedenen Szenen
-    │   ├── console.js          # Verwaltet die Info-Konsole
-    │   └── dialog.js          # Verwaltet das Dialog-Overlay
+    │   ├── input.js           # Verwaltet die Eingaben
+    │   ├── combat-system.js   # NEU: Mathematische Kampflogik
+    │   ├── movement-system.js # NEU: Wegkosten-Berechnung
+    │   ├── storage.js         # Speichern/Laden
+    │   ├── scene-manager.js   # Szenenwechsel
+    │   ├── console.js         # Aktions-Log
+    │   └── dialog.js          # Dialog-System
     ├── entities/
     │   └── hero.js            # Verwaltet die Spielfigur (Held)
     ├── scenes/
-    │   ├── hub.js             # Hub-Szene mit Start-Button für Missionen
-    │   └── combat.js          # Kampf-Szene mit Grid und Spielfigur
+    │   ├── hub.js             # Hub-Szene
+    │   ├── combat.js          # Kampf-Szene (Regie)
+    │   └── combat-ui.js       # NEU: UI-Update-Logik für den Kampf
     └── data/
         ├── terrain.js         # Definiert die Terrain-Typen und ihre Eigenschaften
         └── missions/

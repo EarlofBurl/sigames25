@@ -76,7 +76,9 @@ body {
 #terrain-stats {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 2px;
+    font-size: 14px;
+    margin-top: 5px;
 }
 
 #unit-stats {

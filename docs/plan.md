@@ -58,9 +58,9 @@
 - [x] Entferne Einheiten mit 0 HP vom Spielfeld.
 
 ## Meilenstein 11: Armee-Verwaltung & Mehrere Einheiten
-- [ ] Refactoring: Ersetze das einzelne `player`-Objekt durch ein Array `playerUnits[]` und `enemyUnits[]`.
-- [ ] Ermögliche das Durchschalten eigener Einheiten (z.B. per `TAB`-Taste oder durch Klick auf "Nächste Einheit"-Button).
-- [ ] Platziere neben der Montesquieu Helden Einheit eine weitere Spieler Einheit "Ritter" auf dem Feld und zwei Feind-Goblin-Einheiten.
+- [x] Refactoring: Ersetze das einzelne `player`-Objekt durch ein Array `playerUnits[]` und `enemyUnits[]`.
+- [x] Ermögliche das Durchschalten eigener Einheiten (z.B. per `TAB`-Taste oder durch Klick auf "Nächste Einheit"-Button).
+- [x] Platziere neben der Montesquieu Helden Einheit eine weitere Spieler Einheit "Ritter" auf dem Feld und zwei Feind-Goblin-Einheiten.
 
 ## Meilenstein 12: Feindliche KI (Enemy Phase)
 - [ ] Implementiere den Rundenwechsel: Wenn der Spieler die Runde beendet, startet die `Enemy Phase`.
