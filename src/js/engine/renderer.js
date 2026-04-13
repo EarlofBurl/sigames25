@@ -1,5 +1,6 @@
 import { getPlayerUnits, getEnemyUnits } from '../entities/units.js';
 import { terrainThemes, terrainTypes } from '../data/terrain.js';
+import { updateVisibility, getVisibilityStatus, getVisibilityStatuses } from './visibility-system.js';
 
 const GRID_SIZE = 10;
 const CELL_SIZE = 50;
@@ -10,12 +11,20 @@ let ctx;
 let currentTheme = 'classic';
 let selectedTarget = null;
 let selectedUnit = null;
+let visibilityGrid = {};
+let VISIBILITY_STATUS;
 
 export function initGrid(mission) {
     currentTheme = mission.theme || 'classic';
     grid = mission.mapData.terrain.map(row => 
         row.map(type => ({ type, color: terrainThemes[currentTheme][type] }))
     );
+    VISIBILITY_STATUS = getVisibilityStatuses();
+}
+
+// Hook, falls combat.js die Visibility manuell setzen will
+export function setVisibilityGrid(newVisibilityGrid) {
+    visibilityGrid = newVisibilityGrid;
 }
 
 export function drawGrid() {
@@ -25,25 +34,49 @@ export function drawGrid() {
     
     for (let r = 0; r < GRID_SIZE; r++) {
         for (let c = 0; c < GRID_SIZE; c++) {
-            ctx.fillStyle = grid[r][c].color;
-            ctx.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+            const status = getVisibilityStatus(visibilityGrid, r, c);
             
+            // 1. Terrain zeichnen (wenn es nicht komplett unexplored ist)
+            if (status !== VISIBILITY_STATUS.UNEXPLORED) {
+                ctx.fillStyle = grid[r][c].color;
+                ctx.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+            } else {
+                ctx.fillStyle = '#000000'; // Komplett Schwarz für Unexplored
+                ctx.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+            }
+            
+            // 2. Gitterlinien
             ctx.strokeStyle = 'rgba(255,255,255,0.1)';
             ctx.strokeRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+            
+            // 3. Fog of War Overlay (halbtransparentes Schwarz)
+            if (status === VISIBILITY_STATUS.FOG) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+            }
         }
     }
     
-    const allUnits = [...getEnemyUnits(), ...getPlayerUnits()];
-    allUnits.forEach(u => {
-        ctx.fillStyle = u.color;
+    // 4. Einheiten zeichnen
+    getPlayerUnits().forEach(u => {
+        // Spieler sind logischerweise immer in ihrem eigenen Sichtbereich
+        ctx.fillStyle = u.color || 'blue';
         ctx.fillRect(u.col * CELL_SIZE + 10, u.row * CELL_SIZE + 10, 30, 30);
+    });
+
+    getEnemyUnits().forEach(enemy => {
+        // WICHTIGER FIX: Feinde NUR ZEICHNEN, WENN DAS FELD 'VISIBLE' IST!
+        const status = getVisibilityStatus(visibilityGrid, enemy.row, enemy.col);
+        if (status === VISIBILITY_STATUS.VISIBLE) {
+            ctx.fillStyle = enemy.color || 'red';
+            ctx.fillRect(enemy.col * CELL_SIZE + 10, enemy.row * CELL_SIZE + 10, 30, 30);
+        }
     });
     
     drawSelectionHighlight();
 }
 
 function drawSelectionHighlight() {
-    // 1. Pfad-Linie zeichnen
     if (selectedUnit && selectedTarget && selectedTarget.path && selectedTarget.path.length > 0) {
         ctx.beginPath();
         ctx.moveTo(selectedUnit.col * CELL_SIZE + 25, selectedUnit.row * CELL_SIZE + 25);
@@ -65,14 +98,12 @@ function drawSelectionHighlight() {
         ctx.setLineDash([]);
     }
     
-    // 2. Aktive Einheit (Gelber Rahmen)
     if (selectedUnit) {
         ctx.strokeStyle = 'yellow'; 
         ctx.lineWidth = 3;
         ctx.strokeRect(selectedUnit.col * CELL_SIZE + 2, selectedUnit.row * CELL_SIZE + 2, 46, 46);
     }
     
-    // 3. Ziel-Icons und Kosten
     if (selectedTarget) {
         const x = selectedTarget.col * CELL_SIZE + 25;
         const y = selectedTarget.row * CELL_SIZE + 25;
@@ -84,7 +115,6 @@ function drawSelectionHighlight() {
             drawBoot(x, y, selectedTarget.type === 'reachable');
             drawCostText(selectedTarget.col, selectedTarget.row, selectedTarget.cost, selectedTarget.type === 'unreachable');
         } else if (selectedTarget.type === 'info') {
-            // Nur Info (grauer Rahmen)
             ctx.strokeStyle = 'gray'; 
             ctx.lineWidth = 3;
             ctx.strokeRect(selectedTarget.col * CELL_SIZE + 5, selectedTarget.row * CELL_SIZE + 5, CELL_SIZE - 10, CELL_SIZE - 10);
@@ -166,5 +196,5 @@ export function initRenderer(canvasElement, mission) {
 }
 
 export function getGridData() { 
-    return { grid }; 
+    return { grid, visibilityGrid }; 
 }

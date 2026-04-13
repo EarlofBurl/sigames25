@@ -1,4 +1,4 @@
-import { initRenderer, drawGrid, getGridData, setSelectedTarget, clearSelectedTarget, setSelectedUnit, clearSelectedUnit } from '../engine/renderer.js';
+import { initRenderer, drawGrid, getGridData, setSelectedTarget, clearSelectedTarget, setSelectedUnit, clearSelectedUnit, setVisibilityGrid } from '../engine/renderer.js';
 import { setupKeyboardControls, isPassable } from '../engine/input.js';
 import {
     initPlayerUnits, initEnemyUnits, getCurrentUnit, getCurrentUnitPosition, setCurrentUnitPosition,
@@ -10,10 +10,13 @@ import { terrainTypes } from '../data/terrain.js';
 import { clearUnitPanel, fillUnitPanel, checkAllUnitsExhausted } from './combat-ui.js';
 import { executeCombat } from '../engine/combat-system.js';
 import { findPathAndCost } from '../engine/movement-system.js';
+import { executeEnemyTurn } from '../engine/enemy-ai.js';
+import { updateVisibility } from '../engine/visibility-system.js';
 
 let grid;
 let selectedUnit = null;
 let selectedTarget = null;
+let isPlayerTurn = true; // Sperrt UI, wenn Feinde dran sind
 
 export class CombatScene {
     constructor(sceneManager, mission) { 
@@ -35,6 +38,8 @@ export class CombatScene {
         if (this.mission.playerUnits) initPlayerUnits(this.mission.playerUnits);
         if (this.mission.enemies) initEnemyUnits(this.mission.enemies);
         
+        // --- SICHTBARKEIT INITIALISIEREN ---
+        setVisibilityGrid(updateVisibility(grid, getPlayerUnits()));
         drawGrid();
 
         const topBar = document.getElementById('top-bar');
@@ -63,17 +68,30 @@ export class CombatScene {
             clearUnitPanel(); 
         };
 
-        // --- ZUG BEENDEN LOGIK ZENTRALISIERT ---
+        // --- ZUG BEENDEN LOGIK (INKL. ENEMY PHASE) ---
         let turnCounter = 1;
         const turnCounterElement = document.getElementById('turn-number');
 
-        const endTurnLogic = () => {
+        const endTurnLogic = async () => {
+            if (!isPlayerTurn) return; // Verhindert Spamming
+            
+            isPlayerTurn = false;
+            resetSelection();
+            
+            // Feinde sind dran (Meilenstein 12)
+            await executeEnemyTurn(grid);
+            
+            // Spieler ist wieder dran
             refillCurrentUnitMp(); 
             turnCounter++;
             if (turnCounterElement) turnCounterElement.textContent = turnCounter;
             log(`Runde ${turnCounter} gestartet. Alle MP aufgefüllt.`);
-            resetSelection();
-            drawGrid(); // Zur Sicherheit UI neu zeichnen
+            
+            // Sicht nach Feindbewegungen updaten (Meilenstein 13)
+            setVisibilityGrid(updateVisibility(grid, getPlayerUnits()));
+            drawGrid(); 
+            
+            isPlayerTurn = true;
         };
 
         const endTurnButton = document.getElementById('end-turn-button');
@@ -81,40 +99,46 @@ export class CombatScene {
             endTurnButton.addEventListener('click', endTurnLogic);
         }
 
+        // --- NÄCHSTE EINHEIT BUTTON ---
         const nextUnitButton = document.createElement('button');
         nextUnitButton.id = 'next-unit-button';
         nextUnitButton.className = 'command-button';
         nextUnitButton.textContent = 'Nächste Einheit';
-        uiContainer.appendChild(nextUnitButton);
+        
+        if (infoPanel) infoPanel.appendChild(nextUnitButton);
+        else uiContainer.appendChild(nextUnitButton); 
         
         nextUnitButton.addEventListener('click', () => {
+            if (!isPlayerTurn) return;
             nextUnit(); 
             const unit = getCurrentUnit(); 
             fillUnitPanel(unit);
-            
             selectedUnit = unit; 
             setSelectedUnit(selectedUnit); 
             clearSelectedTarget();
-            
             log(`${unit.name} ausgewählt.`, 'default');
         });
 
         appElement.appendChild(canvas);
         appElement.appendChild(uiContainer);
 
-        // --- TASTATURSTEUERUNG REPARIERT ---
+        // --- TASTATURSTEUERUNG ---
         document.addEventListener('keydown', (event) => {
+            if (!isPlayerTurn) return;
             if (event.key === 'Tab') {
                 event.preventDefault();
                 nextUnitButton.click();
             }
             if (event.key === 'Enter') {
                 event.preventDefault();
-                endTurnLogic(); // <--- Ruft jetzt garantiert die Spiellogik auf!
+                endTurnLogic(); 
             }
         });
 
+        // --- KLICK LOGIK ---
         canvas.addEventListener('click', (event) => {
+            if (!isPlayerTurn) return;
+
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
@@ -129,16 +153,19 @@ export class CombatScene {
                 // Eigene Einheit auswählen
                 setCurrentUnitIndex(unitIdx); 
                 selectedUnit = playerUnits[unitIdx];
-                
                 setSelectedUnit(selectedUnit); 
                 clearSelectedTarget(); 
                 fillUnitPanel(selectedUnit);
             } else if (selectedUnit) {
-                // Wenn wir schon ein Ziel haben und erneut draufklicken: Aktion ausführen!
+                // Aktion ausführen
                 if (selectedTarget && selectedTarget.row === row && selectedTarget.col === col) {
                     if (selectedTarget.type === 'reachable') {
                         setCurrentUnitPosition(row, col);
                         setCurrentUnitMp(getCurrentUnitAttributes().mp - selectedTarget.cost);
+                        
+                        // SICHTBARKEIT NACH BEWEGUNG UPDATEN
+                        setVisibilityGrid(updateVisibility(grid, getPlayerUnits()));
+                        
                         resetSelection(); 
                         checkAllUnitsExhausted(); 
                         drawGrid();
@@ -148,8 +175,15 @@ export class CombatScene {
                             setCurrentUnitMp(getCurrentUnitAttributes().mp - selectedTarget.cost);
                         }
                         
-                        executeCombat(getCurrentUnitAttributes(), getEnemyUnits()[selectedTarget.enemyIdx], selectedTarget.enemyIdx, () => resetSelection());
+                         const attackerPos = getCurrentUnitPosition();
+                         const enemyPos = getEnemyUnits()[selectedTarget.enemyIdx];
+                         const distance = Math.abs(attackerPos.row - enemyPos.row) + Math.abs(attackerPos.col - enemyPos.col);
+                         executeCombat(getCurrentUnitAttributes(), enemyPos, selectedTarget.enemyIdx, () => resetSelection(), distance);
                         setCurrentUnitMp(0); 
+                        
+                        // SICHTBARKEIT NACH ANGRIFFS-BEWEGUNG UPDATEN
+                        setVisibilityGrid(updateVisibility(grid, getPlayerUnits()));
+                        
                         resetSelection(); 
                         checkAllUnitsExhausted(); 
                         drawGrid();
@@ -159,20 +193,14 @@ export class CombatScene {
                     return;
                 }
 
-                // Ziel anvisieren (Pfad für Vorschau berechnen)
+                // Ziel anvisieren
                 const enemies = getEnemyUnits();
                 const eIdx = enemies.findIndex(e => e.row === row && e.col === col);
                 const curPos = getCurrentUnitPosition();
                 const curAttr = getCurrentUnitAttributes();
 
-                if (eIdx !== -1) {
-                    // MOVE & ATTACK VORSCHAU
-                    const adjacents = [
-                        { r: -1, c: 0 },
-                        { r: 1, c: 0 },
-                        { r: 0, c: -1 },
-                        { r: 0, c: 1 }
-                    ];
+                 if (eIdx !== -1) {
+                    const adjacents = [{ r: -1, c: 0 }, { r: 1, c: 0 }, { r: 0, c: -1 }, { r: 0, c: 1 }];
                     let best = { cost: Infinity, path: [], pos: null };
                     
                     adjacents.forEach(adj => {
@@ -181,36 +209,25 @@ export class CombatScene {
                         
                         if (isPassable(r, c, grid)) {
                             const res = findPathAndCost(curPos, { row: r, col: c }, grid);
-                            if (res.cost < best.cost) {
-                                best = { cost: res.cost, path: res.path, pos: { row: r, col: c } };
-                            }
+                            if (res.cost < best.cost) best = { cost: res.cost, path: res.path, pos: { row: r, col: c } };
                         }
-                    });
+                    }); // <--- Hier muss die foreach-Schleife sauber mit ); geschlossen werden!
 
                     selectedTarget = { 
-                        row, 
-                        col, 
-                        enemyIdx: eIdx, 
-                        cost: best.cost, 
-                        path: best.path, 
-                        attackFrom: best.pos,
+                        row, col, enemyIdx: eIdx, cost: best.cost, path: best.path, attackFrom: best.pos,
                         type: (best.cost <= curAttr.mp) ? 'attack' : 'unreachable' 
                     };
                 } else {
-                    // BEWEGUNG VORSCHAU
                     const res = findPathAndCost(curPos, { row, col }, grid);
                     selectedTarget = { 
-                        row, 
-                        col, 
-                        cost: res.cost, 
-                        path: res.path, 
+                        row, col, cost: res.cost, path: res.path, 
                         type: (res.path && res.cost <= curAttr.mp) ? 'reachable' : 'unreachable' 
                     };
                 }
                 
                 setSelectedTarget(selectedTarget);
             } else {
-                // KEIN Held ausgewählt -> Prüfen, ob wir einen Feind anklicken, um Stats zu sehen
+                // Info-Ansicht für Feinde
                 const enemies = getEnemyUnits();
                 const eIdx = enemies.findIndex(e => e.row === row && e.col === col);
                 
@@ -228,11 +245,7 @@ export class CombatScene {
             if (cell) {
                 const terrainInfo = document.getElementById('terrain-info-text');
                 const terrainStats = document.getElementById('terrain-stats');
-
-                if (terrainInfo) {
-                    terrainInfo.textContent = `Terrain: ${cell.type}`;
-                }
-                
+                if (terrainInfo) terrainInfo.textContent = `Terrain: ${cell.type}`;
                 if (terrainStats && terrainTypes[cell.type]) {
                     const t = terrainTypes[cell.type];
                     const defSign = t.defenseBonus >= 0 ? '+' : '';

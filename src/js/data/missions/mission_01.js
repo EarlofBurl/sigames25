@@ -52,6 +52,20 @@ export const mission01 = {
             attack: 4,
             defense: 3,
             isHero: true
+        },
+        {
+            name: 'Bogenschütze',
+            row: 0,
+            col: 2,
+            color: '#00ff00',
+            hp: 8,
+            maxHp: 8,
+            mp: 5,
+            maxMp: 5,
+            attack: 3,
+            defense: 1,
+            range: 2,
+            isHero: true
         }
     ],
     enemies: [
@@ -72,6 +86,16 @@ export const mission01 = {
             maxHp: 8,
             attack: 2,
             defense: 1
+        },
+        {
+            name: 'Goblinbogenschütze',
+            row: 5,
+            col: 7,
+            hp: 6,
+            maxHp: 6,
+            attack: 2,
+            defense: 0,
+            range: 2
         }
     ],
     dialogues: [

@@ -6,43 +6,50 @@ export const terrainTypes = {
         name: 'Ebene',
         movementCost: 1,
         defenseBonus: 0,
-        isPassable: true
+        isPassable: true,
+        sightMod: 0
     },
     FOREST: {
         name: 'Wald',
         movementCost: 2,
         defenseBonus: 2,
-        isPassable: true
+        isPassable: true,
+        sightMod: -1
     },
     HILL: {
         name: 'Hügel',
         movementCost: 2,
         defenseBonus: 1,
-        isPassable: true
+        isPassable: true,
+        sightMod: 1
     },
     RIVER: {
         name: 'Fluss',
         movementCost: 2,
         defenseBonus: 0,
-        isPassable: true
+        isPassable: true,
+        sightMod: 0
     },
     MOUNTAIN: {
         name: 'Berg',
         movementCost: Infinity,
         defenseBonus: 3,
-        isPassable: false
+        isPassable: false,
+        sightMod: 0
     },
     WATER: {
         name: 'Wasser',
         movementCost: 2,
         defenseBonus: 0,
-        isPassable: true
+        isPassable: true,
+        sightMod: 0
     },
     CITY: {
         name: 'Stadt',
         movementCost: 1,
         defenseBonus: 3,
-        isPassable: true
+        isPassable: true,
+        sightMod: 0
     }
 };
 

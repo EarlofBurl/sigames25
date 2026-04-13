@@ -17,7 +17,9 @@ export function initPlayerUnits(unitsData) {
         maxMp: unit.maxMp || 5,
         attack: unit.attack || 5,
         defense: unit.defense || 2,
-        color: unit.color || '#0000FF' // Standardfarbe Blau, falls keine angegeben
+        color: unit.color || '#0000FF', // Standardfarbe Blau, falls keine angegeben
+        baseSight: unit.baseSight || 3,
+        range: unit.range || 1
     }));
     currentUnitIndex = 0;
 }
@@ -34,7 +36,9 @@ export function initEnemyUnits(enemiesData) {
         maxMp: enemy.maxMp || 3,
         attack: enemy.attack || 4,
         defense: enemy.defense || 1,
-        color: enemy.color || '#FF0000' // Standardfarbe Rot
+        color: enemy.color || '#FF0000', // Standardfarbe Rot
+        baseSight: enemy.baseSight || 3,
+        range: enemy.range || 1
     }));
 }
 
@@ -86,7 +90,11 @@ export function getCurrentUnitColor() {
  * Gibt alle Attribute der aktuellen Einheit zurück
  */
 export function getCurrentUnitAttributes() {
-    return { ...playerUnits[currentUnitIndex] };
+    const unit = playerUnits[currentUnitIndex];
+    return { 
+        ...unit,
+        range: unit.range || 1
+    };
 }
 
 /**
@@ -137,6 +145,27 @@ export function getEnemyUnits() {
 }
 
 /**
+ * Setzt eine neue Position für eine feindliche Einheit
+ */
+export function setEnemyUnitPosition(id, row, col) {
+    const enemy = enemyUnits.find(u => u.id === id);
+    if (enemy) {
+        enemy.row = row;
+        enemy.col = col;
+    }
+}
+
+/**
+ * Aktualisiert die Bewegungspunkte (MP) einer feindlichen Einheit
+ */
+export function setEnemyUnitMp(id, mp) {
+    const enemy = enemyUnits.find(u => u.id === id);
+    if (enemy) {
+        enemy.mp = Math.max(0, mp);
+    }
+}
+
+/**
  * Entfernt einen besiegten Gegner aus dem Spiel
  */
 export function removeEnemyUnit(index) {
@@ -148,7 +177,7 @@ export function removeEnemyUnit(index) {
  */
 export function setEnemyUnitHp(index, hp) {
     if (enemyUnits[index]) {
-        enemyUnits[index].hp = hp;
+        enemyUnits[index].hp = Math.min(Math.max(0, hp), enemyUnits[index].maxHp);
     }
 }
 

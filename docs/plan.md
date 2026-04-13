@@ -63,20 +63,43 @@
 - [x] Platziere neben der Montesquieu Helden Einheit eine weitere Spieler Einheit "Ritter" auf dem Feld und zwei Feind-Goblin-Einheiten.
 
 ## Meilenstein 12: Feindliche KI (Enemy Phase)
-- [ ] Implementiere den Rundenwechsel: Wenn der Spieler die Runde beendet, startet die `Enemy Phase`.
-- [ ] Baue eine einfache KI für Feinde:
-  1. Finde die nächste Spielereinheit. Feindeinheiten haben Sichtradius um sich herum: 1 wäre nur oben unten links rechts. zwei wären zwei nach oben, aber auch eins nach oben und nach rechts oder links. Die goblins haben sicht von 2.
-  2. Berechne den Pfad dorthin (unter Berücksichtigung der eigenen MP).
-  3. Bewege die Feind-Einheit.
-  4. Greife an, falls der Spieler in Reichweite (orthogonale Nachbarschaft) ist.
-- [ ] Wenn alle Feinde gehandelt haben, wechsle zurück zur `Player Phase`.
+- [x] Implementiere den Rundenwechsel: Wenn der Spieler die Runde beendet, startet die `Enemy Phase`.
+- [x] Baue eine einfache KI für Feinde:
+  1. Setze einen "Aggro-Radius" um Feinde (z. B. Goblins haben Radius 2).
+  2. Prüfe: Ist eine Spielereinheit in diesem Radius? Wenn ja, werde aktiv.
+  3. Berechne den Pfad zum Spieler (Dijkstra/A* unter Berücksichtigung der Feind-MP).
+  4. Bewege die Feind-Einheit.
+  5. Greife an, falls der Spieler am Ende der Bewegung in Reichweite (orthogonale Nachbarschaft) ist.
+- [x] Wenn alle Feinde gehandelt haben, wechsle zurück zur `Player Phase`.
 
-## Meilenstein 13: Siegbedingungen & Fortschritt (Hub)
+## Meilenstein 13: Sichtweiten & Fog of War (NEU)
+- [ ] Erweitere `terrain.js` um Sichtlinien-Modifikatoren (z.B. Wald: `sightMod: -1`, Hügel: `sightMod: 1`).
+- [ ] Erweitere Helden-Einheiten um das Attribut `baseSight` (z.B. 3).
+- [ ] Implementiere eine Logik zur Sichtweiten-Berechnung: Ausgehend von der Heldenposition wird die Sichtweite berechnet (Manhattan-Distanz + Terrain-Modifikatoren der Felder auf der Route).
+- [ ] Passe den Renderer (`renderer.js`) an: 
+  - Verdeckte Felder schwarz zeichnen (unexplored).
+  - Entdeckte, aber aktuell nicht sichtbare Felder dunkelgrau überlagern (Fog).
+  - Feinde nur zeichnen, wenn sie auf einem `visible` Feld stehen.
+- [ ] Verhindere, dass der Spieler Einheiten auf "unexplored" Felder bewegt, ohne sie vorher aufzuklären.
+
+## Meilenstein 14: Fernkampf, Magie & Status-Effekte (NEU)
+- [ ] **Datenstruktur:** Erweitere Einheiten um `range` (Reichweite, Standard 1, Bogenschützen 2) und ein Array `spells` für Magier/Barden. Füge ein Array `activeEffects` hinzu, um Buffs/Debuffs zu tracken.
+- [ ] **Fernkampf-Logik:** - Erlaube Angriffe auf Distanz (`distance <= range`).
+  - Gegenangriffe in `combat-system.js` dürfen nur ausgeführt werden, wenn die Reichweite des Verteidigers bis zum Angreifer reicht (ein Nahkampf-Goblin kann sich nicht gegen einen Pfeil aus 2 Feldern Entfernung wehren).
+- [ ] **Aktions-Menü (UI):** Implementiere ein Menü im Info-Panel. Spieler müssen erst die Aktion (Angriff, Zauber A, Zauber B) auswählen, bevor sie das Ziel anklicken.
+- [ ] **Das Barden-System:**
+  - Implementiere den Zauber "Anfeuern" (+1 Angriff für 1 Runde, Ziel: Verbündeter).
+  - Implementiere den Zauber "Dissen" (-1 Angriff für 1 Runde, Ziel: Feind).
+  - Erweitere die Rundenwechsel-Logik (`endTurnLogic`), damit Status-Effekte nach einer Runde wieder abklingen.
+- [ ] **Einheiten-Update:** Ersetze einen Goblin durch einen "Goblinbogenschützen", füge den Spieler "Ritter" (Nahkampf) und "Bogenschütze" hinzu und mache Montesquieu zum Barden.
+
+
+## Meilenstein 15: Siegbedingungen & Fortschritt (Hub)
 - [ ] Definiere Sieg- und Niederlage-Bedingungen in `mission_01.js` (z.B. `winCondition: 'defeat_all'`).
 - [ ] Implementiere einen "Victory"- und "Defeat"-Screen über das `dialog.js` Overlay.
 - [ ] Kehre nach der Mission zum Hub (`hub.js`) zurück.
 - [ ] Füge Erfahrungspunkte (XP) und Level-Ups für überlebende Einheiten hinzu (können im Hub eingesehen werden).
 
-## Meilenstein 14: Das SI-Games Jubiläums-Szenario
+## Meilenstein 16: Das SI-Games Jubiläums-Szenario
 - [ ] Erstelle `mission_02.js` und richte den Fortschritt so ein, dass man nach Mission 1 im Hub die nächste Mission wählen kann.
 - [ ] Baue Terrain-Besonderheiten aus Civ 2 vollständig ein (z.B. Städte heilen am Rundenanfang).
