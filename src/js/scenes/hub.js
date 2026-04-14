@@ -14,10 +14,6 @@ export class HubScene extends Phaser.Scene {
         document.getElementById('info-panel').style.display = 'none';
         document.getElementById('action-console').style.display = 'none';
 
-        // Entferne eventuell verbliebenen Vanilla-Canvas
-        const oldCanvas = document.getElementById('gameCanvas');
-        if (oldCanvas) oldCanvas.remove();
-
         const cx = this.cameras.main.width / 2;
 
         // Titel

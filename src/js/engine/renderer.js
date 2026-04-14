@@ -1,28 +1,58 @@
 import { getPlayerUnits, getEnemyUnits } from '../entities/units.js';
-import { terrainThemes, terrainTypes } from '../data/terrain.js';
-import { updateVisibility, getVisibilityStatus, getVisibilityStatuses } from './visibility-system.js';
+import { terrainThemes } from '../data/terrain.js';
+import { getVisibilityStatus, getVisibilityStatuses } from './visibility-system.js';
 
 const GRID_SIZE = 10;
 const CELL_SIZE = 50;
 
+let gfx = null;
+let scene = null;
 let grid = [];
-let canvas;
-let ctx;
 let currentTheme = 'classic';
 let selectedTarget = null;
 let selectedUnit = null;
 let visibilityGrid = {};
+let costLabels = [];
 let VISIBILITY_STATUS;
+
+function cssToHex(color) {
+    if (typeof color === 'number') return color;
+    if (typeof color === 'string' && color.startsWith('#')) {
+        return parseInt(color.slice(1), 16);
+    }
+    return 0x000000;
+}
 
 export function initGrid(mission) {
     currentTheme = mission.theme || 'classic';
-    grid = mission.mapData.terrain.map(row => 
+    grid = mission.mapData.terrain.map(row =>
         row.map(type => ({ type, color: terrainThemes[currentTheme][type] }))
     );
     VISIBILITY_STATUS = getVisibilityStatuses();
 }
 
-// Hook, falls combat.js die Visibility manuell setzen will
+export function initRenderer(graphicsObj, phaserScene, mission) {
+    gfx = graphicsObj;
+    scene = phaserScene;
+    initGrid(mission);
+    drawGrid();
+}
+
+function clearCostLabels() {
+    costLabels.forEach(t => t.destroy());
+    costLabels = [];
+}
+
+function addCostLabel(col, row, cost, isRed) {
+    if (!scene) return;
+    const label = scene.add.text(col * CELL_SIZE + 5, row * CELL_SIZE + 42, `${cost} MP`, {
+        fontFamily: 'Arial', fontSize: '14px', fontStyle: 'bold',
+        color: isRed ? '#ff4444' : '#ffffff'
+    });
+    label.setDepth(10);
+    costLabels.push(label);
+}
+
 export function setVisibilityGrid(newVisibilityGrid) {
     visibilityGrid = newVisibilityGrid;
 }
@@ -32,173 +62,142 @@ export function getVisibilityData() {
 }
 
 export function drawGrid() {
-    if (!ctx) return;
-    
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+    if (!gfx) return;
+
+    gfx.clear();
+    clearCostLabels();
+
+    // Terrain + Grid + Fog
     for (let r = 0; r < GRID_SIZE; r++) {
         for (let c = 0; c < GRID_SIZE; c++) {
             const status = getVisibilityStatus(visibilityGrid, r, c);
-            
-            // 1. Terrain zeichnen (wenn es nicht komplett unexplored ist)
+            const x = c * CELL_SIZE;
+            const y = r * CELL_SIZE;
+
             if (status !== VISIBILITY_STATUS.UNEXPLORED) {
-                ctx.fillStyle = grid[r][c].color;
-                ctx.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                gfx.fillStyle(cssToHex(grid[r][c].color));
             } else {
-                ctx.fillStyle = '#000000'; // Komplett Schwarz für Unexplored
-                ctx.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                gfx.fillStyle(0x000000);
             }
-            
-            // 2. Gitterlinien
-            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-            ctx.strokeRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-            
-            // 3. Fog of War Overlay (halbtransparentes Schwarz)
+            gfx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+
+            gfx.lineStyle(1, 0xffffff, 0.1);
+            gfx.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
+
             if (status === VISIBILITY_STATUS.FOG) {
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-                ctx.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                gfx.fillStyle(0x000000, 0.5);
+                gfx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
             }
         }
     }
-    
-    // 4. Einheiten zeichnen
+
+    // Spieler-Einheiten
     getPlayerUnits().forEach(u => {
-        // Spieler sind logischerweise immer in ihrem eigenen Sichtbereich
-        ctx.fillStyle = u.color || 'blue';
-        ctx.fillRect(u.col * CELL_SIZE + 10, u.row * CELL_SIZE + 10, 30, 30);
+        gfx.fillStyle(cssToHex(u.color || '#0000ff'));
+        gfx.fillRect(u.col * CELL_SIZE + 10, u.row * CELL_SIZE + 10, 30, 30);
     });
 
+    // Feind-Einheiten (nur wenn sichtbar)
     getEnemyUnits().forEach(enemy => {
-        // WICHTIGER FIX: Feinde NUR ZEICHNEN, WENN DAS FELD 'VISIBLE' IST!
         const status = getVisibilityStatus(visibilityGrid, enemy.row, enemy.col);
         if (status === VISIBILITY_STATUS.VISIBLE) {
-            ctx.fillStyle = enemy.color || 'red';
-            ctx.fillRect(enemy.col * CELL_SIZE + 10, enemy.row * CELL_SIZE + 10, 30, 30);
+            gfx.fillStyle(cssToHex(enemy.color || '#ff0000'));
+            gfx.fillRect(enemy.col * CELL_SIZE + 10, enemy.row * CELL_SIZE + 10, 30, 30);
         }
     });
-    
+
     drawSelectionHighlight();
 }
 
 function drawSelectionHighlight() {
+    if (!gfx) return;
+
+    // Pfadlinie
     if (selectedUnit && selectedTarget && selectedTarget.path && selectedTarget.path.length > 0) {
-        ctx.beginPath();
-        ctx.moveTo(selectedUnit.col * CELL_SIZE + 25, selectedUnit.row * CELL_SIZE + 25);
-        
-        if (selectedTarget.type === 'unreachable') {
-            ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
-        } else {
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-        }
-        
-        ctx.lineWidth = 3; 
-        ctx.setLineDash([5, 5]);
-        
+        const strokeColor = selectedTarget.type === 'unreachable' ? 0xff0000 : 0xffffff;
+        gfx.lineStyle(3, strokeColor, 0.5);
+        gfx.beginPath();
+        gfx.moveTo(selectedUnit.col * CELL_SIZE + 25, selectedUnit.row * CELL_SIZE + 25);
         selectedTarget.path.forEach(n => {
-            ctx.lineTo(n.col * CELL_SIZE + 25, n.row * CELL_SIZE + 25);
+            gfx.lineTo(n.col * CELL_SIZE + 25, n.row * CELL_SIZE + 25);
         });
-        
-        ctx.stroke(); 
-        ctx.setLineDash([]);
+        gfx.strokePath();
     }
-    
+
+    // Auswahl-Highlight
     if (selectedUnit) {
-        ctx.strokeStyle = 'yellow'; 
-        ctx.lineWidth = 3;
-        ctx.strokeRect(selectedUnit.col * CELL_SIZE + 2, selectedUnit.row * CELL_SIZE + 2, 46, 46);
+        gfx.lineStyle(3, 0xffff00);
+        gfx.strokeRect(selectedUnit.col * CELL_SIZE + 2, selectedUnit.row * CELL_SIZE + 2, 46, 46);
     }
-    
+
+    // Ziel-Indikatoren
     if (selectedTarget) {
         const x = selectedTarget.col * CELL_SIZE + 25;
         const y = selectedTarget.row * CELL_SIZE + 25;
-        
+
         if (selectedTarget.type === 'attack') {
             drawCrosshair(x, y);
-            drawCostText(selectedTarget.col, selectedTarget.row, selectedTarget.cost, true);
+            addCostLabel(selectedTarget.col, selectedTarget.row, selectedTarget.cost, true);
         } else if (selectedTarget.type === 'reachable' || selectedTarget.type === 'unreachable') {
             drawBoot(x, y, selectedTarget.type === 'reachable');
-            drawCostText(selectedTarget.col, selectedTarget.row, selectedTarget.cost, selectedTarget.type === 'unreachable');
+            addCostLabel(selectedTarget.col, selectedTarget.row, selectedTarget.cost, selectedTarget.type === 'unreachable');
         } else if (selectedTarget.type === 'info') {
-            ctx.strokeStyle = 'gray'; 
-            ctx.lineWidth = 3;
-            ctx.strokeRect(selectedTarget.col * CELL_SIZE + 5, selectedTarget.row * CELL_SIZE + 5, CELL_SIZE - 10, CELL_SIZE - 10);
+            gfx.lineStyle(3, 0x808080);
+            gfx.strokeRect(selectedTarget.col * CELL_SIZE + 5, selectedTarget.row * CELL_SIZE + 5, CELL_SIZE - 10, CELL_SIZE - 10);
         }
     }
 }
 
 function drawBoot(x, y, filled) {
-    ctx.beginPath(); 
-    ctx.moveTo(x - 5, y - 10); 
-    ctx.lineTo(x - 5, y + 5); 
-    ctx.lineTo(x + 10, y + 5); 
-    ctx.lineTo(x + 10, y + 12); 
-    ctx.lineTo(x - 12, y + 12); 
-    ctx.lineTo(x - 12, y - 10); 
-    ctx.closePath();
-    
-    if (filled) { 
-        ctx.fillStyle = 'gold'; 
-        ctx.fill(); 
+    gfx.beginPath();
+    gfx.moveTo(x - 5, y - 10);
+    gfx.lineTo(x - 5, y + 5);
+    gfx.lineTo(x + 10, y + 5);
+    gfx.lineTo(x + 10, y + 12);
+    gfx.lineTo(x - 12, y + 12);
+    gfx.lineTo(x - 12, y - 10);
+    gfx.closePath();
+
+    if (filled) {
+        gfx.fillStyle(0xffd700);
+        gfx.fillPath();
     }
-    
-    ctx.strokeStyle = filled ? 'black' : 'red'; 
-    ctx.lineWidth = 2; 
-    ctx.stroke();
+
+    gfx.lineStyle(2, filled ? 0x000000 : 0xff0000);
+    gfx.strokePath();
 }
 
 function drawCrosshair(x, y) {
-    ctx.strokeStyle = 'red'; 
-    ctx.lineWidth = 3; 
-    
-    ctx.beginPath(); 
-    ctx.arc(x, y, 12, 0, Math.PI * 2);
-    ctx.moveTo(x - 18, y); 
-    ctx.lineTo(x - 6, y); 
-    ctx.moveTo(x + 6, y); 
-    ctx.lineTo(x + 18, y); 
-    ctx.moveTo(x, y - 18); 
-    ctx.lineTo(x, y - 6); 
-    ctx.moveTo(x, y + 6); 
-    ctx.lineTo(x, y + 18); 
-    
-    ctx.stroke();
+    gfx.lineStyle(3, 0xff0000);
+    gfx.strokeCircle(x, y, 12);
+    gfx.beginPath();
+    gfx.moveTo(x - 18, y); gfx.lineTo(x - 6, y);
+    gfx.moveTo(x + 6, y); gfx.lineTo(x + 18, y);
+    gfx.moveTo(x, y - 18); gfx.lineTo(x, y - 6);
+    gfx.moveTo(x, y + 6); gfx.lineTo(x, y + 18);
+    gfx.strokePath();
 }
 
-function drawCostText(col, row, cost, isRed) {
-    if (cost === Infinity || cost === undefined) return;
-    
-    ctx.fillStyle = isRed ? '#ff4444' : 'white'; 
-    ctx.font = 'bold 14px sans-serif';
-    ctx.fillText(`${cost} MP`, col * CELL_SIZE + 5, row * CELL_SIZE + 45);
+export function setSelectedUnit(u) {
+    selectedUnit = u;
+    drawGrid();
 }
 
-export function setSelectedUnit(u) { 
-    selectedUnit = u; 
-    drawGrid(); 
+export function clearSelectedUnit() {
+    selectedUnit = null;
+    drawGrid();
 }
 
-export function clearSelectedUnit() { 
-    selectedUnit = null; 
-    drawGrid(); 
+export function setSelectedTarget(t) {
+    selectedTarget = t;
+    drawGrid();
 }
 
-export function setSelectedTarget(t) { 
-    selectedTarget = t; 
-    drawGrid(); 
+export function clearSelectedTarget() {
+    selectedTarget = null;
+    drawGrid();
 }
 
-export function clearSelectedTarget() { 
-    selectedTarget = null; 
-    drawGrid(); 
-}
-
-export function initRenderer(canvasElement, mission) { 
-    canvas = canvasElement; 
-    ctx = canvas.getContext('2d'); 
-    initGrid(mission); 
-    drawGrid(); 
-}
-
-export function getGridData() { 
-    return { grid, visibilityGrid }; 
+export function getGridData() {
+    return { grid, visibilityGrid };
 }

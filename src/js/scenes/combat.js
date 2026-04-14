@@ -12,7 +12,9 @@ import { clearUnitPanel, fillUnitPanel, checkAllUnitsExhausted, setSpellCastCall
 import { executeCombat } from '../engine/combat-system.js';
 import { findPathAndCost } from '../engine/movement-system.js';
 import { executeEnemyTurn } from '../engine/enemy-ai.js';
-import { updateVisibility, getVisibilityStatus, getVisibilityStatuses } from '../engine/visibility-system.js';
+import { updateVisibility, getVisibilityStatuses } from '../engine/visibility-system.js';
+
+const CELL_SIZE = 50;
 
 let grid;
 let selectedUnit = null;
@@ -20,45 +22,38 @@ let selectedTarget = null;
 let isPlayerTurn = true;
 let currentSpell = null;
 
-// Spell-Cast Callback für die UI
 let onSpellCast = (caster, targetUnit, spell) => {
-    console.log('onSpellCast called with:', caster?.name, targetUnit?.name, spell?.name);
-    
     if (!spell) spell = currentSpell;
     if (!caster) caster = selectedUnit;
-    
+
     if (!caster || !spell || !targetUnit) {
         log('Fehler: Fehlende Daten für Zauber!', 'error');
         return;
     }
-    
+
     log(`${caster.name} wirkt ${spell.name} auf ${targetUnit.name}!`, 'default');
-    
+
     const playerUnits = getPlayerUnits();
     const casterUnit = playerUnits.find(u => u.id === caster.id);
     if (casterUnit) {
         casterUnit.mp = Math.max(0, casterUnit.mp - spell.mpCost);
         casterUnit.hasAttacked = true;
     }
-    
-    if (currentSpell.target === 'ally') {
-        applyEffectToUnit(targetUnit.id, { 
-            effect: spell.effect, 
-            value: spell.value, 
-            duration: spell.duration,
-            caster: caster.name
+
+    if (spell.target === 'ally') {
+        applyEffectToUnit(targetUnit.id, {
+            effect: spell.effect, value: spell.value,
+            duration: spell.duration, caster: caster.name
         });
     } else {
-        applyEffectToEnemy(targetUnit.id, { 
-            effect: spell.effect, 
-            value: spell.value, 
-            duration: spell.duration,
-            caster: caster.name
+        applyEffectToEnemy(targetUnit.id, {
+            effect: spell.effect, value: spell.value,
+            duration: spell.duration, caster: caster.name
         });
     }
-    
+
     log(`${spell.name} wurde auf ${targetUnit.name} gewirkt!`, 'attack');
-    
+
     currentSpell = null;
     drawGrid();
     fillUnitPanel(casterUnit || caster);
@@ -71,29 +66,24 @@ export class CombatScene extends Phaser.Scene {
     }
 
     init(data) {
-        this.mission = data.mission;
+        this.mission = (data && data.mission) || this.registry.get('mission');
     }
 
     create() {
-        // --- MISSION-DATEN LADEN ---
         if (!this.mission) {
             console.error('CombatScene: Keine Missionsdaten übergeben!');
             return;
         }
 
-        // --- VANILLA-CANVAS ERSTELLEN (vorläufig bis Renderer-Migration) ---
-        const canvas = document.createElement('canvas');
-        canvas.id = 'gameCanvas';
-        canvas.width = 500;
-        canvas.height = 500;
-        
-        initRenderer(canvas, this.mission);
+        // --- PHASER GRAPHICS INITIALISIEREN ---
+        const gfx = this.add.graphics();
+        gfx.setDepth(0);
+        initRenderer(gfx, this, this.mission);
         grid = getGridData().grid;
-        
+
         if (this.mission.playerUnits) initPlayerUnits(this.mission.playerUnits);
         if (this.mission.enemies) initEnemyUnits(this.mission.enemies);
-        
-        // --- SICHTBARKEIT INITIALISIEREN ---
+
         setVisibilityGrid(updateVisibility(grid, getPlayerUnits()));
         drawGrid();
 
@@ -113,110 +103,56 @@ export class CombatScene extends Phaser.Scene {
             playDialog(this.mission.dialogues);
         }
 
-        const uiContainer = document.createElement('div');
-        uiContainer.className = 'ui-container';
-
-        const resetSelection = () => { 
-            selectedUnit = null; 
-            selectedTarget = null; 
-            clearSelectedUnit(); 
-            clearSelectedTarget(); 
-            clearUnitPanel(); 
+        const resetSelection = () => {
+            selectedUnit = null;
+            selectedTarget = null;
+            clearSelectedUnit();
+            clearSelectedTarget();
+            clearUnitPanel();
         };
 
         // --- SPELL-SELECT CALLBACK ---
         setSpellSelectCallback((caster, spell) => {
-            console.log('========================================');
-            console.log('SPELL SELECTED!');
-            console.log('caster:', caster?.name);
-            console.log('caster id:', caster?.id);
-            console.log('caster position (row,col):', caster?.row, caster?.col);
-            console.log('spell:', spell?.name);
-            console.log('spell range:', spell?.range);
-            console.log('spell target type:', spell?.target);
-            console.log('caster.mp:', caster?.mp, 'spell.mpCost:', spell?.mpCost);
-            
             if (caster.mp < spell.mpCost) {
                 log(`${caster.name} hat nicht genug MP für ${spell.name}!`, 'error');
                 return;
             }
-            
+
             const players = getPlayerUnits();
             const actualUnit = players.find(u => u.id === caster.id);
-            
-            console.log('actualUnit from array:', actualUnit?.name, actualUnit?.row, actualUnit?.col);
-            
+
             selectedUnit = actualUnit || caster;
             currentSpell = spell;
-            
+
             log(`${spell.name}: Wähle ein Ziel in Reichweite!`, 'default');
-            
             fillUnitPanel(actualUnit || caster);
         });
 
         // --- SPELL-CAST CALLBACK ---
         setSpellCastCallback((caster, targetUnit, spell) => {
-            if (!spell) spell = currentSpell;
-            if (!caster) caster = selectedUnit;
-            
-            if (!caster || !spell || !targetUnit) {
-                log('Fehler: Fehlende Daten für Zauber!', 'error');
-                return;
-            }
-            
-            log(`${caster.name} wirkt ${spell.name} auf ${targetUnit.name}!`, 'default');
-            
-            const playerUnits = getPlayerUnits();
-            const casterUnit = playerUnits.find(u => u.id === caster.id);
-            if (casterUnit) {
-                casterUnit.mp = Math.max(0, casterUnit.mp - spell.mpCost);
-                casterUnit.hasAttacked = true;
-            }
-            
-            if (currentSpell.target === 'ally') {
-                applyEffectToUnit(targetUnit.id, { 
-                    effect: spell.effect, 
-                    value: spell.value, 
-                    duration: spell.duration,
-                    caster: caster.name
-                });
-            } else {
-                applyEffectToEnemy(targetUnit.id, { 
-                    effect: spell.effect, 
-                    value: spell.value, 
-                    duration: spell.duration,
-                    caster: caster.name
-                });
-            }
-            
-            log(`${spell.name} wurde auf ${targetUnit.name} gewirkt!`, 'attack');
-            
-            currentSpell = null;
-            drawGrid();
-            fillUnitPanel(casterUnit || caster);
-            checkAllUnitsExhausted();
+            onSpellCast(caster, targetUnit, spell);
         });
 
-        // --- ZUG BEENDEN LOGIK (INKL. ENEMY PHASE) ---
+        // --- ZUG BEENDEN LOGIK ---
         let turnCounter = 1;
         const turnCounterElement = document.getElementById('turn-number');
 
         const endTurnLogic = async () => {
             if (!isPlayerTurn) return;
-            
+
             isPlayerTurn = false;
             resetSelection();
-            
+
             await executeEnemyTurn(grid);
-            
-            refillCurrentUnitMp(); 
+
+            refillCurrentUnitMp();
             turnCounter++;
             if (turnCounterElement) turnCounterElement.textContent = turnCounter;
             log(`Runde ${turnCounter} gestartet. Alle MP aufgefüllt.`);
-            
+
             setVisibilityGrid(updateVisibility(grid, getPlayerUnits()));
-            drawGrid(); 
-            
+            drawGrid();
+
             isPlayerTurn = true;
         };
 
@@ -230,78 +166,68 @@ export class CombatScene extends Phaser.Scene {
         nextUnitButton.id = 'next-unit-button';
         nextUnitButton.className = 'command-button';
         nextUnitButton.textContent = 'Nächste Einheit';
-        
+
         if (infoPanel) infoPanel.appendChild(nextUnitButton);
-        else uiContainer.appendChild(nextUnitButton); 
-        
+
         nextUnitButton.addEventListener('click', () => {
             if (!isPlayerTurn) return;
-            nextUnit(); 
-            const unit = getCurrentUnit(); 
+            nextUnit();
+            const unit = getCurrentUnit();
             fillUnitPanel(unit);
-            selectedUnit = unit; 
-            setSelectedUnit(selectedUnit); 
+            selectedUnit = unit;
+            setSelectedUnit(selectedUnit);
             clearSelectedTarget();
             log(`${unit.name} ausgewählt.`, 'default');
         });
 
-        // --- VANILLA-CANVAS AN #APP ANHÄNGEN ---
-        const appElement = document.getElementById('app');
-        appElement.appendChild(canvas);
-        appElement.appendChild(uiContainer);
-
-        // --- TASTATURSTEUERUNG ---
-        document.addEventListener('keydown', (event) => {
-            if (!isPlayerTurn) return;
-            if (event.key === 'Tab') {
-                event.preventDefault();
-                nextUnitButton.click();
-            }
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                endTurnLogic(); 
-            }
+        // --- PHASER TASTATURSTEUERUNG ---
+        this.input.keyboard.on('keydown-TAB', (event) => {
+            event.preventDefault();
+            nextUnitButton.click();
         });
 
-        // --- KLICK LOGIK ---
-        canvas.addEventListener('click', (event) => {
+        this.input.keyboard.on('keydown-ENTER', (event) => {
+            event.preventDefault();
+            endTurnLogic();
+        });
+
+        // --- PHASER KLICK LOGIK ---
+        this.input.on('pointerdown', (pointer) => {
             if (!isPlayerTurn) return;
 
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            
-            const col = Math.floor(((event.clientX - rect.left) * scaleX) / 50);
-            const row = Math.floor(((event.clientY - rect.top) * scaleY) / 50);
+            const col = Math.floor(pointer.x / CELL_SIZE);
+            const row = Math.floor(pointer.y / CELL_SIZE);
+
+            if (row < 0 || row >= 10 || col < 0 || col >= 10) return;
 
             // === SPELL-TARGET MODUS ===
             if (currentSpell && selectedUnit) {
                 const players = getPlayerUnits();
                 const enemies = getEnemyUnits();
-                
+
                 const actualCaster = players.find(u => u.id === selectedUnit.id);
                 const casterPos = actualCaster || selectedUnit;
-                
+
                 const playerAtPos = players.find(u => u.row === row && u.col === col);
                 const enemyAtPos = enemies.find(u => u.row === row && u.col === col);
-                
+
                 let targetUnit = null;
-                
+
                 if (currentSpell.target === 'ally') {
                     targetUnit = playerAtPos;
                 } else if (currentSpell.target === 'enemy') {
                     targetUnit = enemyAtPos;
                 }
-                
+
                 if (!targetUnit) {
                     currentSpell = null;
                     log('Kein gültiges Ziel. Zauber abgebrochen.', 'default');
                     drawGrid();
                     return;
                 }
-                
+
                 const distance = Math.abs(casterPos.row - row) + Math.abs(casterPos.col - col);
-                
+
                 if (distance <= currentSpell.range) {
                     onSpellCast(selectedUnit, targetUnit, currentSpell);
                     currentSpell = null;
@@ -317,39 +243,39 @@ export class CombatScene extends Phaser.Scene {
             const unitIdx = playerUnits.findIndex(u => u.row === row && u.col === col);
 
             if (unitIdx !== -1) {
-                setCurrentUnitIndex(unitIdx); 
+                setCurrentUnitIndex(unitIdx);
                 selectedUnit = playerUnits[unitIdx];
-                setSelectedUnit(selectedUnit); 
-                clearSelectedTarget(); 
+                setSelectedUnit(selectedUnit);
+                clearSelectedTarget();
                 fillUnitPanel(selectedUnit);
             } else if (selectedUnit) {
                 if (selectedTarget && selectedTarget.row === row && selectedTarget.col === col) {
                     if (selectedTarget.type === 'reachable') {
                         setCurrentUnitPosition(row, col);
                         setCurrentUnitMp(getCurrentUnitAttributes().mp - selectedTarget.cost);
-                        
+
                         setVisibilityGrid(updateVisibility(grid, getPlayerUnits()));
-                        
-                        resetSelection(); 
-                        checkAllUnitsExhausted(); 
+
+                        resetSelection();
+                        checkAllUnitsExhausted();
                         drawGrid();
                     } else if (selectedTarget.type === 'attack') {
                         if (selectedTarget.cost > 0) {
                             setCurrentUnitPosition(selectedTarget.attackFrom.row, selectedTarget.attackFrom.col);
                             setCurrentUnitMp(getCurrentUnitAttributes().mp - selectedTarget.cost);
                         }
-                        
+
                         const attackerPos = getCurrentUnitPosition();
                         const enemyPos = getEnemyUnits()[selectedTarget.enemyIdx];
                         const distance = Math.abs(attackerPos.row - enemyPos.row) + Math.abs(attackerPos.col - enemyPos.col);
                         executeCombat(getCurrentUnitAttributes(), enemyPos, selectedTarget.enemyIdx, () => resetSelection(), distance);
-                        setCurrentUnitMp(0); 
+                        setCurrentUnitMp(0);
                         setCurrentUnitHasAttacked(true);
-                        
+
                         setVisibilityGrid(updateVisibility(grid, getPlayerUnits()));
-                        
-                        resetSelection(); 
-                        checkAllUnitsExhausted(); 
+
+                        resetSelection();
+                        checkAllUnitsExhausted();
                         drawGrid();
                     } else {
                         resetSelection();
@@ -362,24 +288,25 @@ export class CombatScene extends Phaser.Scene {
                 const curPos = getCurrentUnitPosition();
                 const curAttr = getCurrentUnitAttributes();
 
-                 if (eIdx !== -1) {
+                if (eIdx !== -1) {
                     const enemy = enemies[eIdx];
                     const distance = Math.abs(curPos.row - row) + Math.abs(curPos.col - col);
                     const visibilityGrid = getVisibilityData();
                     const VISIBILITY_STATUS = getVisibilityStatuses();
                     const enemyVisible = visibilityGrid[`${row},${col}`] === VISIBILITY_STATUS.VISIBLE;
                     const hasAttacked = selectedUnit && selectedUnit.hasAttacked;
-                    
+
                     if (hasAttacked) {
                         selectedTarget = { row, col, type: 'unreachable' };
                     } else if (enemyVisible && distance <= curAttr.range) {
-                        selectedTarget = { 
-                            row, col, enemyIdx: eIdx, cost: 0, path: [], attackFrom: { row: curPos.row, col: curPos.col },
-                            type: 'attack' 
+                        selectedTarget = {
+                            row, col, enemyIdx: eIdx, cost: 0, path: [],
+                            attackFrom: { row: curPos.row, col: curPos.col },
+                            type: 'attack'
                         };
                     } else if (enemyVisible) {
                         let best = { cost: Infinity, path: [], pos: null };
-                        
+
                         for (let r = row - curAttr.range; r <= row + curAttr.range; r++) {
                             for (let c = col - curAttr.range; c <= col + curAttr.range; c++) {
                                 const dist = Math.abs(r - row) + Math.abs(c - col);
@@ -389,10 +316,10 @@ export class CombatScene extends Phaser.Scene {
                                 }
                             }
                         }
-                        
-                        selectedTarget = { 
+
+                        selectedTarget = {
                             row, col, enemyIdx: eIdx, cost: best.cost, path: best.path, attackFrom: best.pos,
-                            type: (best.cost <= curAttr.mp) ? 'attack' : 'unreachable' 
+                            type: (best.cost <= curAttr.mp) ? 'attack' : 'unreachable'
                         };
                     } else {
                         selectedTarget = { row, col, type: 'unreachable' };
@@ -401,22 +328,22 @@ export class CombatScene extends Phaser.Scene {
                     const visibilityGrid = getVisibilityData();
                     const VISIBILITY_STATUS = getVisibilityStatuses();
                     const fieldVisible = visibilityGrid[`${row},${col}`] === VISIBILITY_STATUS.VISIBLE;
-                    
+
                     const res = findPathAndCost(curPos, { row, col }, grid, curAttr.mp, selectedUnit);
-                    selectedTarget = { 
-                        row, col, cost: res.cost, path: res.path, 
-                        type: (res.path && res.cost <= curAttr.mp && fieldVisible) ? 'reachable' : 'unreachable' 
+                    selectedTarget = {
+                        row, col, cost: res.cost, path: res.path,
+                        type: (res.path && res.cost <= curAttr.mp && fieldVisible) ? 'reachable' : 'unreachable'
                     };
                 }
-                
+
                 setSelectedTarget(selectedTarget);
             } else {
                 const enemies = getEnemyUnits();
                 const eIdx = enemies.findIndex(e => e.row === row && e.col === col);
-                
+
                 if (eIdx !== -1) {
                     fillUnitPanel(enemies[eIdx]);
-                    selectedTarget = { row, col, type: 'info' }; 
+                    selectedTarget = { row, col, type: 'info' };
                     setSelectedTarget(selectedTarget);
                 } else {
                     resetSelection();
@@ -439,16 +366,13 @@ export class CombatScene extends Phaser.Scene {
     }
 
     shutdown() {
-        // Vanilla-Canvas entfernen wenn Szene verlassen wird
-        const vanillaCanvas = document.getElementById('gameCanvas');
-        if (vanillaCanvas) vanillaCanvas.remove();
-
         // DOM-UI verstecken
-        const uiContainer = document.querySelector('.ui-container');
-        if (uiContainer) uiContainer.remove();
-
         const uiPanel = document.getElementById('ui-panel');
         if (uiPanel) uiPanel.style.display = 'none';
+
+        // Nächste-Einheit-Button entfernen
+        const nextBtn = document.getElementById('next-unit-button');
+        if (nextBtn) nextBtn.remove();
 
         // State zurücksetzen
         selectedUnit = null;
