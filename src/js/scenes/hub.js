@@ -1,67 +1,58 @@
 // hub.js
 // Hub-Szene mit Start-Button für Missionen
 
-import { missions } from '../data/missions/index.js';
+import Phaser from 'phaser';
 
-export class HubScene {
-    constructor(sceneManager) {
-        this.sceneManager = sceneManager;
+export class HubScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'HubScene' });
     }
 
-    // Wird aufgerufen, wenn die Szene betreten wird
-    onEnter() {
-        const appElement = document.getElementById('app');
-        
-        // Hub-UI erstellen
-        const hubContainer = document.createElement('div');
-        hubContainer.className = 'hub-container';
-        
-        const title = document.createElement('h1');
-        title.textContent = 'SI-Games Runden-Taktik';
-        
-        const startButton = document.createElement('button');
-        startButton.className = 'hub-button';
-        startButton.textContent = 'Mission 1 starten';
-        startButton.addEventListener('click', () => {
-            // Wechsle zur Kampf-Szene
-            this.sceneManager.switchTo('COMBAT');
+    create() {
+        // Verstecke die DOM-UI-Elemente (Top-Bar, Info-Panel, Console)
+        document.getElementById('top-bar').style.display = 'none';
+        document.getElementById('info-panel').style.display = 'none';
+        document.getElementById('action-console').style.display = 'none';
+
+        // Entferne eventuell verbliebenen Vanilla-Canvas
+        const oldCanvas = document.getElementById('gameCanvas');
+        if (oldCanvas) oldCanvas.remove();
+
+        const cx = this.cameras.main.width / 2;
+
+        // Titel
+        this.add.text(cx, 120, 'SI-Games\nRunden-Taktik', {
+            fontFamily: 'Arial',
+            fontSize: '28px',
+            fontStyle: 'bold',
+            color: '#ffffff',
+            align: 'center'
+        }).setOrigin(0.5);
+
+        // "Mission 1 starten"-Button
+        this.createButton(cx, 280, 'Mission 1 starten', () => {
+            this.scene.start('CombatScene');
         });
-        
-        const loadButton = document.createElement('button');
-        loadButton.className = 'hub-button';
-        loadButton.textContent = 'Spielstand laden';
-        loadButton.addEventListener('click', () => {
-            // Wechsle zur Kampf-Szene und lade den Spielstand
-            this.sceneManager.switchTo('COMBAT');
+
+        // "Spielstand laden"-Button
+        this.createButton(cx, 340, 'Spielstand laden', () => {
+            this.scene.start('CombatScene');
         });
-        
-        hubContainer.appendChild(title);
-        hubContainer.appendChild(startButton);
-        hubContainer.appendChild(loadButton);
-        
-        // Verstecke die Top-Bar, Info-Panel und Action-Console im Hub
-        const topBar = document.getElementById('top-bar');
-        const infoPanel = document.getElementById('info-panel');
-        const actionConsole = document.getElementById('action-console');
-        
-        if (topBar) topBar.style.display = 'none';
-        if (infoPanel) infoPanel.style.display = 'none';
-        if (actionConsole) actionConsole.style.display = 'none';
-        
-        // Verstecke die UI-Panel im Hub
-        const uiPanel = document.getElementById('ui-panel');
-        if (uiPanel) {
-            uiPanel.style.display = 'none';
-        }
-        appElement.appendChild(hubContainer);
     }
 
-    // Wird aufgerufen, wenn die Szene verlassen wird
-    onExit() {
-        // Verstecke die UI-Panel
-        const uiPanel = document.getElementById('ui-panel');
-        if (uiPanel) {
-            uiPanel.style.display = 'none';
-        }
+    createButton(x, y, label, callback) {
+        const btn = this.add.text(x, y, label, {
+            fontFamily: 'Arial',
+            fontSize: '18px',
+            color: '#ffffff',
+            backgroundColor: '#4CAF50',
+            padding: { x: 20, y: 12 }
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+        btn.on('pointerover', () => btn.setBackgroundColor('#45a049'));
+        btn.on('pointerout', () => btn.setBackgroundColor('#4CAF50'));
+        btn.on('pointerdown', callback);
+
+        return btn;
     }
 }

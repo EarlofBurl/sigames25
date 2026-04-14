@@ -1,5 +1,6 @@
+import Phaser from 'phaser';
 import { initRenderer, drawGrid, getGridData, setSelectedTarget, clearSelectedTarget, setSelectedUnit, clearSelectedUnit, setVisibilityGrid, getVisibilityData } from '../engine/renderer.js';
-import { setupKeyboardControls, isPassable } from '../engine/input.js';
+import { isPassable } from '../engine/input.js';
 import {
     initPlayerUnits, initEnemyUnits, getCurrentUnit, getCurrentUnitPosition, setCurrentUnitPosition,
     getCurrentUnitAttributes, setCurrentUnitMp, setCurrentUnitHasAttacked, refillCurrentUnitMp, nextUnit, getPlayerUnits, getEnemyUnits, setCurrentUnitIndex, applyEffectToUnit, applyEffectToEnemy
@@ -33,7 +34,6 @@ let onSpellCast = (caster, targetUnit, spell) => {
     
     log(`${caster.name} wirkt ${spell.name} auf ${targetUnit.name}!`, 'default');
     
-    // Finde die tatsächliche Einheit im Array und reduziere MP
     const playerUnits = getPlayerUnits();
     const casterUnit = playerUnits.find(u => u.id === caster.id);
     if (casterUnit) {
@@ -41,7 +41,6 @@ let onSpellCast = (caster, targetUnit, spell) => {
         casterUnit.hasAttacked = true;
     }
     
-    // Effekt auf Ziel anwenden (Spieler oder Feind)
     if (currentSpell.target === 'ally') {
         applyEffectToUnit(targetUnit.id, { 
             effect: spell.effect, 
@@ -66,18 +65,26 @@ let onSpellCast = (caster, targetUnit, spell) => {
     checkAllUnitsExhausted();
 };
 
-export class CombatScene {
-    constructor(sceneManager, mission) { 
-        this.sceneManager = sceneManager; 
-        this.mission = mission; 
+export class CombatScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'CombatScene' });
     }
 
-    onEnter() {
-        const appElement = document.getElementById('app');
-        
+    init(data) {
+        this.mission = data.mission;
+    }
+
+    create() {
+        // --- MISSION-DATEN LADEN ---
+        if (!this.mission) {
+            console.error('CombatScene: Keine Missionsdaten übergeben!');
+            return;
+        }
+
+        // --- VANILLA-CANVAS ERSTELLEN (vorläufig bis Renderer-Migration) ---
         const canvas = document.createElement('canvas');
-        canvas.id = 'gameCanvas'; 
-        canvas.width = 500; 
+        canvas.id = 'gameCanvas';
+        canvas.width = 500;
         canvas.height = 500;
         
         initRenderer(canvas, this.mission);
@@ -90,6 +97,7 @@ export class CombatScene {
         setVisibilityGrid(updateVisibility(grid, getPlayerUnits()));
         drawGrid();
 
+        // --- DOM-UI EINBLENDEN ---
         const topBar = document.getElementById('top-bar');
         const infoPanel = document.getElementById('info-panel');
         const actionConsole = document.getElementById('action-console');
@@ -133,7 +141,6 @@ export class CombatScene {
                 return;
             }
             
-            // WICHTIG: Hole die EINHEIT aus dem Array, nicht vom UI
             const players = getPlayerUnits();
             const actualUnit = players.find(u => u.id === caster.id);
             
@@ -147,7 +154,7 @@ export class CombatScene {
             fillUnitPanel(actualUnit || caster);
         });
 
-        // --- SPELL-CAST CALLBACK (wird von der Klick-Logik aufgerufen) ---
+        // --- SPELL-CAST CALLBACK ---
         setSpellCastCallback((caster, targetUnit, spell) => {
             if (!spell) spell = currentSpell;
             if (!caster) caster = selectedUnit;
@@ -159,7 +166,6 @@ export class CombatScene {
             
             log(`${caster.name} wirkt ${spell.name} auf ${targetUnit.name}!`, 'default');
             
-            // Finde die tatsächliche Einheit im Array und reduziere MP
             const playerUnits = getPlayerUnits();
             const casterUnit = playerUnits.find(u => u.id === caster.id);
             if (casterUnit) {
@@ -167,7 +173,6 @@ export class CombatScene {
                 casterUnit.hasAttacked = true;
             }
             
-            // Effekt auf Ziel anwenden (Spieler oder Feind)
             if (currentSpell.target === 'ally') {
                 applyEffectToUnit(targetUnit.id, { 
                     effect: spell.effect, 
@@ -197,21 +202,18 @@ export class CombatScene {
         const turnCounterElement = document.getElementById('turn-number');
 
         const endTurnLogic = async () => {
-            if (!isPlayerTurn) return; // Verhindert Spamming
+            if (!isPlayerTurn) return;
             
             isPlayerTurn = false;
             resetSelection();
             
-            // Feinde sind dran (Meilenstein 12)
             await executeEnemyTurn(grid);
             
-            // Spieler ist wieder dran
             refillCurrentUnitMp(); 
             turnCounter++;
             if (turnCounterElement) turnCounterElement.textContent = turnCounter;
             log(`Runde ${turnCounter} gestartet. Alle MP aufgefüllt.`);
             
-            // Sicht nach Feindbewegungen updaten (Meilenstein 13)
             setVisibilityGrid(updateVisibility(grid, getPlayerUnits()));
             drawGrid(); 
             
@@ -243,6 +245,8 @@ export class CombatScene {
             log(`${unit.name} ausgewählt.`, 'default');
         });
 
+        // --- VANILLA-CANVAS AN #APP ANHÄNGEN ---
+        const appElement = document.getElementById('app');
         appElement.appendChild(canvas);
         appElement.appendChild(uiContainer);
 
@@ -272,54 +276,33 @@ export class CombatScene {
 
             // === SPELL-TARGET MODUS ===
             if (currentSpell && selectedUnit) {
-                console.log('=== SPELL TARGET MODE ACTIVE ===');
-                console.log('currentSpell:', currentSpell?.name);
-                console.log('selectedUnit:', selectedUnit?.name, selectedUnit?.row, selectedUnit?.col);
-                
                 const players = getPlayerUnits();
                 const enemies = getEnemyUnits();
                 
-                // Finde die aktuelle Position des Casters aus dem Array
                 const actualCaster = players.find(u => u.id === selectedUnit.id);
                 const casterPos = actualCaster || selectedUnit;
                 
-                console.log('casterPos used for distance:', casterPos.row, casterPos.col);
-                console.log('click position:', row, col);
-                
-                // Prüfe zuerst: ist auf dem geklickten Feld eine Einheit?
                 const playerAtPos = players.find(u => u.row === row && u.col === col);
                 const enemyAtPos = enemies.find(u => u.row === row && u.col === col);
-                
-                console.log('playerAtPos:', playerAtPos?.name, playerAtPos?.row, playerAtPos?.col);
-                console.log('enemyAtPos:', enemyAtPos?.name);
                 
                 let targetUnit = null;
                 
                 if (currentSpell.target === 'ally') {
                     targetUnit = playerAtPos;
-                    console.log('Looking for ally, targetUnit:', targetUnit?.name);
                 } else if (currentSpell.target === 'enemy') {
                     targetUnit = enemyAtPos;
                 }
                 
-                // Wenn keine gültige Zieleinheit gefunden wurde
                 if (!targetUnit) {
-                    // Hier NICHT abbrechen -可能是点击了其他东西
-                    // Stattdessen: prüfen ob wir auf eine eigene Einheit geklickt haben und die auswählen wollen
-                    // ABER nur wenn wir NICHT im spell mode sind... 
-                    // Für jetzt: abbrechen
                     currentSpell = null;
                     log('Kein gültiges Ziel. Zauber abgebrochen.', 'default');
                     drawGrid();
                     return;
                 }
                 
-                // Jetzt prüfen wir die Distanz - BENUTZE ACTUAL CASTER POSITION
                 const distance = Math.abs(casterPos.row - row) + Math.abs(casterPos.col - col);
-                console.log('FINAL distance:', distance, 'spell range:', currentSpell.range);
                 
                 if (distance <= currentSpell.range) {
-                    console.log('CASTING SPELL NOW!');
                     onSpellCast(selectedUnit, targetUnit, currentSpell);
                     currentSpell = null;
                     drawGrid();
@@ -334,20 +317,17 @@ export class CombatScene {
             const unitIdx = playerUnits.findIndex(u => u.row === row && u.col === col);
 
             if (unitIdx !== -1) {
-                // Eigene Einheit auswählen
                 setCurrentUnitIndex(unitIdx); 
                 selectedUnit = playerUnits[unitIdx];
                 setSelectedUnit(selectedUnit); 
                 clearSelectedTarget(); 
                 fillUnitPanel(selectedUnit);
             } else if (selectedUnit) {
-                // Aktion ausführen
                 if (selectedTarget && selectedTarget.row === row && selectedTarget.col === col) {
                     if (selectedTarget.type === 'reachable') {
                         setCurrentUnitPosition(row, col);
                         setCurrentUnitMp(getCurrentUnitAttributes().mp - selectedTarget.cost);
                         
-                        // SICHTBARKEIT NACH BEWEGUNG UPDATEN
                         setVisibilityGrid(updateVisibility(grid, getPlayerUnits()));
                         
                         resetSelection(); 
@@ -366,7 +346,6 @@ export class CombatScene {
                         setCurrentUnitMp(0); 
                         setCurrentUnitHasAttacked(true);
                         
-                        // SICHTBARKEIT NACH ANGRIFFS-BEWEGUNG UPDATEN
                         setVisibilityGrid(updateVisibility(grid, getPlayerUnits()));
                         
                         resetSelection(); 
@@ -378,7 +357,6 @@ export class CombatScene {
                     return;
                 }
 
-                // Ziel anvisieren
                 const enemies = getEnemyUnits();
                 const eIdx = enemies.findIndex(e => e.row === row && e.col === col);
                 const curPos = getCurrentUnitPosition();
@@ -433,7 +411,6 @@ export class CombatScene {
                 
                 setSelectedTarget(selectedTarget);
             } else {
-                // Info-Ansicht für Feinde
                 const enemies = getEnemyUnits();
                 const eIdx = enemies.findIndex(e => e.row === row && e.col === col);
                 
@@ -461,8 +438,23 @@ export class CombatScene {
         });
     }
 
-    onExit() {
+    shutdown() {
+        // Vanilla-Canvas entfernen wenn Szene verlassen wird
+        const vanillaCanvas = document.getElementById('gameCanvas');
+        if (vanillaCanvas) vanillaCanvas.remove();
+
+        // DOM-UI verstecken
+        const uiContainer = document.querySelector('.ui-container');
+        if (uiContainer) uiContainer.remove();
+
         const uiPanel = document.getElementById('ui-panel');
         if (uiPanel) uiPanel.style.display = 'none';
+
+        // State zurücksetzen
+        selectedUnit = null;
+        selectedTarget = null;
+        isPlayerTurn = true;
+        currentSpell = null;
+        grid = null;
     }
 }

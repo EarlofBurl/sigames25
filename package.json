@@ -1,0 +1,16 @@
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "inkjs": "^2.4.0",
+    "phaser": "^3.80.1",
+    "phaser3-rex-plugins": "^1.80.20"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.8"
+  }
+}

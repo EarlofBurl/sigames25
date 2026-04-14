@@ -1,19 +1,15 @@
 // main.js
-// Einstiegspunkt des Spiels
+// Einstiegspunkt des Spiels – Phaser 3
 
-import { SceneManager } from './engine/scene-manager.js';
+import Phaser from 'phaser';
+import { gameConfig } from './config.js';
 import { HubScene } from './scenes/hub.js';
-
-// Initialisiere den SceneManager
-const sceneManager = new SceneManager();
-
-// Füge die Hub-Szene hinzu
-sceneManager.addScene('HUB', new HubScene(sceneManager));
-
-// Füge die Combat-Szene hinzu
 import { CombatScene } from './scenes/combat.js';
 import { mission01 } from './data/missions/mission_01.js';
-sceneManager.addScene('COMBAT', new CombatScene(sceneManager, mission01));
 
-// Starte mit der Hub-Szene
-sceneManager.switchTo('HUB');
+// Szenen registrieren
+gameConfig.scene = [HubScene, CombatScene];
+
+// Mission-Daten global verfügbar machen
+const game = new Phaser.Game(gameConfig);
+game.registry.set('mission', mission01);
