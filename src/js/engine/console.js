@@ -1,57 +1,49 @@
 // console.js
 // Verwaltet die Info-Konsole für Aktions-Logs
 
-let consoleOutput;
+let consoleOutput = null;
+let container = null;
 
-// Initialisiert die Konsole
-export function initConsole() {
-    consoleOutput = document.getElementById('console-output');
-    if (!consoleOutput) {
-        console.error('Konsole konnte nicht initialisiert werden: Element #console-output nicht gefunden.');
-    }
+export function initConsole(parent) {
+    container = document.createElement('div');
+    container.id = 'action-console';
+    container.style.cssText = 'background:#fff;border:1px solid #ccc;padding:10px;border-radius:5px;height:150px;overflow-y:auto;margin:10px;';
+
+    const title = document.createElement('h3');
+    title.textContent = 'Aktions-Log';
+    container.appendChild(title);
+
+    consoleOutput = document.createElement('div');
+    consoleOutput.id = 'console-output';
+    consoleOutput.style.cssText = 'height:100px;overflow-y:auto;';
+    container.appendChild(consoleOutput);
+
+    if (parent) parent.appendChild(container);
+    else document.body.appendChild(container);
 }
 
-// Fügt eine Nachricht zur Konsole hinzu
 export function log(message, type = 'default') {
-    if (!consoleOutput) {
-        console.error('Konsole nicht initialisiert.');
-        return;
-    }
+    if (!consoleOutput) return;
 
-    const messageElement = document.createElement('div');
-    messageElement.textContent = message;
-    
-    // Farbcodierung basierend auf dem Typ
+    const el = document.createElement('div');
+    el.textContent = message;
+
     switch (type) {
-        case 'movement':
-            messageElement.style.color = 'blue';
-            break;
-        case 'attack':
-            messageElement.style.color = 'green';
-            messageElement.style.fontWeight = 'bold';
-            break;
-        case 'enemy':
-            messageElement.style.color = 'red';
-            messageElement.style.fontWeight = 'bold';
-            break;
-        case 'error':
-            messageElement.style.color = '#ff6b6b';
-            break;
-        default:
-            messageElement.style.color = 'black';
-            break;
+        case 'movement': el.style.color = 'blue'; break;
+        case 'attack': el.style.color = 'green'; el.style.fontWeight = 'bold'; break;
+        case 'enemy': el.style.color = 'red'; el.style.fontWeight = 'bold'; break;
+        case 'error': el.style.color = '#ff6b6b'; break;
+        default: el.style.color = 'black'; break;
     }
-    
-    consoleOutput.appendChild(messageElement);
 
-    // Automatisch nach unten scrollen
+    consoleOutput.appendChild(el);
     consoleOutput.scrollTop = consoleOutput.scrollHeight;
 }
 
-// Setzt die Einheiten-Details
-export function setUnitDetails(details) {
-    const unitInfo = document.getElementById('unit-info');
-    if (unitInfo) {
-        unitInfo.textContent = details;
+export function destroyConsole() {
+    if (container && container.parentNode) {
+        container.parentNode.removeChild(container);
     }
+    container = null;
+    consoleOutput = null;
 }

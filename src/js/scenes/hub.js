@@ -9,10 +9,9 @@ export class HubScene extends Phaser.Scene {
     }
 
     create() {
-        // Verstecke die DOM-UI-Elemente (Top-Bar, Info-Panel, Console)
-        document.getElementById('top-bar').style.display = 'none';
-        document.getElementById('info-panel').style.display = 'none';
-        document.getElementById('action-console').style.display = 'none';
+        // Top-Bar verstecken (falls vorhanden)
+        const topBar = document.getElementById('top-bar');
+        if (topBar) topBar.style.display = 'none';
 
         const cx = this.cameras.main.width / 2;
 

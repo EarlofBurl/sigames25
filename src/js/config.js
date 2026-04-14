@@ -11,7 +11,7 @@ export const GAME_HEIGHT = GRID_SIZE * CELL_SIZE; // 500
 
 // Phaser-Konfiguration
 export const gameConfig = {
-    type: Phaser.CANVAS,
+    type: Phaser.AUTO,
     width: GAME_WIDTH,
     height: GAME_HEIGHT,
     parent: 'app',

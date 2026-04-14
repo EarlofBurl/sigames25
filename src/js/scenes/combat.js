@@ -5,10 +5,10 @@ import {
     initPlayerUnits, initEnemyUnits, getCurrentUnit, getCurrentUnitPosition, setCurrentUnitPosition,
     getCurrentUnitAttributes, setCurrentUnitMp, setCurrentUnitHasAttacked, refillCurrentUnitMp, nextUnit, getPlayerUnits, getEnemyUnits, setCurrentUnitIndex, applyEffectToUnit, applyEffectToEnemy
 } from '../entities/units.js';
-import { log, initConsole } from '../engine/console.js';
-import { initDialog, playDialog } from '../engine/dialog.js';
+import { log, initConsole, destroyConsole } from '../engine/console.js';
+import { initDialog, playDialog, destroyDialog } from '../engine/dialog.js';
 import { terrainTypes } from '../data/terrain.js';
-import { clearUnitPanel, fillUnitPanel, checkAllUnitsExhausted, setSpellCastCallback, setSpellSelectCallback } from './combat-ui.js';
+import { initCombatUI, clearUnitPanel, fillUnitPanel, checkAllUnitsExhausted, setSpellCastCallback, setSpellSelectCallback, getNextUnitButton, updateTerrainInfo, destroyCombatUI } from './combat-ui.js';
 import { executeCombat } from '../engine/combat-system.js';
 import { findPathAndCost } from '../engine/movement-system.js';
 import { executeEnemyTurn } from '../engine/enemy-ai.js';
@@ -75,6 +75,16 @@ export class CombatScene extends Phaser.Scene {
             return;
         }
 
+        // --- UI-MODULE INITIALISIEREN ---
+        const mainArea = document.getElementById('main-area');
+        initCombatUI(mainArea);
+        initConsole();
+        initDialog();
+
+        // Top-Bar einblenden
+        const topBar = document.getElementById('top-bar');
+        if (topBar) topBar.style.display = 'flex';
+
         // --- PHASER GRAPHICS INITIALISIEREN ---
         const gfx = this.add.graphics();
         gfx.setDepth(0);
@@ -86,18 +96,6 @@ export class CombatScene extends Phaser.Scene {
 
         setVisibilityGrid(updateVisibility(grid, getPlayerUnits()));
         drawGrid();
-
-        // --- DOM-UI EINBLENDEN ---
-        const topBar = document.getElementById('top-bar');
-        const infoPanel = document.getElementById('info-panel');
-        const actionConsole = document.getElementById('action-console');
-
-        if (topBar) topBar.style.display = 'flex';
-        if (infoPanel) infoPanel.style.display = 'flex';
-        if (actionConsole) actionConsole.style.display = 'block';
-
-        initConsole();
-        initDialog();
 
         if (this.mission.dialogues && this.mission.dialogues.length > 0) {
             playDialog(this.mission.dialogues);
@@ -161,29 +159,25 @@ export class CombatScene extends Phaser.Scene {
             endTurnButton.addEventListener('click', endTurnLogic);
         }
 
-        // --- NÄCHSTE EINHEIT BUTTON ---
-        const nextUnitButton = document.createElement('button');
-        nextUnitButton.id = 'next-unit-button';
-        nextUnitButton.className = 'command-button';
-        nextUnitButton.textContent = 'Nächste Einheit';
-
-        if (infoPanel) infoPanel.appendChild(nextUnitButton);
-
-        nextUnitButton.addEventListener('click', () => {
-            if (!isPlayerTurn) return;
-            nextUnit();
-            const unit = getCurrentUnit();
-            fillUnitPanel(unit);
-            selectedUnit = unit;
-            setSelectedUnit(selectedUnit);
-            clearSelectedTarget();
-            log(`${unit.name} ausgewählt.`, 'default');
-        });
+        // --- NÄCHSTE EINHEIT BUTTON (von combat-ui.js erstellt) ---
+        const nextUnitButton = getNextUnitButton();
+        if (nextUnitButton) {
+            nextUnitButton.addEventListener('click', () => {
+                if (!isPlayerTurn) return;
+                nextUnit();
+                const unit = getCurrentUnit();
+                fillUnitPanel(unit);
+                selectedUnit = unit;
+                setSelectedUnit(selectedUnit);
+                clearSelectedTarget();
+                log(`${unit.name} ausgewählt.`, 'default');
+            });
+        }
 
         // --- PHASER TASTATURSTEUERUNG ---
         this.input.keyboard.on('keydown-TAB', (event) => {
             event.preventDefault();
-            nextUnitButton.click();
+            if (nextUnitButton) nextUnitButton.click();
         });
 
         this.input.keyboard.on('keydown-ENTER', (event) => {
@@ -353,26 +347,20 @@ export class CombatScene extends Phaser.Scene {
             // Terrain-Info aktualisieren
             const cell = grid[row][col];
             if (cell) {
-                const terrainInfo = document.getElementById('terrain-info-text');
-                const terrainStats = document.getElementById('terrain-stats');
-                if (terrainInfo) terrainInfo.textContent = `Terrain: ${cell.type}`;
-                if (terrainStats && terrainTypes[cell.type]) {
-                    const t = terrainTypes[cell.type];
-                    const defSign = t.defenseBonus >= 0 ? '+' : '';
-                    terrainStats.innerHTML = `<span>MP: ${t.movementCost}</span> <span>Ang.: ${defSign}${t.defenseBonus}</span> <span>Def.: ${defSign}${t.defenseBonus}</span>`;
-                }
+                updateTerrainInfo(cell, terrainTypes);
             }
         });
     }
 
     shutdown() {
-        // DOM-UI verstecken
-        const uiPanel = document.getElementById('ui-panel');
-        if (uiPanel) uiPanel.style.display = 'none';
+        // Top-Bar verstecken
+        const topBar = document.getElementById('top-bar');
+        if (topBar) topBar.style.display = 'none';
 
-        // Nächste-Einheit-Button entfernen
-        const nextBtn = document.getElementById('next-unit-button');
-        if (nextBtn) nextBtn.remove();
+        // UI-Module zerstören
+        destroyCombatUI();
+        destroyConsole();
+        destroyDialog();
 
         // State zurücksetzen
         selectedUnit = null;
