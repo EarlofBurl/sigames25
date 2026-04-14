@@ -69,6 +69,12 @@ export class CombatScene extends Phaser.Scene {
         this.mission = (data && data.mission) || this.registry.get('mission');
     }
 
+    preload() {
+        const mapFile = (this.mission && this.mission.mapFile) || 'assets/maps/mission_01.tmj';
+        this.load.image('terrain_tileset', 'assets/tileset.png');
+        this.load.tilemapTiledJSON('mission_map', mapFile);
+    }
+
     create() {
         if (!this.mission) {
             console.error('CombatScene: Keine Missionsdaten übergeben!');
@@ -85,10 +91,8 @@ export class CombatScene extends Phaser.Scene {
         const topBar = document.getElementById('top-bar');
         if (topBar) topBar.style.display = 'flex';
 
-        // --- PHASER GRAPHICS INITIALISIEREN ---
-        const gfx = this.add.graphics();
-        gfx.setDepth(0);
-        initRenderer(gfx, this, this.mission);
+        // --- RENDERER INITIALISIEREN (Tilemap + Graphics-Overlay) ---
+        initRenderer(this, this.mission);
         grid = getGridData().grid;
 
         if (this.mission.playerUnits) initPlayerUnits(this.mission.playerUnits);
@@ -141,7 +145,7 @@ export class CombatScene extends Phaser.Scene {
             isPlayerTurn = false;
             resetSelection();
 
-            await executeEnemyTurn(grid);
+            await executeEnemyTurn(grid, drawGrid);
 
             refillCurrentUnitMp();
             turnCounter++;

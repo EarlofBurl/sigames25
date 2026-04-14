@@ -6,192 +6,109 @@ Dieses Dokument beschreibt die technische Architektur des SI-Games Runden-Taktik
 
 ```
 src/
-├── index.html                # Einstiegspunkt der Anwendung
+├── index.html                # Minimal-HTML (Top-Bar + #app für Phaser)
 ├── css/
-│   └── style.css             # Styles für die Anwendung
+│   └── style.css             # Grundlegende Styles
 └── js/
-    ├── main.js               # Hauptmodul, das die Anwendung startet
+    ├── main.js               # Phaser Game-Boot, registriert Szenen
+    ├── config.js             # Phaser-Konfiguration (WebGL, 500×500)
     ├── engine/
-    │   ├── renderer.js        # Zeichnet das Grid und die Spielfigur
-    │   ├── input.js           # Verwaltet die Eingaben
-    │   ├── combat-system.js   # NEU: Mathematische Kampflogik
-    │   ├── movement-system.js # NEU: Wegkosten-Berechnung
-    │   ├── storage.js         # Speichern/Laden
-    │   ├── scene-manager.js   # Szenenwechsel
-    │   ├── console.js         # Aktions-Log
-    │   └── dialog.js          # Dialog-System
+    │   ├── renderer.js       # Tilemap (Terrain) + Graphics (Fog/Units/Highlights)
+    │   ├── input.js          # Reine Utility: isPassable(), getMovementCost()
+    │   ├── combat-system.js  # Schadensberechnung, Gegenangriffe (rein)
+    │   ├── movement-system.js# Dijkstra-Pfadfindung, Bewegungskosten (rein)
+    │   ├── visibility-system.js # Nebel des Krieges, Sichtberechnung (rein)
+    │   ├── enemy-ai.js       # Aggro-Radius, Pfadfindung, Auto-Angriff
+    │   ├── storage.js        # LocalStorage Speichern/Laden
+    │   ├── console.js        # Aktions-Log (dynamisch erstellt/entfernt)
+    │   └── dialog.js         # Dialog-Overlay (dynamisch erstellt/entfernt)
     ├── entities/
-    │   └── hero.js            # Verwaltet die Spielfigur (Held)
+    │   └── units.js          # State-Objekt + Funktionen (Spieler/Gegner)
     ├── scenes/
-    │   ├── hub.js             # Hub-Szene
-    │   ├── combat.js          # Kampf-Szene (Regie)
-    │   └── combat-ui.js       # NEU: UI-Update-Logik für den Kampf
+    │   ├── hub.js            # HubScene (Phaser.Scene) — Titel + Buttons
+    │   ├── combat.js         # CombatScene (Phaser.Scene) — Spiellogik
+    │   └── combat-ui.js      # Unit-Panel, Terrain-Info, Zauber-UI
     └── data/
-        ├── terrain.js         # Definiert die Terrain-Typen und ihre Eigenschaften
+        ├── terrain.js        # Terrain-Properties, Themes (keine Farben)
         └── missions/
-            ├── mission_01.js   # Daten für Mission 1
-            └── index.js          # Sammelt alle Missionen und exportiert sie
+            ├── mission_01.js # Missions-Daten (Units, Gegner, mapFile)
+            └── index.js      # Missions-Index
+
+public/assets/
+├── tileset.png               # Terrain-Tileset (16×16, 7 Tiles)
+├── maps/
+│   └── mission_01.tmj        # Tiled-JSON-Karte (10×10)
+├── dialogs/                  # Dialog-Daten (geplant)
+└── sprites/                  # Pixel-Art-Sprites (geplant)
 ```
 
 ## Technologien
 
-- **HTML5**: Struktur der Anwendung.
-- **CSS3**: Styling der Anwendung.
-- **JavaScript (ES6)**: Logik der Anwendung.
-- **Canvas API**: Zeichnen des Grids und der Spielfigur.
-- **LocalStorage**: Speichern und Laden des Spielstands.
+- **Phaser 3.90.0**: Game Engine (Rendering, Input, Scene Management, Tilemaps)
+- **WebGL**: Renderer (Canvas-Renderer hat Bug in Phaser 3.90.0)
+- **Tiled**: Map-Editor → exportiert `.tmj` (JSON) + `.png` (Tileset)
+- **Vite**: Dev-Server und Build
+- **LocalStorage**: Speichern/Laden des Spielstands
 
-## Module
+## Kernmodule
 
 ### `src/js/main.js`
-- **Zweck**: Einstiegspunkt der Anwendung.
-- **Funktionen**:
-  - Initialisiert den `SceneManager`.
-  - Fügt die Hub-Szene hinzu.
-  - Startet mit der Hub-Szene.
-
-### `src/js/engine/scene-manager.js`
-- **Zweck**: Verwaltet den Wechsel zwischen verschiedenen Szenen.
-- **Funktionen**:
-  - `addScene(name, scene)`: Fügt eine neue Szene hinzu.
-  - `switchTo(name)`: Wechselt zu einer bestimmten Szene.
+- Erstellt `Phaser.Game` mit Konfiguration aus `config.js`
+- Registriert `HubScene` und `CombatScene`
+- Setzt Missionsdaten via `game.registry.set('mission', ...)`
 
 ### `src/js/engine/renderer.js`
-- **Zweck**: Zeichnet das Grid und die Spielfigur auf das Canvas.
-- **Funktionen**:
-  - `initGrid(mission)`: Initialisiert das Grid basierend auf der Mission.
-  - `drawGrid()`: Zeichnet das Grid.
-  - `drawPlayer()`: Zeichnet die Spielfigur.
-  - `drawPathLine(target)`: Zeichnet die Pathlinie zum ausgewählten Ziel.
-  - `initRenderer(canvasElement, mission)`: Initialisiert den Renderer.
-  - `getGridData()`: Gibt die aktuellen Grid-Daten zurück.
-  - `setGridData(data)`: Setzt die Grid-Daten.
-  - `setSelectedTarget(target)`: Setzt das ausgewählte Ziel.
-  - `clearSelectedTarget()`: Löscht das ausgewählte Ziel.
+- Erzeugt Phaser Tilemap aus Tiled-JSON (`make.tilemap()`)
+- Erzeugt Graphics-Overlay für Fog, Units, Selection-Highlights
+- `addCostLabel()` erzeugt `scene.add.text()` mit depth 10
+- **Tile-Index → Terrain-Name** via `TILE_TO_TERRAIN` (firstgid=1, +1 Offset)
+- **Scale**: Tiled 16×16 → Spiel 50×50 (`setScale(50/16)`)
 
-### `src/js/engine/input.js`
-- **Zweck**: Verwaltet die Eingaben (Tastatur und Maus).
-- **Funktionen**:
-  - `setupKeyboardControls(callback)`: Richtet die Tastatursteuerung ein.
-  - `setupMouseControls(canvas, callback)`: Richtet die Maussteuerung ein.
-  - `isPassable(row, col, grid)`: Überprüft, ob ein Feld passierbar ist.
-  - `getMovementCost(row, col, grid)`: Berechnet die Bewegungskosten für ein Feld.
+### `src/js/entities/units.js`
+- Ein `state`-Objekt hält `playerUnits`, `enemyUnits`, `currentUnitIndex`
+- Alle Funktionen arbeiten über `state.xxx` (keine `export let`)
+- Externe API: `getPlayerUnits()`, `getCurrentUnit()`, `setCurrentUnitPosition()`, etc.
 
-### `src/js/engine/storage.js`
-- **Zweck**: Verwaltet das Speichern und Laden des Spielstands im LocalStorage.
-- **Funktionen**:
-  - `saveGame(playerData)`: Speichert den aktuellen Spielstand.
-  - `loadGame()`: Lädt den Spielstand.
-  - `resetGame()`: Setzt den Spielstand zurück.
+### `src/js/engine/enemy-ai.js`
+- `executeEnemyTurn(grid, onAction)` — async, mit Callback für Render-Updates
+- `onAction` wird nach jeder KI-Aktion aufgerufen (→ `drawGrid` aus `combat.js`)
+- `setTimeout` für visuelle Pausen zwischen KI-Aktionen
 
-### `src/js/engine/console.js`
-- **Zweck**: Verwaltet die Info-Konsole für Aktions-Logs.
-- **Funktionen**:
-  - `initConsole()`: Initialisiert die Konsole.
-  - `log(message)`: Fügt eine Nachricht zur Konsole hinzu.
-  - `setUnitDetails(details)`: Setzt die Einheiten-Details.
+### `src/js/engine/combat-system.js`
+- Reine Logik ohne Phaser-Abhängigkeit
+- `executeCombat()` und `executeEnemyCombat()` — ändern nur Unit-State
+- Keine `drawGrid()`-Aufrufe (Entkopplung)
 
-### `src/js/engine/dialog.js`
-- **Zweck**: Verwaltet das Dialog-Overlay.
-- **Funktionen**:
-  - `initDialog()`: Initialisiert das Dialog-Overlay.
-  - `playDialog(data)`: Zeigt einen Dialog an.
+## Szenen-Flow
 
-### `src/js/entities/hero.js`
-- **Zweck**: Verwaltet die Spielfigur (Held).
-- **Funktionen**:
-  - `getHeroPosition()`: Gibt die aktuelle Position des Helden zurück.
-  - `setHeroPosition(row, col)`: Setzt die Position des Helden.
-  - `getHeroColor()`: Gibt die Farbe des Helden zurück.
-  - `getHeroAttributes()`: Gibt die Attribute des Helden zurück.
-  - `setHeroMp(mp)`: Setzt die Bewegungspunkte des Helden.
-  - `refillHeroMp()`: Füllt die Bewegungspunkte des Helden auf.
+```
+main.js → new Phaser.Game(config)
+         → HubScene.create()         [Titel, Buttons]
+         → scene.start('CombatScene')
+         → CombatScene.preload()      [Tileset + Tiled-JSON laden]
+         → CombatScene.create()       [Renderer, Units, UI, Input]
+         → CombatScene.update()       [Gameloop]
+         → CombatScene.shutdown()     [UI zerstören, State reset]
+         → scene.start('HubScene')
+```
 
-### `src/js/scenes/hub.js`
-- **Zweck**: Hub-Szene mit Start-Button für Missionen.
-- **Funktionen**:
-  - `onEnter()`: Wird aufgerufen, wenn die Szene betreten wird.
-  - `onExit()`: Wird aufgerufen, wenn die Szene verlassen wird.
+## Tiled-Integration
 
-### `src/js/scenes/combat.js`
-- **Zweck**: Kampf-Szene mit Grid und Spielfigur.
-- **Funktionen**:
-  - `onEnter()`: Wird aufgerufen, wenn die Szene betreten wird.
-  - `onExit()`: Wird aufgerufen, wenn die Szene verlassen wird.
-
-### `src/js/data/terrain.js`
-- **Zweck**: Definiert die Terrain-Typen und ihre Eigenschaften.
-- **Daten**:
-  - `terrainTypes`: Definiert die Terrain-Typen mit Bewegungskosten und Verteidigungsboni.
-  - `terrainThemes`: Definiert die Farben für jedes Terrain basierend auf dem Theme.
-
-### `src/js/data/missions/mission_01.js`
-- **Zweck**: Daten für Mission 1.
-- **Daten**:
-  - `id`: ID der Mission.
-  - `title`: Titel der Mission.
-  - `description`: Beschreibung der Mission.
-  - `theme`: Theme der Mission.
-  - `mapData`: Daten der Karte.
-  - `objectives`: Ziele der Mission.
-  - `dialogues`: Dialoge der Mission.
-
-### `src/js/data/missions/index.js`
-- **Zweck**: Sammelt alle Missionen und exportiert sie.
-- **Daten**:
-  - `missions`: Array aller Missionen.
-
-## Datenfluss
-
-1. **Initialisierung**:
-   - `main.js` initialisiert den `SceneManager` und fügt die Hub-Szene hinzu.
-   - Der `SceneManager` wechselt zur Hub-Szene.
-
-2. **Hub-Szene**:
-   - Der Benutzer klickt auf den "Mission 1 starten"-Button.
-   - Der `SceneManager` wechselt zur Kampf-Szene.
-
-3. **Kampf-Szene**:
-   - Der `renderer.js` initialisiert das Grid und zeichnet es.
-   - Der `input.js` richtet die Eingaben ein.
-   - Der Benutzer interagiert mit der Szene (Bewegung, Speichern, Laden, etc.).
-
-4. **Speichern/Laden**:
-   - Der `storage.js` speichert oder lädt den Spielstand im LocalStorage.
+- Maps werden in **Tiled** als `.tmj` (JSON) exportiert
+- Tileset ist `public/assets/tileset.png` (16×16 pro Tile, 7 Tiles)
+- Tile-IDs (1–7) mappt `TILE_TO_TERRAIN` zu Terrain-Namen
+- Mission-JS enthält nur `mapFile`-Pfad (kein `mapData.terrain` mehr)
+- Neue Karten: Tiled öffnen → bearbeiten → als `.tmj` speichern → Mission-Daten anpassen
 
 ## Zustandsverwaltung
 
-- **selectedUnit**: Gibt an, ob eine Einheit ausgewählt ist.
-- **selectedTarget**: Gibt an, ob ein Ziel ausgewählt ist.
-- **grid**: Enthält die Daten des Grids.
-- **player**: Enthält die Daten der Spielfigur.
+- **units.js** (`state`-Objekt): `playerUnits`, `enemyUnits`, `currentUnitIndex`
+- **renderer.js** (Modulvariablen): `grid`, `visibilityGrid`, `selectedTarget`, `selectedUnit`
+- **combat.js** (lokale Variablen): `isPlayerTurn`, `currentSpell`, `turnCounter`
+- **Phaser-Registry**: `mission` (via `game.registry.set/get`)
 
-## Event-Handling
+## Input-Handling
 
-- **Klicks**:
-  - Links-Klick: Wählt eine Einheit aus oder ein Ziel.
-  - Rechts-Klick: Bewegt die Einheit (deaktiviert, da durch Doppelklick ersetzt).
-  - Doppelklick: Bewegt die Einheit zum ausgewählten Ziel.
-
-- **Tastatur**:
-  - Pfeiltasten: Bewegen die Einheit.
-  - Leertaste: Überspringt den Zug.
-  - Enter: Beendet die Runde.
-
-## Styling
-
-- **CSS**:
-  - `style.css`: Enthält die Styles für die Anwendung.
-  - Flexbox: Wird für das Layout verwendet.
-  - Grid: Wird für das Spielfeld verwendet.
-
-## Browser-Kompatibilität
-
-- **Chrome**: Voll unterstützt.
-- **Firefox**: Voll unterstützt.
-- **Safari**: Voll unterstützt.
-- **Edge**: Voll unterstützt.
-
-## Lizenz
-
-Dieses Projekt steht unter der MIT-Lizenz. Siehe die [LICENSE](LICENSE) Datei für weitere Informationen.
+- **Phaser Input**: `this.input.on('pointerdown')` für Mausklicks
+- **Phaser Keyboard**: `this.input.keyboard.on('keydown-TAB')` / `keydown-ENTER`
+- `pointer.x / 50 = col`, `pointer.y / 50 = row` (Weltkoordinaten = Pixelkoordinaten)

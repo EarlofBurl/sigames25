@@ -1,40 +1,61 @@
 import { getPlayerUnits, getEnemyUnits } from '../entities/units.js';
-import { terrainThemes } from '../data/terrain.js';
+import { terrainTypes } from '../data/terrain.js';
 import { getVisibilityStatus, getVisibilityStatuses } from './visibility-system.js';
 
 const GRID_SIZE = 10;
 const CELL_SIZE = 50;
+const TILE_SIZE = 16;
+const SCALE = CELL_SIZE / TILE_SIZE;
+
+// Tile-ID zu Terrain-Name Mapping (0-basiert, firstgid=1)
+const TILE_TO_TERRAIN = {
+    1: 'PLAIN', 2: 'FOREST', 3: 'HILL', 4: 'RIVER',
+    5: 'MOUNTAIN', 6: 'WATER', 7: 'CITY'
+};
 
 let gfx = null;
 let scene = null;
 let grid = [];
-let currentTheme = 'classic';
+let tilemapLayer = null;
 let selectedTarget = null;
 let selectedUnit = null;
 let visibilityGrid = {};
 let costLabels = [];
 let VISIBILITY_STATUS;
 
-function cssToHex(color) {
-    if (typeof color === 'number') return color;
-    if (typeof color === 'string' && color.startsWith('#')) {
-        return parseInt(color.slice(1), 16);
-    }
-    return 0x000000;
-}
-
-export function initGrid(mission) {
-    currentTheme = mission.theme || 'classic';
-    grid = mission.mapData.terrain.map(row =>
-        row.map(type => ({ type, color: terrainThemes[currentTheme][type] }))
+export function initGrid() {
+    grid = Array.from({ length: GRID_SIZE }, () =>
+        Array.from({ length: GRID_SIZE }, () => ({ type: 'PLAIN' }))
     );
     VISIBILITY_STATUS = getVisibilityStatuses();
 }
 
-export function initRenderer(graphicsObj, phaserScene, mission) {
-    gfx = graphicsObj;
+export function initRenderer(phaserScene, mission) {
     scene = phaserScene;
-    initGrid(mission);
+    initGrid();
+
+    // --- TILEMAP AUS TILED-JSON ---
+    const tilemap = scene.make.tilemap({ key: 'mission_map' });
+    const tileset = tilemap.addTilesetImage('terrain', 'terrain_tileset');
+    tilemapLayer = tilemap.createLayer('terrain', tileset);
+    tilemapLayer.setScale(SCALE);
+    tilemapLayer.setDepth(0);
+
+    // Grid-Daten aus Tilemap lesen
+    for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+            const tile = tilemap.getTileAt(c, r);
+            if (tile) {
+                const terrainName = TILE_TO_TERRAIN[tile.index] || 'PLAIN';
+                grid[r][c] = { type: terrainName };
+            }
+        }
+    }
+
+    // --- GRAPHICS OVERLAY für dynamische Elemente ---
+    gfx = scene.add.graphics();
+    gfx.setDepth(1);
+
     drawGrid();
 }
 
@@ -67,41 +88,37 @@ export function drawGrid() {
     gfx.clear();
     clearCostLabels();
 
-    // Terrain + Grid + Fog
+    // Fog of War Overlay
     for (let r = 0; r < GRID_SIZE; r++) {
         for (let c = 0; c < GRID_SIZE; c++) {
             const status = getVisibilityStatus(visibilityGrid, r, c);
             const x = c * CELL_SIZE;
             const y = r * CELL_SIZE;
 
-            if (status !== VISIBILITY_STATUS.UNEXPLORED) {
-                gfx.fillStyle(cssToHex(grid[r][c].color));
-            } else {
+            if (status === VISIBILITY_STATUS.UNEXPLORED) {
                 gfx.fillStyle(0x000000);
-            }
-            gfx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
-
-            gfx.lineStyle(1, 0xffffff, 0.1);
-            gfx.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
-
-            if (status === VISIBILITY_STATUS.FOG) {
+                gfx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+            } else if (status === VISIBILITY_STATUS.FOG) {
                 gfx.fillStyle(0x000000, 0.5);
                 gfx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
             }
+
+            gfx.lineStyle(1, 0xffffff, 0.1);
+            gfx.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
         }
     }
 
     // Spieler-Einheiten
     getPlayerUnits().forEach(u => {
-        gfx.fillStyle(cssToHex(u.color || '#0000ff'));
+        gfx.fillStyle(parseInt(u.color.replace('#', ''), 16));
         gfx.fillRect(u.col * CELL_SIZE + 10, u.row * CELL_SIZE + 10, 30, 30);
     });
 
-    // Feind-Einheiten (nur wenn sichtbar)
+    // Feind-Einheiten (nur sichtbare)
     getEnemyUnits().forEach(enemy => {
         const status = getVisibilityStatus(visibilityGrid, enemy.row, enemy.col);
         if (status === VISIBILITY_STATUS.VISIBLE) {
-            gfx.fillStyle(cssToHex(enemy.color || '#ff0000'));
+            gfx.fillStyle(parseInt(enemy.color.replace('#', ''), 16));
             gfx.fillRect(enemy.col * CELL_SIZE + 10, enemy.row * CELL_SIZE + 10, 30, 30);
         }
     });
@@ -112,7 +129,6 @@ export function drawGrid() {
 function drawSelectionHighlight() {
     if (!gfx) return;
 
-    // Pfadlinie
     if (selectedUnit && selectedTarget && selectedTarget.path && selectedTarget.path.length > 0) {
         const strokeColor = selectedTarget.type === 'unreachable' ? 0xff0000 : 0xffffff;
         gfx.lineStyle(3, strokeColor, 0.5);
@@ -124,13 +140,11 @@ function drawSelectionHighlight() {
         gfx.strokePath();
     }
 
-    // Auswahl-Highlight
     if (selectedUnit) {
         gfx.lineStyle(3, 0xffff00);
         gfx.strokeRect(selectedUnit.col * CELL_SIZE + 2, selectedUnit.row * CELL_SIZE + 2, 46, 46);
     }
 
-    // Ziel-Indikatoren
     if (selectedTarget) {
         const x = selectedTarget.col * CELL_SIZE + 25;
         const y = selectedTarget.row * CELL_SIZE + 25;

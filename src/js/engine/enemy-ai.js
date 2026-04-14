@@ -3,11 +3,7 @@ import { log } from '../engine/console.js';
 import { findPathAndCost } from '../engine/movement-system.js';
 import { executeEnemyCombat } from '../engine/combat-system.js';
 import { isPassable } from '../engine/input.js';
-import { drawGrid } from '../engine/renderer.js';
 
-// Hilfsfunktion: Ist ein Feld von einer anderen Einheit besetzt?
-// Wichtig: Dieser Check prüft nur, ob IRGENDEINE Einheit auf dem Feld steht (inkl. Spieler + andere Feinde)
-// Da isPassable bereits alle Einheiten checkt, nutzen wir das hier für die Feind-KI
 function isOccupiedByAnyUnit(row, col, excludeEnemyIndex = -1) {
     const players = getPlayerUnits();
     const enemies = getEnemyUnits();
@@ -15,14 +11,13 @@ function isOccupiedByAnyUnit(row, col, excludeEnemyIndex = -1) {
            enemies.some((e, idx) => e.row === row && e.col === col && idx !== excludeEnemyIndex);
 }
 
-export async function executeEnemyTurn(grid) {
+export async function executeEnemyTurn(grid, onAction = null) {
     const enemies = getEnemyUnits();
     const players = getPlayerUnits();
 
     log('Feindliche Phase startet...', 'enemy');
     await new Promise(resolve => setTimeout(resolve, 800));
 
-    // WICHTIG: Rückwärts iterieren!
     for (let i = enemies.length - 1; i >= 0; i--) {
         const enemy = enemies[i];
         const enemyRange = enemy.range || 1;
@@ -30,7 +25,6 @@ export async function executeEnemyTurn(grid) {
         let closestPlayer = null;
         let shortestDist = Infinity;
 
-        // 1. Nächsten Spieler finden
         for (let p of players) {
             const dist = Math.abs(enemy.row - p.row) + Math.abs(enemy.col - p.col);
             if (dist < shortestDist) {
@@ -39,23 +33,16 @@ export async function executeEnemyTurn(grid) {
             }
         }
 
-        // 2. Handeln, wenn ein Spieler im Aggro-Radius (z.B. 3 Felder) ist
         if (closestPlayer && shortestDist <= 3) {
             
-            // === FERNKAMPF-LOGIK FÜR GEGNER ===
             if (enemyRange > 1) {
-                // Prüfen, ob Fernangriff möglich ist (direkt aus der Distanz)
                 if (shortestDist <= enemyRange) {
                     executeEnemyCombat(enemy, i, closestPlayer, shortestDist);
+                    if (onAction) onAction();
                     await new Promise(resolve => setTimeout(resolve, 800));
                     continue;
                 }
                 
-                // Position zwischen Feind und Spieler finden (ideal für Fernkampf)
-                const idealRow = enemy.row + Math.sign(closestPlayer.row - enemy.row);
-                const idealCol = enemy.col + Math.sign(closestPlayer.col - enemy.col);
-                
-                // Versuche, mich in Schussreichweite zu positionieren
                 let bestPos = null;
                 let bestCost = Infinity;
                 
@@ -75,22 +62,22 @@ export async function executeEnemyTurn(grid) {
                 if (bestPos && bestCost <= enemy.maxMp) {
                     setEnemyUnitPosition(enemy.id, bestPos.row, bestPos.col);
                     setEnemyUnitMp(enemy.id, enemy.mp - bestCost);
-                    drawGrid();
+                    if (onAction) onAction();
                     log(`${enemy.name} positioniert sich für Fernkampf.`, 'enemy');
                     await new Promise(resolve => setTimeout(resolve, 600));
                     
-                    // Nach der Bewegung: Fernangriff versuchen
                     const newDist = Math.abs(enemy.row - closestPlayer.row) + Math.abs(enemy.col - closestPlayer.col);
                     if (newDist <= enemyRange) {
                         executeEnemyCombat(enemy, i, closestPlayer, newDist);
+                        if (onAction) onAction();
                     }
                     continue;
                 }
             }
             
-            // === NAHKAMPF-LOGIK (auch für Gegner mit range > 1 wenn sie nicht in Reichweite kommen) ===
             if (shortestDist === 1) {
                 executeEnemyCombat(enemy, i, closestPlayer, shortestDist);
+                if (onAction) onAction();
                 await new Promise(resolve => setTimeout(resolve, 800));
                 continue;
             }
@@ -119,7 +106,7 @@ export async function executeEnemyTurn(grid) {
             if (bestTargetPos && lowestCost <= enemy.maxMp) {
                 setEnemyUnitPosition(enemy.id, bestTargetPos.row, bestTargetPos.col);
                 setEnemyUnitMp(enemy.id, enemy.mp - lowestCost);
-                drawGrid();
+                if (onAction) onAction();
                 log(`${enemy.name} rückt vor.`, 'enemy');
                 
                 await new Promise(resolve => setTimeout(resolve, 600));
@@ -127,6 +114,7 @@ export async function executeEnemyTurn(grid) {
                 const newDist = Math.abs(enemy.row - closestPlayer.row) + Math.abs(enemy.col - closestPlayer.col);
                 if (newDist === 1) {
                     executeEnemyCombat(enemy, i, closestPlayer, newDist);
+                    if (onAction) onAction();
                 }
             } else {
                 log(`${enemy.name} starrt angriffslustig, findet aber keinen Weg.`, 'default');
