@@ -27,6 +27,10 @@ export function setVisibilityGrid(newVisibilityGrid) {
     visibilityGrid = newVisibilityGrid;
 }
 
+export function getVisibilityData() {
+    return visibilityGrid;
+}
+
 export function drawGrid() {
     if (!ctx) return;
     

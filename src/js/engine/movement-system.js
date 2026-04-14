@@ -3,8 +3,9 @@ import { isPassable, getMovementCost } from './input.js';
 /**
  * Findet den Pfad und die Kosten. 
  * Wenn maxMp nicht angegeben wird, sucht er den Pfad ohne Rücksicht auf die Reichweite.
+ * excludeUnit erlaubt der Einheit, ihr eigenes Startfeld zu passieren.
  */
-export function findPathAndCost(startPos, targetPos, grid, maxMp = 999) {
+export function findPathAndCost(startPos, targetPos, grid, maxMp = 999, excludeUnit = null) {
     const queue = [{ row: startPos.row, col: startPos.col, cost: 0, path: [] }];
     const visited = new Set();
     visited.add(`${startPos.row},${startPos.col}`);
@@ -30,7 +31,7 @@ export function findPathAndCost(startPos, targetPos, grid, maxMp = 999) {
             const key = `${nextRow},${nextCol}`;
 
             if (nextRow >= 0 && nextRow < grid.length && nextCol >= 0 && nextCol < grid[0].length) {
-                if (!visited.has(key) && isPassable(nextRow, nextCol, grid)) {
+                if (!visited.has(key) && isPassable(nextRow, nextCol, grid, excludeUnit)) {
                     const stepCost = getMovementCost(nextRow, nextCol, grid);
                     
                     if (current.cost + stepCost <= maxMp) {

@@ -9,8 +9,9 @@ export let currentUnitIndex = 0;
  * Initialisiert die Spielereinheiten (z.B. beim Missionsstart)
  */
 export function initPlayerUnits(unitsData) {
-    playerUnits = unitsData.map(unit => ({
+    playerUnits = unitsData.map((unit, index) => ({
         ...unit,
+        id: unit.id || `player_${index}`,
         hp: unit.hp || 20,
         maxHp: unit.maxHp || 20,
         mp: unit.mp || 5,
@@ -19,7 +20,11 @@ export function initPlayerUnits(unitsData) {
         defense: unit.defense || 2,
         color: unit.color || '#0000FF', // Standardfarbe Blau, falls keine angegeben
         baseSight: unit.baseSight || 3,
-        range: unit.range || 1
+        range: unit.range || 1,
+        type: unit.type || ((unit.range || 1) > 1 ? 'Fernkampf' : 'Nahkampf'),
+        spells: unit.spells || [],
+        activeEffects: [],
+        hasAttacked: false
     }));
     currentUnitIndex = 0;
 }
@@ -28,8 +33,9 @@ export function initPlayerUnits(unitsData) {
  * Initialisiert die gegnerischen Einheiten
  */
 export function initEnemyUnits(enemiesData) {
-    enemyUnits = enemiesData.map(enemy => ({
+    enemyUnits = enemiesData.map((enemy, index) => ({
         ...enemy,
+        id: enemy.id || `enemy_${index}`,
         hp: enemy.hp || 10,
         maxHp: enemy.maxHp || 10,
         mp: enemy.mp || 3,
@@ -38,7 +44,10 @@ export function initEnemyUnits(enemiesData) {
         defense: enemy.defense || 1,
         color: enemy.color || '#FF0000', // Standardfarbe Rot
         baseSight: enemy.baseSight || 3,
-        range: enemy.range || 1
+        range: enemy.range || 1,
+        type: enemy.type || ((enemy.range || 1) > 1 ? 'Fernkampf' : 'Nahkampf'),
+        spells: enemy.spells || [],
+        activeEffects: []
     }));
 }
 
@@ -87,13 +96,30 @@ export function getCurrentUnitColor() {
 }
 
 /**
- * Gibt alle Attribute der aktuellen Einheit zurück
+ * Gibt alle Attribute der aktuellen Einheit zurück (inkl. Effekte)
  */
 export function getCurrentUnitAttributes() {
     const unit = playerUnits[currentUnitIndex];
+    let attack = unit.attack || 5;
+    let defense = unit.defense || 2;
+    
+    if (unit.activeEffects) {
+        unit.activeEffects.forEach(effect => {
+            if (effect.effect === 'buff_attack') attack += effect.value;
+            if (effect.effect === 'debuff_attack') attack -= effect.value;
+            if (effect.effect === 'buff_defense') defense += effect.value;
+            if (effect.effect === 'debuff_defense') defense -= effect.value;
+        });
+    }
+    
     return { 
         ...unit,
-        range: unit.range || 1
+        range: unit.range || 1,
+        type: unit.type || ((unit.range || 1) > 1 ? 'Fernkampf' : 'Nahkampf'),
+        spells: unit.spells || [],
+        activeEffects: unit.activeEffects || [],
+        attack,
+        defense
     };
 }
 
@@ -106,12 +132,30 @@ export function setCurrentUnitMp(mp) {
     }
 }
 
+export function setCurrentUnitHasAttacked(value) {
+    if (playerUnits[currentUnitIndex]) {
+        playerUnits[currentUnitIndex].hasAttacked = value;
+    }
+}
+
 /**
- * Füllt die MP aller Spielereinheiten auf (für Rundenwechsel)
+ * Füllt die MP aller Spielereinheiten auf (für Rundenwechsel) und baut Effekte ab
  */
 export function refillCurrentUnitMp() {
     playerUnits.forEach(unit => {
         unit.mp = unit.maxMp;
+        unit.hasAttacked = false;
+        
+        if (unit.activeEffects && unit.activeEffects.length > 0) {
+            const remainingEffects = [];
+            unit.activeEffects.forEach(effect => {
+                effect.duration -= 1;
+                if (effect.duration > 0) {
+                    remainingEffects.push(effect);
+                }
+            });
+            unit.activeEffects = remainingEffects;
+        }
     });
 }
 
@@ -142,6 +186,28 @@ export function getPlayerUnits() {
 
 export function getEnemyUnits() {
     return enemyUnits;
+}
+
+/**
+ * Wendet einen Effekt auf eine spezifische Spieler-Einheit an
+ */
+export function applyEffectToUnit(unitId, effect) {
+    const unit = playerUnits.find(u => u.id === unitId);
+    if (unit) {
+        if (!unit.activeEffects) unit.activeEffects = [];
+        unit.activeEffects.push({ ...effect });
+    }
+}
+
+/**
+ * Wendet einen Effekt auf eine feindliche Einheit an
+ */
+export function applyEffectToEnemy(enemyId, effect) {
+    const enemy = enemyUnits.find(u => u.id === enemyId);
+    if (enemy) {
+        if (!enemy.activeEffects) enemy.activeEffects = [];
+        enemy.activeEffects.push({ ...effect });
+    }
 }
 
 /**

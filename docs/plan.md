@@ -73,26 +73,26 @@
 - [x] Wenn alle Feinde gehandelt haben, wechsle zurück zur `Player Phase`.
 
 ## Meilenstein 13: Sichtweiten & Fog of War (NEU)
-- [ ] Erweitere `terrain.js` um Sichtlinien-Modifikatoren (z.B. Wald: `sightMod: -1`, Hügel: `sightMod: 1`).
-- [ ] Erweitere Helden-Einheiten um das Attribut `baseSight` (z.B. 3).
-- [ ] Implementiere eine Logik zur Sichtweiten-Berechnung: Ausgehend von der Heldenposition wird die Sichtweite berechnet (Manhattan-Distanz + Terrain-Modifikatoren der Felder auf der Route).
-- [ ] Passe den Renderer (`renderer.js`) an: 
+- [x] Erweitere `terrain.js` um Sichtlinien-Modifikatoren (z.B. Wald: `sightMod: -1`, Hügel: `sightMod: 1`).
+- [x] Erweitere Helden-Einheiten um das Attribut `baseSight` (z.B. 3).
+- [x] Implementiere eine Logik zur Sichtweiten-Berechnung: Ausgehend von der Heldenposition wird die Sichtweite berechnet (Manhattan-Distanz + Terrain-Modifikatoren der Felder auf der Route).
+- [x] Passe den Renderer (`renderer.js`) an:
   - Verdeckte Felder schwarz zeichnen (unexplored).
   - Entdeckte, aber aktuell nicht sichtbare Felder dunkelgrau überlagern (Fog).
   - Feinde nur zeichnen, wenn sie auf einem `visible` Feld stehen.
-- [ ] Verhindere, dass der Spieler Einheiten auf "unexplored" Felder bewegt, ohne sie vorher aufzuklären.
+- [x] Verhindere, dass der Spieler Einheiten auf "unexplored" Felder bewegt, ohne sie vorher aufzuklären.
 
 ## Meilenstein 14: Fernkampf, Magie & Status-Effekte (NEU)
-- [ ] **Datenstruktur:** Erweitere Einheiten um `range` (Reichweite, Standard 1, Bogenschützen 2) und ein Array `spells` für Magier/Barden. Füge ein Array `activeEffects` hinzu, um Buffs/Debuffs zu tracken.
-- [ ] **Fernkampf-Logik:** - Erlaube Angriffe auf Distanz (`distance <= range`).
+- [x] **Datenstruktur:** Erweitere Einheiten um `range` (Reichweite, Standard 1, Bogenschützen 2) und ein Array `spells` für Magier/Barden. Füge ein Array `activeEffects` hinzu, um Buffs/Debuffs zu tracken.
+- [x] **Fernkampf-Logik:** - Erlaube Angriffe auf Distanz (`distance <= range`).
   - Gegenangriffe in `combat-system.js` dürfen nur ausgeführt werden, wenn die Reichweite des Verteidigers bis zum Angreifer reicht (ein Nahkampf-Goblin kann sich nicht gegen einen Pfeil aus 2 Feldern Entfernung wehren).
-- [ ] **Aktions-Menü (UI):** Implementiere ein Menü im Info-Panel. Spieler müssen erst die Aktion (Angriff, Zauber A, Zauber B) auswählen, bevor sie das Ziel anklicken.
-- [ ] **Das Barden-System:**
+- [x] **Aktions-Menü (UI):** Implementiere Knöpfe im Info-Panel. Magische Spieler können aus zwei Zaubern auswählen.
+- [x] **Das Barden-System:**
   - Implementiere den Zauber "Anfeuern" (+1 Angriff für 1 Runde, Ziel: Verbündeter).
   - Implementiere den Zauber "Dissen" (-1 Angriff für 1 Runde, Ziel: Feind).
   - Erweitere die Rundenwechsel-Logik (`endTurnLogic`), damit Status-Effekte nach einer Runde wieder abklingen.
-- [ ] **Einheiten-Update:** Ersetze einen Goblin durch einen "Goblinbogenschützen", füge den Spieler "Ritter" (Nahkampf) und "Bogenschütze" hinzu und mache Montesquieu zum Barden.
-
+- [x] **Einheiten-Update:** Ersetze einen Goblin durch einen "Goblinbogenschützen", füge den Spieler "Ritter" (Nahkampf) und "Bogenschütze" hinzu und mache Montesquieu zum Barden.
+ 
 
 ## Meilenstein 15: Siegbedingungen & Fortschritt (Hub)
 - [ ] Definiere Sieg- und Niederlage-Bedingungen in `mission_01.js` (z.B. `winCondition: 'defeat_all'`).

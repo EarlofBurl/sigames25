@@ -58,3 +58,7 @@ export function getVisibilityStatus(gridRef, row, col) {
 export function getVisibilityStatuses() {
     return VISIBILITY_STATUS;
 }
+
+export function getVisibilityGrid() {
+    return visibilityGrid;
+}

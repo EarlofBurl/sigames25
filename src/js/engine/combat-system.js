@@ -1,5 +1,5 @@
 import { log } from './console.js';
-import { setEnemyUnitHp, removeEnemyUnit, setCurrentUnitHp } from '../entities/units.js';
+import { setEnemyUnitHp, removeEnemyUnit, setCurrentUnitHp, getPlayerUnits, getEnemyUnits, setCurrentUnitIndex, setEnemyUnitPosition } from '../entities/units.js';
 import { drawGrid } from './renderer.js';
 
 // Wird aufgerufen, wenn der SPIELER angreift
@@ -37,28 +37,55 @@ export function executeCombat(attackerAttr, enemy, enemyIndex, onAttackerDeathCa
 
 // NEU: Wird aufgerufen, wenn der FEIND angreift
 export function executeEnemyCombat(enemyAttr, enemyIndex, playerAttr, distance) {
+    const players = getPlayerUnits();
+    const enemies = getEnemyUnits();
+    
+    // Finde das tatsächliche Spieler-Objekt im Array
+    const targetPlayerIndex = players.findIndex(p => p.id === playerAttr.id);
+    
+    // Nahkampf-Penalty für Fernkämpfer: halber Schaden bei Distanz 1
+    const isMeleeAttack = distance === 1 && (enemyAttr.range || 1) > 1;
+    const damageMultiplier = isMeleeAttack ? 0.5 : 1;
+    
     // 1. Erstschlag (Feind -> Spieler)
-    const damage = Math.max(1, enemyAttr.attack - playerAttr.defense);
-    playerAttr.hp -= damage; // Wir ziehen die HP direkt beim Spieler ab
-    log(`${enemyAttr.name} greift an und fügt ${playerAttr.name} ${damage} Schaden zu!`, 'enemy');
+    const baseDamage = Math.max(1, enemyAttr.attack - playerAttr.defense);
+    const damage = Math.floor(baseDamage * damageMultiplier);
+    
+    // Direkt HP auf dem Spieler-Objekt im Array reduzieren
+    if (targetPlayerIndex !== -1) {
+        players[targetPlayerIndex].hp = Math.max(0, players[targetPlayerIndex].hp - damage);
+    }
+    
+    if (isMeleeAttack) {
+        log(`${enemyAttr.name} greift im Nahkampf an (geschwächt) und fügt ${playerAttr.name} ${damage} Schaden zu!`, 'enemy');
+    } else {
+        log(`${enemyAttr.name} greift an und fügt ${playerAttr.name} ${damage} Schaden zu!`, 'enemy');
+    }
 
-    if (playerAttr.hp <= 0) {
+    if (players[targetPlayerIndex] && players[targetPlayerIndex].hp <= 0) {
         log(`${playerAttr.name} wurde besiegt!`, 'enemy');
-        playerAttr.hp = playerAttr.maxHp; // Fallback Reset
+        players[targetPlayerIndex].hp = players[targetPlayerIndex].maxHp; // Fallback Reset
         drawGrid();
     } else {
         // 2. Gegenangriff (Spieler -> Feind) nur, wenn der Spieler in Reichweite ist
         const counterDistance = distance || 1;
         if (counterDistance <= (playerAttr.range || 1)) {
-            const counterDamage = Math.max(1, playerAttr.attack - enemyAttr.defense);
-            const newEnemyHp = enemyAttr.hp - counterDamage;
-            setEnemyUnitHp(enemyIndex, newEnemyHp);
-            log(`${playerAttr.name} schlägt zurück für ${counterDamage} Schaden!`, 'attack');
+            // Finde das Spieler-Objekt mit aktuellen Werten (inkl. Buffs)
+            const actualPlayer = players[targetPlayerIndex];
+            const counterDamage = Math.max(1, (actualPlayer?.attack || playerAttr.attack) - enemyAttr.defense);
+            
+            // Direkt auf Feind-HP anwenden
+            const enemy = enemies[enemyIndex];
+            if (enemy) {
+                enemy.hp = Math.max(0, enemy.hp - counterDamage);
+                setEnemyUnitHp(enemyIndex, enemy.hp);
+                log(`${playerAttr.name} schlägt zurück für ${counterDamage} Schaden!`, 'attack');
 
-            if (newEnemyHp <= 0) {
-                removeEnemyUnit(enemyIndex);
-                log(`${enemyAttr.name} wurde im Gegenangriff besiegt!`, 'attack');
-                drawGrid();
+                if (enemy.hp <= 0) {
+                    removeEnemyUnit(enemyIndex);
+                    log(`${enemyAttr.name} wurde im Gegenangriff besiegt!`, 'attack');
+                    drawGrid();
+                }
             }
         } else {
             log(`${playerAttr.name} kann nicht zurückschlagen - außerhalb der Reichweite!`, 'attack');

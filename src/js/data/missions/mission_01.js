@@ -38,7 +38,12 @@ export const mission01 = {
             maxMp: 5,
             attack: 3,
             defense: 2,
-            isHero: true
+            isHero: true,
+            type: 'Barde',
+            spells: [
+                { name: 'Anfeuern', effect: 'buff_attack', value: 1, duration: 1, target: 'ally', range: 1, mpCost: 2 },
+                { name: 'Dissen', effect: 'debuff_attack', value: 1, duration: 1, target: 'enemy', range: 1, mpCost: 2 }
+            ]
         },
         {
             name: 'Ritter',
@@ -65,6 +70,20 @@ export const mission01 = {
             attack: 3,
             defense: 1,
             range: 2,
+            isHero: true
+        },
+        {
+            name: 'Artillerie',
+            row: 1,
+            col: 0,
+            color: '#ffaa00',
+            hp: 6,
+            maxHp: 6,
+            mp: 3,
+            maxMp: 3,
+            attack: 4,
+            defense: 0,
+            range: 3,
             isHero: true
         }
     ],
