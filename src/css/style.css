@@ -54,6 +54,18 @@ body {
     position: relative;
 }
 
+#bottom-bar {
+    display: flex;
+    height: 160px;
+    border-top: 2px solid #ccc;
+    background: #e0e0e0;
+}
+
+#bottom-bar > div {
+    flex: 1;
+    overflow-y: auto;
+}
+
 .command-button {
     padding: 5px;
     background-color: #ddd;

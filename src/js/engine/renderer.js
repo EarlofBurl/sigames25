@@ -1,5 +1,5 @@
 import { getPlayerUnits, getEnemyUnits } from '../entities/units.js';
-import { terrainTypes } from '../data/terrain.js';
+import { terrainTypes } from './terrain.js';
 import { getVisibilityStatus, getVisibilityStatuses } from './visibility-system.js';
 
 const GRID_SIZE = 10;
@@ -7,10 +7,13 @@ const CELL_SIZE = 50;
 const TILE_SIZE = 16;
 const SCALE = CELL_SIZE / TILE_SIZE;
 
-// Tile-ID zu Terrain-Name Mapping (0-basiert, firstgid=1)
+// Tile-ID zu Terrain-Name Mapping (firstgid=1, 0-basiert)
+// Reihenfolge muss zum Tileset (tileset.png, 10 Tiles) passen:
+// 1:plains 2:hills 3:road 4:water 5:bridge 6:mountain 7:city 8:swamp 9:forest 10:fortress
 const TILE_TO_TERRAIN = {
-    1: 'PLAIN', 2: 'FOREST', 3: 'HILL', 4: 'RIVER',
-    5: 'MOUNTAIN', 6: 'WATER', 7: 'CITY'
+    1: 'plains', 2: 'hills', 3: 'road', 4: 'water',
+    5: 'bridge', 6: 'mountain', 7: 'city', 8: 'swamp',
+    9: 'forest', 10: 'fortress'
 };
 
 let gfx = null;
@@ -25,7 +28,7 @@ let VISIBILITY_STATUS;
 
 export function initGrid() {
     grid = Array.from({ length: GRID_SIZE }, () =>
-        Array.from({ length: GRID_SIZE }, () => ({ type: 'PLAIN' }))
+        Array.from({ length: GRID_SIZE }, () => ({ type: 'plains' }))
     );
     VISIBILITY_STATUS = getVisibilityStatuses();
 }
@@ -36,7 +39,15 @@ export function initRenderer(phaserScene, mission) {
 
     // --- TILEMAP AUS TILED-JSON ---
     const tilemap = scene.make.tilemap({ key: 'mission_map' });
-    const tileset = tilemap.addTilesetImage('terrain', 'terrain_tileset');
+
+    let tileset = tilemap.addTilesetImage('terrain', 'terrain_tileset');
+
+    // Fallback: falls Tileset-Key nicht passt
+    if (!tileset) {
+        console.warn('[renderer] Tileset nicht gefunden, versuche Fallback...');
+        tileset = tilemap.addTilesetImage('terrain');
+    }
+
     tilemapLayer = tilemap.createLayer('terrain', tileset);
     tilemapLayer.setScale(SCALE);
     tilemapLayer.setDepth(0);
@@ -46,7 +57,7 @@ export function initRenderer(phaserScene, mission) {
         for (let c = 0; c < GRID_SIZE; c++) {
             const tile = tilemap.getTileAt(c, r);
             if (tile) {
-                const terrainName = TILE_TO_TERRAIN[tile.index] || 'PLAIN';
+                const terrainName = TILE_TO_TERRAIN[tile.index] || 'plains';
                 grid[r][c] = { type: terrainName };
             }
         }
@@ -64,9 +75,10 @@ function clearCostLabels() {
     costLabels = [];
 }
 
-function addCostLabel(col, row, cost, isRed) {
+function addCostLabel(col, row, cost, isRed, isZoC) {
     if (!scene) return;
-    const label = scene.add.text(col * CELL_SIZE + 5, row * CELL_SIZE + 42, `${cost} MP`, {
+    const text = isZoC ? 'ZoC' : `${cost} MP`;
+    const label = scene.add.text(col * CELL_SIZE + 5, row * CELL_SIZE + 42, text, {
         fontFamily: 'Arial', fontSize: '14px', fontStyle: 'bold',
         color: isRed ? '#ff4444' : '#ffffff'
     });
@@ -151,10 +163,10 @@ function drawSelectionHighlight() {
 
         if (selectedTarget.type === 'attack') {
             drawCrosshair(x, y);
-            addCostLabel(selectedTarget.col, selectedTarget.row, selectedTarget.cost, true);
+            addCostLabel(selectedTarget.col, selectedTarget.row, selectedTarget.cost, true, false);
         } else if (selectedTarget.type === 'reachable' || selectedTarget.type === 'unreachable') {
             drawBoot(x, y, selectedTarget.type === 'reachable');
-            addCostLabel(selectedTarget.col, selectedTarget.row, selectedTarget.cost, selectedTarget.type === 'unreachable');
+            addCostLabel(selectedTarget.col, selectedTarget.row, selectedTarget.cost, selectedTarget.type === 'unreachable', selectedTarget.isZoC);
         } else if (selectedTarget.type === 'info') {
             gfx.lineStyle(3, 0x808080);
             gfx.strokeRect(selectedTarget.col * CELL_SIZE + 5, selectedTarget.row * CELL_SIZE + 5, CELL_SIZE - 10, CELL_SIZE - 10);

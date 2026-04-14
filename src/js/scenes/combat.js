@@ -1,18 +1,18 @@
 import Phaser from 'phaser';
 import { initRenderer, drawGrid, getGridData, setSelectedTarget, clearSelectedTarget, setSelectedUnit, clearSelectedUnit, setVisibilityGrid, getVisibilityData } from '../engine/renderer.js';
-import { isPassable } from '../engine/input.js';
+import { terrainTypes, isPassable, isAdjacentToEnemy } from '../engine/terrain.js';
 import {
     initPlayerUnits, initEnemyUnits, getCurrentUnit, getCurrentUnitPosition, setCurrentUnitPosition,
     getCurrentUnitAttributes, setCurrentUnitMp, setCurrentUnitHasAttacked, refillCurrentUnitMp, nextUnit, getPlayerUnits, getEnemyUnits, setCurrentUnitIndex, applyEffectToUnit, applyEffectToEnemy
 } from '../entities/units.js';
 import { log, initConsole, destroyConsole } from '../engine/console.js';
 import { initDialog, playDialog, destroyDialog } from '../engine/dialog.js';
-import { terrainTypes } from '../data/terrain.js';
-import { initCombatUI, clearUnitPanel, fillUnitPanel, checkAllUnitsExhausted, setSpellCastCallback, setSpellSelectCallback, getNextUnitButton, updateTerrainInfo, destroyCombatUI } from './combat-ui.js';
-import { executeCombat } from '../engine/combat-system.js';
+import { initCombatUI, clearUnitPanel, fillUnitPanel, checkAllUnitsExhausted, setSpellCastCallback, setSpellSelectCallback, getNextUnitButton, updateTerrainInfo, destroyCombatUI, showCombatPreview, animateCombatResult, showSpellPreview, animateSpellResult, hidePreview } from './combat-ui.js';
+import { executeCombat, predictCombat } from '../engine/combat-system.js';
 import { findPathAndCost } from '../engine/movement-system.js';
 import { executeEnemyTurn } from '../engine/enemy-ai.js';
 import { updateVisibility, getVisibilityStatuses } from '../engine/visibility-system.js';
+import { showEnemyAction } from './combat-ui.js';
 
 const CELL_SIZE = 50;
 
@@ -52,6 +52,7 @@ let onSpellCast = (caster, targetUnit, spell) => {
         });
     }
 
+    animateSpellResult(casterUnit || caster, targetUnit, spell);
     log(`${spell.name} wurde auf ${targetUnit.name} gewirkt!`, 'attack');
 
     currentSpell = null;
@@ -83,8 +84,20 @@ export class CombatScene extends Phaser.Scene {
 
         // --- UI-MODULE INITIALISIEREN ---
         const mainArea = document.getElementById('main-area');
-        initCombatUI(mainArea);
-        initConsole();
+
+        // Bottom-Bar erstellen
+        const bottomBar = document.createElement('div');
+        bottomBar.id = 'bottom-bar';
+        const logSection = document.createElement('div');
+        logSection.id = 'log-section';
+        bottomBar.appendChild(logSection);
+        const previewSection = document.createElement('div');
+        previewSection.id = 'preview-section';
+        bottomBar.appendChild(previewSection);
+        document.body.appendChild(bottomBar);
+
+        initCombatUI(mainArea, previewSection);
+        initConsole(logSection);
         initDialog();
 
         // Top-Bar einblenden
@@ -108,9 +121,11 @@ export class CombatScene extends Phaser.Scene {
         const resetSelection = () => {
             selectedUnit = null;
             selectedTarget = null;
+            currentSpell = null;
             clearSelectedUnit();
             clearSelectedTarget();
             clearUnitPanel();
+            hidePreview();
         };
 
         // --- SPELL-SELECT CALLBACK ---
@@ -145,7 +160,22 @@ export class CombatScene extends Phaser.Scene {
             isPlayerTurn = false;
             resetSelection();
 
-            await executeEnemyTurn(grid, drawGrid);
+            await executeEnemyTurn(grid, drawGrid, async (actionType, enemy, target, data) => {
+                if (actionType === 'attack') await showEnemyAction(enemy, target, 'attack', data);
+                else if (actionType === 'move') await showEnemyAction(enemy, null, 'move', data);
+            });
+
+            // Heilung in Städten: Einheiten auf 'city', die sich nicht bewegt haben, heilen 20% Max-HP
+            const allUnits = getPlayerUnits();
+            allUnits.forEach(unit => {
+                if (!unit.hasMoved && grid[unit.row] && grid[unit.row][unit.col]) {
+                    if (grid[unit.row][unit.col].type === 'city' && unit.hp < unit.maxHp) {
+                        const heal = Math.ceil(unit.maxHp * 0.2);
+                        unit.hp = Math.min(unit.maxHp, unit.hp + heal);
+                        log(`${unit.name} heilt ${heal} HP in der Stadt.`, 'default');
+                    }
+                }
+            });
 
             refillCurrentUnitMp();
             turnCounter++;
@@ -189,8 +219,61 @@ export class CombatScene extends Phaser.Scene {
             endTurnLogic();
         });
 
+        // --- HOVER: Kampf-/Zauber-Vorschau ---
+        this.input.on('pointermove', (pointer) => {
+            if (!isPlayerTurn || !selectedUnit) {
+                hidePreview();
+                return;
+            }
+
+            const col = Math.floor(pointer.x / CELL_SIZE);
+            const row = Math.floor(pointer.y / CELL_SIZE);
+
+            if (row < 0 || row >= 10 || col < 0 || col >= 10) {
+                hidePreview();
+                return;
+            }
+
+            const players = getPlayerUnits();
+            const enemies = getEnemyUnits();
+            const curAttr = getCurrentUnitAttributes();
+
+            // Zauber-Vorschau
+            if (currentSpell && selectedUnit) {
+                const actualCaster = players.find(u => u.id === selectedUnit.id) || selectedUnit;
+                let targetUnit = null;
+                if (currentSpell.target === 'ally') targetUnit = players.find(u => u.row === row && u.col === col);
+                else if (currentSpell.target === 'enemy') targetUnit = enemies.find(u => u.row === row && u.col === col);
+
+                if (targetUnit) {
+                    const dist = Math.abs(actualCaster.row - row) + Math.abs(actualCaster.col - col);
+                    if (dist <= currentSpell.range) {
+                        showSpellPreview(actualCaster, targetUnit, currentSpell);
+                        return;
+                    }
+                }
+                hidePreview();
+                return;
+            }
+
+            // Kampf-Vorschau
+            const eIdx = enemies.findIndex(e => e.row === row && e.col === col);
+            if (eIdx !== -1 && !curAttr.hasAttacked) {
+                const enemy = enemies[eIdx];
+                const distance = Math.abs(curAttr.row - row) + Math.abs(curAttr.col - col);
+                if (distance <= curAttr.range) {
+                    const pred = predictCombat(curAttr, enemy, distance, grid, players);
+                    showCombatPreview(curAttr, enemy, pred);
+                } else {
+                    hidePreview();
+                }
+            } else {
+                hidePreview();
+            }
+        });
+
         // --- PHASER KLICK LOGIK ---
-        this.input.on('pointerdown', (pointer) => {
+        this.input.on('pointerdown', async (pointer) => {
             if (!isPlayerTurn) return;
 
             const col = Math.floor(pointer.x / CELL_SIZE);
@@ -266,12 +349,33 @@ export class CombatScene extends Phaser.Scene {
                         const attackerPos = getCurrentUnitPosition();
                         const enemyPos = getEnemyUnits()[selectedTarget.enemyIdx];
                         const distance = Math.abs(attackerPos.row - enemyPos.row) + Math.abs(attackerPos.col - enemyPos.col);
-                        executeCombat(getCurrentUnitAttributes(), enemyPos, selectedTarget.enemyIdx, () => resetSelection(), distance);
+                        const curAttr = getCurrentUnitAttributes();
+                        const pred = predictCombat(curAttr, enemyPos, distance, grid, getPlayerUnits());
+
+                        // HP VOR Kampf merken
+                        const attackerHpBefore = curAttr.hp;
+                        const defenderHpBefore = enemyPos.hp;
+
+                        // Kampf ausführen (State ändert sich)
+                        executeCombat(curAttr, enemyPos, selectedTarget.enemyIdx, () => resetSelection(), distance);
                         setCurrentUnitMp(0);
                         setCurrentUnitHasAttacked(true);
+                        drawGrid();
+
+                        // Animation mit gemerkten HP-Werten
+                        curAttr._label = 'Angreifer';
+                        enemyPos._label = 'Verteidiger';
+                        await animateCombatResult(curAttr, enemyPos, {
+                            leftHpBefore: attackerHpBefore,
+                            leftHpAfter: pred.attackerHpAfter,
+                            rightHpBefore: defenderHpBefore,
+                            rightHpAfter: pred.defenderHpAfter,
+                            leftDmg: pred.canCounter ? pred.counterDmg : 0,
+                            rightDmg: pred.attackDmg,
+                            title: '⚔ Kampf'
+                        });
 
                         setVisibilityGrid(updateVisibility(grid, getPlayerUnits()));
-
                         resetSelection();
                         checkAllUnitsExhausted();
                         drawGrid();
@@ -328,8 +432,9 @@ export class CombatScene extends Phaser.Scene {
                     const fieldVisible = visibilityGrid[`${row},${col}`] === VISIBILITY_STATUS.VISIBLE;
 
                     const res = findPathAndCost(curPos, { row, col }, grid, curAttr.mp, selectedUnit);
+                    const zoc = isAdjacentToEnemy(row, col, selectedUnit);
                     selectedTarget = {
-                        row, col, cost: res.cost, path: res.path,
+                        row, col, cost: res.cost, path: res.path, isZoC: zoc,
                         type: (res.path && res.cost <= curAttr.mp && fieldVisible) ? 'reachable' : 'unreachable'
                     };
                 }
@@ -365,6 +470,10 @@ export class CombatScene extends Phaser.Scene {
         destroyCombatUI();
         destroyConsole();
         destroyDialog();
+
+        // Bottom-Bar entfernen
+        const bottomBar = document.getElementById('bottom-bar');
+        if (bottomBar) bottomBar.remove();
 
         // State zurücksetzen
         selectedUnit = null;

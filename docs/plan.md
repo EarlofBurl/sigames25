@@ -94,12 +94,69 @@
 - [x] **Einheiten-Update:** Ersetze einen Goblin durch einen "Goblinbogenschützen", füge den Spieler "Ritter" (Nahkampf) und "Bogenschütze" hinzu und mache Montesquieu zum Barden.
  
 
-## Meilenstein 15: Siegbedingungen & Fortschritt (Hub)
-- [ ] Definiere Sieg- und Niederlage-Bedingungen in `mission_01.js` (z.B. `winCondition: 'defeat_all'`).
-- [ ] Implementiere einen "Victory"- und "Defeat"-Screen über das `dialog.js` Overlay.
-- [ ] Kehre nach der Mission zum Hub (`hub.js`) zurück.
-- [ ] Füge Erfahrungspunkte (XP) und Level-Ups für überlebende Einheiten hinzu (können im Hub eingesehen werden).
+## Meilenstein 15: Die Welt & Bewegung (Terrain & ZoC)
+*Fokus: Die taktischen Grundregeln für die Bewegung auf der Karte etablieren.*
 
-## Meilenstein 16: Das SI-Games Jubiläums-Szenario
-- [ ] Erstelle `mission_02.js` und richte den Fortschritt so ein, dass man nach Mission 1 im Hub die nächste Mission wählen kann.
-- [ ] Baue Terrain-Besonderheiten aus Civ 2 vollständig ein (z.B. Städte heilen am Rundenanfang).
+- [x] **Erweitertes Terrain-System (`terrain.js` & `movement-system.js`):**
+  - [x] **Ebene (Plains):** 1 MP, keine Boni.
+  - [x] **Hügel (Hills):** 2 MP. +1 Verteidigung, +1 Sichtweite (Fog of War).
+  - [x] **Straße (Road):** 0.5 MP (oder halbe Kosten).
+  - [x] **Wasser (Water):** Unpassierbar. Ersetzt das alte Fluss-System.
+  - [x] **Brücke (Bridge):** 1 MP, passierbar über Wasser.
+  - [x] **Berg (Mountain):** Unpassierbar.
+  - [x] **Stadt (City):** 1 MP. +2 Verteidigung. Heilt die Einheit am Rundenanfang um 20% HP (wenn sie sich nicht bewegt hat).
+  - [x] **Sumpf (Swamp):** 2 MP. -1 Verteidigung (Verteidigungs-Malus).
+  - [x] **Wald (Forest):** 2 MP. +1 Verteidigung. Einheiten mit dem Trait `light` (leichte Einheiten) sind hier für Feinde unsichtbar, bis sie angreifen oder der Feind direkt daneben steht.
+  - [x] **Festung (Fortress):** 2 MP. +3 Verteidigung.
+- [x] **Zone of Control (ZoC):**
+  - [x] Erweiterung in `movement-system.js`: Einheiten müssen ihre Bewegung sofort beenden, wenn sie ein Feld direkt neben einem Feind betreten.
+
+## Meilenstein 16: Taktischer Kampf (Waffen & Positionierung)
+*Fokus: Entscheidungen im Kampf belohnen.*
+
+- [x] **Das klassische Waffendreieck (`combat-system.js`):**
+  - [x] Einführung der Waffentypen: `sword`, `axe`, `lance`, `bow`, `magic`.
+  - [x] Logik: Schwert schlägt Axt, Axt schlägt Lanze, Lanze schlägt Schwert. (Bögen und Magie sind neutral).
+  - [x] Bonus/Malus: Bei Vorteil +2 Angriff und +15% Trefferchance (falls Hit-Rates später aktiv sind).
+- [x] **Flankieren & "In den Rücken fallen":**
+  - [x] **Einkesseln (Flanking):** Wenn eine Einheit angreift und sich auf der genau gegenüberliegenden Seite des Ziels eine weitere verbündete Einheit befindet, gibt es +2 Angriff.
+  - [x] **Rückschlag-Verhinderung:** Angriffe aus dem "Einkessel"-Bonus heraus verhindern den Gegenangriff des Verteidigers (oder senken dessen Schaden massiv).
+
+## Meilenstein 17: Charakter-Management & Magie-System
+*Fokus: Eine saubere Datenstruktur für Helden, Feinde und Bosse schaffen.*
+
+- [ ] **Charakter-Datenbank (`data/characters.js`):**
+  - [ ] Trennung von "Klasse" und "Charakter". 
+  - [ ] Aufbau einer JSON-Struktur für Helden (z.B. Name, Portrait-ID, Basis-Werte).
+  - [ ] Aufbau einer Struktur für generische Feinde (z.B. "Goblin A") und Boss-Gegner (einzigartige Namen und leicht erhöhte Werte).
+- [ ] **Erweiterung der Einheiten-Stats (`units.js`):**
+  - [ ] **HP** (Lebenspunkte), **MP** (Bewegungspunkte / Movement), **Mana / SP** (Für Zauber und Fähigkeiten).
+  - [ ] **Atk** (Angriff), **Def** (Verteidigung), **Spd** (Geschwindigkeit - für Ausweichen oder Doppelschlag), **Rng** (Reichweite).
+  - [ ] **Traits** (Array für Spezialfähigkeiten, z.B. `['light', 'boss', 'flying']`).
+- [ ] **Überarbeitung des Magie-Systems:**
+  - [ ] Zauber kosten nun **Mana**, nicht mehr Bewegungspunkte.
+  - [ ] Aktions-Menü anpassen: Einheiten können sich bewegen und *danach* zaubern, solange sie genug Mana haben.
+
+## Meilenstein 18: Game-Loop, Hub & Meta-Progression
+*Fokus: Vom einzelnen Kampf zum Kampagnen-Gefühl.*
+
+- [ ] **Sieg- & Niederlage-Bedingungen (`CombatScene.js`):**
+  - [ ] Prüfung nach jedem Kill/Zug basierend auf `mission.json` (Typen: `defeat_all`, `defeat_boss`, `survive_turns`).
+- [ ] **XP-System & Level-Ups (`combat-system.js`):**
+  - [ ] XP-Vergabe: 10 XP für einen Angriff, 30 XP für einen Kill. Boss-Kills geben Extra-XP.
+  - [ ] Level-Up: Bei 100 XP steigt das Level. Zufällige (oder klassenbasierte) Erhöhung von 2-3 Stats.
+- [ ] **Persistenz & Der Hub (`storage.js` & `hub.js`):**
+  - [ ] Nach Missionsende: Speichern der Helden im LocalStorage. Rückkehr zur HubScene zur Missionsauswahl.
+
+## Meilenstein 19: KI-Evolution (Die Taktik-Feinde)
+*Fokus: Die Gegner nutzen die neuen Mechaniken.*
+
+- [ ] **Waffendreieck-Awareness:** KI priorisiert Ziele, gegen die sie einen Waffen-Vorteil hat.
+- [ ] **Terrain-Nutzung:** KI versucht, Fernkämpfer auf Hügel oder in Wälder zu stellen und meidet Sümpfe.
+- [ ] **Heiler- & Boss-Verhalten:** Gegnerische Heiler suchen verletzte Verbündete. Bosse (Trait `boss`) bleiben auf ihrer Festung stehen und warten, bis der Spieler in Reichweite kommt.
+
+## Meilenstein 20: Tooling, Tiled & Assets (Polishing)
+*Fokus: Der finale 16-Bit Japano-RPG Look.*
+
+- [ ] **Erweitertes Tiled-Mapping:** Einbindung des finalen Tilesets. Nutzung von "Custom Properties" in Tiled für Feldeigenschaften.
+- [ ] **Charakter-Portraits & InkJS-Dialoge:** Einbinden von Anime-Portraits für die Dialog-Boxen (`dialog.js`). Migration zu echten InkJS-Story-Files für Verzweigungen und Insider-Jokes.

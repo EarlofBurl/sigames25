@@ -1,8 +1,8 @@
 import { getEnemyUnits, getPlayerUnits, setEnemyUnitPosition, setEnemyUnitMp } from '../entities/units.js';
 import { log } from '../engine/console.js';
 import { findPathAndCost } from '../engine/movement-system.js';
-import { executeEnemyCombat } from '../engine/combat-system.js';
-import { isPassable } from '../engine/input.js';
+import { executeEnemyCombat, predictCombat } from '../engine/combat-system.js';
+import { isPassable } from '../engine/terrain.js';
 
 function isOccupiedByAnyUnit(row, col, excludeEnemyIndex = -1) {
     const players = getPlayerUnits();
@@ -11,12 +11,43 @@ function isOccupiedByAnyUnit(row, col, excludeEnemyIndex = -1) {
            enemies.some((e, idx) => e.row === row && e.col === col && idx !== excludeEnemyIndex);
 }
 
-export async function executeEnemyTurn(grid, onAction = null) {
+function createWeiterButton() {
+    const btn = document.createElement('button');
+    btn.textContent = 'Weiter ▶';
+    btn.style.cssText = 'position:fixed;bottom:180px;right:20px;padding:10px 20px;font-size:16px;background:#e53935;color:#fff;border:none;border-radius:5px;cursor:pointer;z-index:100;';
+    document.body.appendChild(btn);
+    return btn;
+}
+
+function removeWeiterButton(btn) {
+    if (btn && btn.parentNode) btn.parentNode.removeChild(btn);
+}
+
+function waitOrSkip(btn, ms) {
+    return new Promise(resolve => {
+        let resolved = false;
+        const timeout = setTimeout(() => {
+            if (!resolved) { resolved = true; resolve(); }
+        }, ms);
+        if (btn) {
+            btn.onclick = () => {
+                if (!resolved) {
+                    clearTimeout(timeout);
+                    resolved = true;
+                    resolve();
+                }
+            };
+        }
+    });
+}
+
+export async function executeEnemyTurn(grid, onAction = null, onEnemyAction = null) {
     const enemies = getEnemyUnits();
     const players = getPlayerUnits();
+    const weiterBtn = createWeiterButton();
 
     log('Feindliche Phase startet...', 'enemy');
-    await new Promise(resolve => setTimeout(resolve, 800));
+    await waitOrSkip(weiterBtn, 800);
 
     for (let i = enemies.length - 1; i >= 0; i--) {
         const enemy = enemies[i];
@@ -37,9 +68,11 @@ export async function executeEnemyTurn(grid, onAction = null) {
             
             if (enemyRange > 1) {
                 if (shortestDist <= enemyRange) {
+                    const pred = predictCombat(enemy, closestPlayer, shortestDist, grid, enemies);
                     executeEnemyCombat(enemy, i, closestPlayer, shortestDist);
                     if (onAction) onAction();
-                    await new Promise(resolve => setTimeout(resolve, 800));
+                    if (onEnemyAction) await onEnemyAction('attack', enemy, closestPlayer, pred);
+                    else await waitOrSkip(weiterBtn, 2000);
                     continue;
                 }
                 
@@ -60,25 +93,32 @@ export async function executeEnemyTurn(grid, onAction = null) {
                 }
                 
                 if (bestPos && bestCost <= enemy.maxMp) {
+                    const fromPos = { row: enemy.row, col: enemy.col };
                     setEnemyUnitPosition(enemy.id, bestPos.row, bestPos.col);
                     setEnemyUnitMp(enemy.id, enemy.mp - bestCost);
                     if (onAction) onAction();
+                    if (onEnemyAction) await onEnemyAction('move', enemy, null, { from: fromPos, to: bestPos });
+                    else await waitOrSkip(weiterBtn, 2000);
                     log(`${enemy.name} positioniert sich für Fernkampf.`, 'enemy');
-                    await new Promise(resolve => setTimeout(resolve, 600));
                     
                     const newDist = Math.abs(enemy.row - closestPlayer.row) + Math.abs(enemy.col - closestPlayer.col);
                     if (newDist <= enemyRange) {
+                        const pred = predictCombat(enemy, closestPlayer, newDist, grid, enemies);
                         executeEnemyCombat(enemy, i, closestPlayer, newDist);
                         if (onAction) onAction();
+                        if (onEnemyAction) await onEnemyAction('attack', enemy, closestPlayer, pred);
+                        else await waitOrSkip(weiterBtn, 2000);
                     }
                     continue;
                 }
             }
             
             if (shortestDist === 1) {
+                const pred = predictCombat(enemy, closestPlayer, 1, grid, enemies);
                 executeEnemyCombat(enemy, i, closestPlayer, shortestDist);
                 if (onAction) onAction();
-                await new Promise(resolve => setTimeout(resolve, 800));
+                if (onEnemyAction) await onEnemyAction('attack', enemy, closestPlayer, pred);
+                else await waitOrSkip(weiterBtn, 2000);
                 continue;
             }
 
@@ -104,25 +144,30 @@ export async function executeEnemyTurn(grid, onAction = null) {
             }
 
             if (bestTargetPos && lowestCost <= enemy.maxMp) {
+                const fromPos = { row: enemy.row, col: enemy.col };
                 setEnemyUnitPosition(enemy.id, bestTargetPos.row, bestTargetPos.col);
                 setEnemyUnitMp(enemy.id, enemy.mp - lowestCost);
                 if (onAction) onAction();
+                if (onEnemyAction) await onEnemyAction('move', enemy, null, { from: fromPos, to: bestTargetPos });
+                else await waitOrSkip(weiterBtn, 2000);
                 log(`${enemy.name} rückt vor.`, 'enemy');
-                
-                await new Promise(resolve => setTimeout(resolve, 600));
 
                 const newDist = Math.abs(enemy.row - closestPlayer.row) + Math.abs(enemy.col - closestPlayer.col);
                 if (newDist === 1) {
+                    const pred = predictCombat(enemy, closestPlayer, 1, grid, enemies);
                     executeEnemyCombat(enemy, i, closestPlayer, newDist);
                     if (onAction) onAction();
+                    if (onEnemyAction) await onEnemyAction('attack', enemy, closestPlayer, pred);
+                    else await waitOrSkip(weiterBtn, 2000);
                 }
             } else {
                 log(`${enemy.name} starrt angriffslustig, findet aber keinen Weg.`, 'default');
             }
         }
         
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await waitOrSkip(weiterBtn, 500);
     }
     
+    removeWeiterButton(weiterBtn);
     log('Feindliche Phase beendet.');
 }

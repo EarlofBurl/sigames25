@@ -25,6 +25,7 @@ export const mission01 = {
             defense: 2,
             isHero: true,
             type: 'Barde',
+            weapon: 'magic',
             spells: [
                 { name: 'Anfeuern', effect: 'buff_attack', value: 1, duration: 1, target: 'ally', range: 1, mpCost: 2 },
                 { name: 'Dissen', effect: 'debuff_attack', value: 1, duration: 1, target: 'enemy', range: 1, mpCost: 2 }
@@ -41,7 +42,8 @@ export const mission01 = {
             maxMp: 4,
             attack: 4,
             defense: 3,
-            isHero: true
+            isHero: true,
+            weapon: 'lance'
         },
         {
             name: 'Bogenschütze',
@@ -55,7 +57,8 @@ export const mission01 = {
             attack: 3,
             defense: 1,
             range: 2,
-            isHero: true
+            isHero: true,
+            weapon: 'bow'
         },
         {
             name: 'Artillerie',
@@ -69,7 +72,8 @@ export const mission01 = {
             attack: 4,
             defense: 0,
             range: 3,
-            isHero: true
+            isHero: true,
+            weapon: 'bow'
         }
     ],
     enemies: [
@@ -80,7 +84,8 @@ export const mission01 = {
             hp: 8,
             maxHp: 8,
             attack: 2,
-            defense: 1
+            defense: 1,
+            weapon: 'axe'
         },
         {
             name: 'Goblin',
@@ -89,7 +94,8 @@ export const mission01 = {
             hp: 8,
             maxHp: 8,
             attack: 2,
-            defense: 1
+            defense: 1,
+            weapon: 'axe'
         },
         {
             name: 'Goblinbogenschütze',
@@ -99,7 +105,8 @@ export const mission01 = {
             maxHp: 6,
             attack: 2,
             defense: 0,
-            range: 2
+            range: 2,
+            weapon: 'bow'
         }
     ],
     dialogues: [

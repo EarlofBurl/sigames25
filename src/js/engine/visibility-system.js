@@ -1,4 +1,4 @@
-import { terrainTypes } from '../data/terrain.js';
+import { terrainTypes } from './terrain.js';
 
 const VISIBILITY_STATUS = {
     UNEXPLORED: 'unexplored',

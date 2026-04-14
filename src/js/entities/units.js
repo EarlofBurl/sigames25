@@ -23,7 +23,9 @@ export function initPlayerUnits(unitsData) {
         type: unit.type || ((unit.range || 1) > 1 ? 'Fernkampf' : 'Nahkampf'),
         spells: unit.spells || [],
         activeEffects: [],
-        hasAttacked: false
+        hasAttacked: false,
+        hasMoved: false,
+        weapon: unit.weapon || null
     }));
     state.currentUnitIndex = 0;
 }
@@ -43,7 +45,9 @@ export function initEnemyUnits(enemiesData) {
         range: enemy.range || 1,
         type: enemy.type || ((enemy.range || 1) > 1 ? 'Fernkampf' : 'Nahkampf'),
         spells: enemy.spells || [],
-        activeEffects: []
+        activeEffects: [],
+        hasMoved: false,
+        weapon: enemy.weapon || null
     }));
 }
 
@@ -66,7 +70,11 @@ export function getCurrentUnitPosition() {
 
 export function setCurrentUnitPosition(row, col) {
     const unit = state.playerUnits[state.currentUnitIndex];
-    if (unit) { unit.row = row; unit.col = col; }
+    if (unit) {
+        unit.row = row;
+        unit.col = col;
+        unit.hasMoved = true;
+    }
 }
 
 export function getCurrentUnitColor() {
@@ -120,6 +128,7 @@ export function refillCurrentUnitMp() {
     state.playerUnits.forEach(unit => {
         unit.mp = unit.maxMp;
         unit.hasAttacked = false;
+        unit.hasMoved = false;
 
         if (unit.activeEffects && unit.activeEffects.length > 0) {
             unit.activeEffects = unit.activeEffects
@@ -153,7 +162,7 @@ export function applyEffectToEnemy(enemyId, effect) {
 
 export function setEnemyUnitPosition(id, row, col) {
     const enemy = state.enemyUnits.find(u => u.id === id);
-    if (enemy) { enemy.row = row; enemy.col = col; }
+    if (enemy) { enemy.row = row; enemy.col = col; enemy.hasMoved = true; }
 }
 
 export function setEnemyUnitMp(id, mp) {

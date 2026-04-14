@@ -7,15 +7,16 @@ let container = null;
 export function initConsole(parent) {
     container = document.createElement('div');
     container.id = 'action-console';
-    container.style.cssText = 'background:#fff;border:1px solid #ccc;padding:10px;border-radius:5px;height:150px;overflow-y:auto;margin:10px;';
+    container.style.cssText = 'background:#fff;padding:8px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;';
 
     const title = document.createElement('h3');
     title.textContent = 'Aktions-Log';
+    title.style.margin = '0 0 4px 0';
     container.appendChild(title);
 
     consoleOutput = document.createElement('div');
     consoleOutput.id = 'console-output';
-    consoleOutput.style.cssText = 'height:100px;overflow-y:auto;';
+    consoleOutput.style.cssText = 'flex:1;overflow-y:auto;font-size:13px;';
     container.appendChild(consoleOutput);
 
     if (parent) parent.appendChild(container);
