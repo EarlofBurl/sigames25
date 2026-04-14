@@ -3,16 +3,17 @@ import { initRenderer, drawGrid, getGridData, setSelectedTarget, clearSelectedTa
 import { terrainTypes, isPassable, isAdjacentToEnemy } from '../engine/terrain.js';
 import {
     initPlayerUnits, initEnemyUnits, getCurrentUnit, getCurrentUnitPosition, setCurrentUnitPosition,
-    getCurrentUnitAttributes, setCurrentUnitMp, setCurrentUnitHasAttacked, refillCurrentUnitMp, nextUnit, getPlayerUnits, getEnemyUnits, setCurrentUnitIndex, applyEffectToUnit, applyEffectToEnemy
+    getCurrentUnitAttributes, setCurrentUnitMp, setCurrentUnitHasAttacked, refillCurrentUnitMp, nextUnit,
+    getPlayerUnits, getEnemyUnits, setCurrentUnitIndex, applyEffectToUnit, applyEffectToEnemy,
+    setUnitTurnState, getUnitTurnState, unitAttack, unitCastSpell
 } from '../entities/units.js';
 import { log, initConsole, destroyConsole } from '../engine/console.js';
 import { initDialog, playDialog, destroyDialog } from '../engine/dialog.js';
-import { initCombatUI, clearUnitPanel, fillUnitPanel, checkAllUnitsExhausted, setSpellCastCallback, setSpellSelectCallback, getNextUnitButton, updateTerrainInfo, destroyCombatUI, showCombatPreview, animateCombatResult, showSpellPreview, animateSpellResult, hidePreview } from './combat-ui.js';
+import { initCombatUI, clearUnitPanel, fillUnitPanel, checkAllUnitsExhausted, setSpellCastCallback, setSpellSelectCallback, getNextUnitButton, updateTerrainInfo, destroyCombatUI, showCombatPreview, animateCombatResult, showSpellPreview, animateSpellResult, hidePreview, showEnemyAction, setActionCallbacks, showCursorSymbol, hideCursorSymbol } from './combat-ui.js';
 import { executeCombat, predictCombat } from '../engine/combat-system.js';
 import { findPathAndCost } from '../engine/movement-system.js';
 import { executeEnemyTurn } from '../engine/enemy-ai.js';
 import { updateVisibility, getVisibilityStatuses } from '../engine/visibility-system.js';
-import { showEnemyAction } from './combat-ui.js';
 
 const CELL_SIZE = 50;
 
@@ -36,8 +37,9 @@ let onSpellCast = (caster, targetUnit, spell) => {
     const playerUnits = getPlayerUnits();
     const casterUnit = playerUnits.find(u => u.id === caster.id);
     if (casterUnit) {
-        casterUnit.mp = Math.max(0, casterUnit.mp - spell.mpCost);
-        casterUnit.hasAttacked = true;
+        // Zauber kostet Mana, nicht MP
+        const manaCost = spell.manaCost !== undefined ? spell.manaCost : 0;
+        unitCastSpell(casterUnit.id, manaCost);
     }
 
     if (spell.target === 'ally') {
@@ -126,12 +128,35 @@ export class CombatScene extends Phaser.Scene {
             clearSelectedTarget();
             clearUnitPanel();
             hidePreview();
+            hideCursorSymbol();
         };
+
+        // --- AKTIONS-CALLBACKS ---
+        setActionCallbacks(
+            // onAttack: Zeigt Gegner in Reichweite an
+            (unit) => {
+                log('Ziel für Angriff wählen.', 'default');
+            },
+            // onWait: Beendet Zug für diese Einheit
+            (unit) => {
+                unit.turnState = 'acted';
+                unit.hasAttacked = true;
+                resetSelection();
+                checkAllUnitsExhausted();
+                drawGrid();
+                log(`${unit.name} wartet.`, 'default');
+            },
+            // onMove: Zeigt erreichbare Zellen an
+            (unit) => {
+                log('Ziel-Feld zum Bewegen wählen.', 'default');
+            }
+        );
 
         // --- SPELL-SELECT CALLBACK ---
         setSpellSelectCallback((caster, spell) => {
-            if (caster.mp < spell.mpCost) {
-                log(`${caster.name} hat nicht genug MP für ${spell.name}!`, 'error');
+            const manaCost = spell.manaCost !== undefined ? spell.manaCost : spell.mpCost;
+            if (caster.mana < manaCost) {
+                log(`${caster.name} hat nicht genug Mana für ${spell.name}!`, 'error');
                 return;
             }
 
@@ -180,7 +205,7 @@ export class CombatScene extends Phaser.Scene {
             refillCurrentUnitMp();
             turnCounter++;
             if (turnCounterElement) turnCounterElement.textContent = turnCounter;
-            log(`Runde ${turnCounter} gestartet. Alle MP aufgefüllt.`);
+            log(`Runde ${turnCounter} gestartet. Alle MP und Mana aufgefüllt.`);
 
             setVisibilityGrid(updateVisibility(grid, getPlayerUnits()));
             drawGrid();
@@ -223,6 +248,7 @@ export class CombatScene extends Phaser.Scene {
         this.input.on('pointermove', (pointer) => {
             if (!isPlayerTurn || !selectedUnit) {
                 hidePreview();
+                hideCursorSymbol();
                 return;
             }
 
@@ -231,6 +257,7 @@ export class CombatScene extends Phaser.Scene {
 
             if (row < 0 || row >= 10 || col < 0 || col >= 10) {
                 hidePreview();
+                hideCursorSymbol();
                 return;
             }
 
@@ -238,7 +265,7 @@ export class CombatScene extends Phaser.Scene {
             const enemies = getEnemyUnits();
             const curAttr = getCurrentUnitAttributes();
 
-            // Zauber-Vorschau
+            // Zauber-Vorschau (immer wenn Zauber aktiv)
             if (currentSpell && selectedUnit) {
                 const actualCaster = players.find(u => u.id === selectedUnit.id) || selectedUnit;
                 let targetUnit = null;
@@ -249,14 +276,16 @@ export class CombatScene extends Phaser.Scene {
                     const dist = Math.abs(actualCaster.row - row) + Math.abs(actualCaster.col - col);
                     if (dist <= currentSpell.range) {
                         showSpellPreview(actualCaster, targetUnit, currentSpell);
+                        showCursorSymbol(pointer, { weapon: 'magic', range: 1 });
                         return;
                     }
                 }
                 hidePreview();
+                hideCursorSymbol();
                 return;
             }
 
-            // Kampf-Vorschau
+            // Kampf-Vorschau: vor Angriff (auch ohne Bewegung)
             const eIdx = enemies.findIndex(e => e.row === row && e.col === col);
             if (eIdx !== -1 && !curAttr.hasAttacked) {
                 const enemy = enemies[eIdx];
@@ -264,11 +293,14 @@ export class CombatScene extends Phaser.Scene {
                 if (distance <= curAttr.range) {
                     const pred = predictCombat(curAttr, enemy, distance, grid, players);
                     showCombatPreview(curAttr, enemy, pred);
+                    showCursorSymbol(pointer, curAttr);
                 } else {
                     hidePreview();
+                    hideCursorSymbol();
                 }
             } else {
                 hidePreview();
+                hideCursorSymbol();
             }
         });
 
@@ -324,23 +356,37 @@ export class CombatScene extends Phaser.Scene {
             const unitIdx = playerUnits.findIndex(u => u.row === row && u.col === col);
 
             if (unitIdx !== -1) {
+                // Spieler-Einheit auswählen
                 setCurrentUnitIndex(unitIdx);
                 selectedUnit = playerUnits[unitIdx];
                 setSelectedUnit(selectedUnit);
                 clearSelectedTarget();
                 fillUnitPanel(selectedUnit);
             } else if (selectedUnit) {
+                // === BESTÄTIGUNG: Zweiter Klick auf ausgewähltes Ziel ===
                 if (selectedTarget && selectedTarget.row === row && selectedTarget.col === col) {
+
                     if (selectedTarget.type === 'reachable') {
+                        // Bewegung zu erreichbarem Feld
                         setCurrentUnitPosition(row, col);
                         setCurrentUnitMp(getCurrentUnitAttributes().mp - selectedTarget.cost);
 
                         setVisibilityGrid(updateVisibility(grid, getPlayerUnits()));
 
-                        resetSelection();
-                        checkAllUnitsExhausted();
+                        // Einheit neu laden nach Bewegung (State ist jetzt 'moved')
+                        const movedUnit = getPlayerUnits().find(u => u.id === selectedUnit.id);
+                        if (movedUnit) {
+                            selectedUnit = movedUnit;
+                            setSelectedUnit(selectedUnit);
+                            selectedTarget = null;
+                            clearSelectedTarget();
+                            fillUnitPanel(selectedUnit);
+                        }
                         drawGrid();
+                        return;
+
                     } else if (selectedTarget.type === 'attack') {
+                        // === ANGRIFF AUSFÜHREN ===
                         if (selectedTarget.cost > 0) {
                             setCurrentUnitPosition(selectedTarget.attackFrom.row, selectedTarget.attackFrom.col);
                             setCurrentUnitMp(getCurrentUnitAttributes().mp - selectedTarget.cost);
@@ -348,6 +394,8 @@ export class CombatScene extends Phaser.Scene {
 
                         const attackerPos = getCurrentUnitPosition();
                         const enemyPos = getEnemyUnits()[selectedTarget.enemyIdx];
+                        if (!enemyPos) { resetSelection(); return; }
+
                         const distance = Math.abs(attackerPos.row - enemyPos.row) + Math.abs(attackerPos.col - enemyPos.col);
                         const curAttr = getCurrentUnitAttributes();
                         const pred = predictCombat(curAttr, enemyPos, distance, grid, getPlayerUnits());
@@ -358,8 +406,10 @@ export class CombatScene extends Phaser.Scene {
 
                         // Kampf ausführen (State ändert sich)
                         executeCombat(curAttr, enemyPos, selectedTarget.enemyIdx, () => resetSelection(), distance);
-                        setCurrentUnitMp(0);
-                        setCurrentUnitHasAttacked(true);
+
+                        // Einheit auf 'acted' setzen
+                        unitAttack(curAttr.id);
+
                         drawGrid();
 
                         // Animation mit gemerkten HP-Werten
@@ -379,12 +429,14 @@ export class CombatScene extends Phaser.Scene {
                         resetSelection();
                         checkAllUnitsExhausted();
                         drawGrid();
+
                     } else {
                         resetSelection();
                     }
                     return;
                 }
 
+                // === FEIND-ODER-FELD-ANALYSE ===
                 const enemies = getEnemyUnits();
                 const eIdx = enemies.findIndex(e => e.row === row && e.col === col);
                 const curPos = getCurrentUnitPosition();
@@ -398,15 +450,17 @@ export class CombatScene extends Phaser.Scene {
                     const enemyVisible = visibilityGrid[`${row},${col}`] === VISIBILITY_STATUS.VISIBLE;
                     const hasAttacked = selectedUnit && selectedUnit.hasAttacked;
 
-                    if (hasAttacked) {
+                    if (hasAttacked || curAttr.turnState === 'acted') {
                         selectedTarget = { row, col, type: 'unreachable' };
                     } else if (enemyVisible && distance <= curAttr.range) {
+                        // Feind in Reichweite → Angriffsziel setzen (Kosten 0, Position unverändert)
                         selectedTarget = {
                             row, col, enemyIdx: eIdx, cost: 0, path: [],
                             attackFrom: { row: curPos.row, col: curPos.col },
                             type: 'attack'
                         };
                     } else if (enemyVisible) {
+                        // Feind sichtbar aber nicht in Reichweite → beste Annäherungsposition finden
                         let best = { cost: Infinity, path: [], pos: null };
 
                         for (let r = row - curAttr.range; r <= row + curAttr.range; r++) {
@@ -427,6 +481,7 @@ export class CombatScene extends Phaser.Scene {
                         selectedTarget = { row, col, type: 'unreachable' };
                     }
                 } else {
+                    // Leeres Feld → Bewegungspfad berechnen
                     const visibilityGrid = getVisibilityData();
                     const VISIBILITY_STATUS = getVisibilityStatuses();
                     const fieldVisible = visibilityGrid[`${row},${col}`] === VISIBILITY_STATUS.VISIBLE;
@@ -441,6 +496,7 @@ export class CombatScene extends Phaser.Scene {
 
                 setSelectedTarget(selectedTarget);
             } else {
+                // Keine Einheit ausgewählt → Info anzeigen oder abwählen
                 const enemies = getEnemyUnits();
                 const eIdx = enemies.findIndex(e => e.row === row && e.col === col);
 

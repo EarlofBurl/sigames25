@@ -1,5 +1,6 @@
 // mission_01.js
 // Daten für Mission 1
+// Helden referenzieren characters.js per characterId, nur Position wird überschrieben.
 
 export const mission01 = {
     id: 'mission_01',
@@ -12,102 +13,15 @@ export const mission01 = {
         'Besiege alle Gegner'
     ],
     playerUnits: [
-        {
-            name: 'Montesquieu',
-            row: 0,
-            col: 0,
-            color: '#ff0000',
-            hp: 10,
-            maxHp: 10,
-            mp: 5,
-            maxMp: 5,
-            attack: 3,
-            defense: 2,
-            isHero: true,
-            type: 'Barde',
-            weapon: 'magic',
-            spells: [
-                { name: 'Anfeuern', effect: 'buff_attack', value: 1, duration: 1, target: 'ally', range: 1, mpCost: 2 },
-                { name: 'Dissen', effect: 'debuff_attack', value: 1, duration: 1, target: 'enemy', range: 1, mpCost: 2 }
-            ]
-        },
-        {
-            name: 'Ritter',
-            row: 0,
-            col: 1,
-            color: '#0000ff',
-            hp: 12,
-            maxHp: 12,
-            mp: 4,
-            maxMp: 4,
-            attack: 4,
-            defense: 3,
-            isHero: true,
-            weapon: 'lance'
-        },
-        {
-            name: 'Bogenschütze',
-            row: 0,
-            col: 2,
-            color: '#00ff00',
-            hp: 8,
-            maxHp: 8,
-            mp: 5,
-            maxMp: 5,
-            attack: 3,
-            defense: 1,
-            range: 2,
-            isHero: true,
-            weapon: 'bow'
-        },
-        {
-            name: 'Artillerie',
-            row: 1,
-            col: 0,
-            color: '#ffaa00',
-            hp: 6,
-            maxHp: 6,
-            mp: 3,
-            maxMp: 3,
-            attack: 4,
-            defense: 0,
-            range: 3,
-            isHero: true,
-            weapon: 'bow'
-        }
+        { characterId: 'montesquieu', row: 0, col: 0, isHero: true },
+        { characterId: 'ritter',      row: 0, col: 1, isHero: true },
+        { characterId: 'bogenschuetze', row: 0, col: 2, isHero: true },
+        { characterId: 'artillerie',  row: 1, col: 0, isHero: true }
     ],
     enemies: [
-        {
-            name: 'Goblin',
-            row: 5,
-            col: 5,
-            hp: 8,
-            maxHp: 8,
-            attack: 2,
-            defense: 1,
-            weapon: 'axe'
-        },
-        {
-            name: 'Goblin',
-            row: 5,
-            col: 6,
-            hp: 8,
-            maxHp: 8,
-            attack: 2,
-            defense: 1,
-            weapon: 'axe'
-        },
-        {
-            name: 'Goblinbogenschütze',
-            row: 5,
-            col: 7,
-            hp: 6,
-            maxHp: 6,
-            attack: 2,
-            defense: 0,
-            range: 2,
-            weapon: 'bow'
-        }
+        { characterId: 'goblin',        row: 5, col: 5 },
+        { characterId: 'goblin',        row: 5, col: 6 },
+        { characterId: 'goblin_archer', row: 5, col: 7 }
     ],
     dialogues: [
         {

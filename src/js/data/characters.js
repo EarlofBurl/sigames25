@@ -1,0 +1,155 @@
+// characters.js
+// Zentrale Charakter-Datenbank: Helden und Gegner
+
+export const heroes = {
+    montesquieu: {
+        name: 'Montesquieu',
+        portrait: '🎭',
+        weapon: 'magic',
+        hp: 10,
+        mp: 3,
+        mana: 10,
+        atk: 2,
+        def: 1,
+        spd: 3,
+        rng: 1,
+        baseSight: 4,
+        color: '#ff0000',
+        traits: ['light'],
+        spells: [
+            { name: 'Anfeuern', effect: 'buff_attack', value: 1, duration: 1, target: 'ally', range: 1, manaCost: 2, mpCost: 0 },
+            { name: 'Dissen', effect: 'debuff_attack', value: 1, duration: 1, target: 'enemy', range: 1, manaCost: 2, mpCost: 0 }
+        ]
+    },
+    ritter: {
+        name: 'Ritter',
+        portrait: '🛡️',
+        weapon: 'lance',
+        hp: 12,
+        mp: 4,
+        mana: 0,
+        atk: 4,
+        def: 3,
+        spd: 2,
+        rng: 1,
+        baseSight: 3,
+        color: '#0000ff',
+        traits: [],
+        spells: []
+    },
+    bogenschuetze: {
+        name: 'Bogenschütze',
+        portrait: '🏹',
+        weapon: 'bow',
+        hp: 8,
+        mp: 5,
+        mana: 0,
+        atk: 3,
+        def: 1,
+        spd: 5,
+        rng: 2,
+        baseSight: 5,
+        color: '#00ff00',
+        traits: ['light'],
+        spells: []
+    },
+    artillerie: {
+        name: 'Artillerie',
+        portrait: '💣',
+        weapon: 'bow',
+        hp: 6,
+        mp: 3,
+        mana: 0,
+        atk: 4,
+        def: 0,
+        spd: 3,
+        rng: 3,
+        baseSight: 4,
+        color: '#ffaa00',
+        traits: [],
+        spells: []
+    },
+    berserker: {
+        name: 'Berserker',
+        portrait: '🪓',
+        weapon: 'axe',
+        hp: 18,
+        mp: 4,
+        mana: 0,
+        atk: 6,
+        def: 1,
+        spd: 3,
+        rng: 1,
+        baseSight: 2,
+        color: '#ff8800',
+        traits: [],
+        spells: []
+    }
+};
+
+export const enemies = {
+    goblin: {
+        name: 'Goblin',
+        portrait: '👺',
+        weapon: 'axe',
+        hp: 8,
+        mp: 3,
+        mana: 0,
+        atk: 2,
+        def: 1,
+        spd: 3,
+        rng: 1,
+        baseSight: 3,
+        color: '#ff0000',
+        traits: [],
+        spells: []
+    },
+    goblin_archer: {
+        name: 'Goblinbogenschütze',
+        portrait: '🏹',
+        weapon: 'bow',
+        hp: 6,
+        mp: 3,
+        mana: 0,
+        atk: 2,
+        def: 0,
+        spd: 3,
+        rng: 2,
+        baseSight: 4,
+        color: '#ff4444',
+        traits: [],
+        spells: []
+    },
+    spawner: {
+        name: 'Spammer',
+        portrait: '🐛',
+        weapon: 'sword',
+        hp: 5,
+        mp: 4,
+        mana: 0,
+        atk: 1,
+        def: 0,
+        spd: 4,
+        rng: 1,
+        baseSight: 2,
+        color: '#aa0000',
+        traits: ['light'],
+        spells: []
+    },
+    troll: {
+        name: 'Troll',
+        portrait: '👹',
+        weapon: 'lance',
+        hp: 25,
+        mp: 2,
+        mana: 0,
+        atk: 5,
+        def: 4,
+        spd: 1,
+        rng: 1,
+        baseSight: 2,
+        color: '#880000',
+        traits: ['boss'],
+        spells: []
+    }
+};

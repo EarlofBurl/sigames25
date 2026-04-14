@@ -125,28 +125,33 @@
 ## Meilenstein 17: Charakter-Management & Magie-System
 *Fokus: Eine saubere Datenstruktur für Helden, Feinde und Bosse schaffen.*
 
-- [ ] **Charakter-Datenbank (`data/characters.js`):**
-  - [ ] Trennung von "Klasse" und "Charakter". 
-  - [ ] Aufbau einer JSON-Struktur für Helden (z.B. Name, Portrait-ID, Basis-Werte).
-  - [ ] Aufbau einer Struktur für generische Feinde (z.B. "Goblin A") und Boss-Gegner (einzigartige Namen und leicht erhöhte Werte).
-- [ ] **Erweiterung der Einheiten-Stats (`units.js`):**
-  - [ ] **HP** (Lebenspunkte), **MP** (Bewegungspunkte / Movement), **Mana / SP** (Für Zauber und Fähigkeiten).
-  - [ ] **Atk** (Angriff), **Def** (Verteidigung), **Spd** (Geschwindigkeit - für Ausweichen oder Doppelschlag), **Rng** (Reichweite).
-  - [ ] **Traits** (Array für Spezialfähigkeiten, z.B. `['light', 'boss', 'flying']`).
-- [ ] **Überarbeitung des Magie-Systems:**
-  - [ ] Zauber kosten nun **Mana**, nicht mehr Bewegungspunkte.
-  - [ ] Aktions-Menü anpassen: Einheiten können sich bewegen und *danach* zaubern, solange sie genug Mana haben.
+- [x] **Charakter-Datenbank (`data/characters.js`):**
+  - [x] Trennung von "Klasse" und "Charakter". 
+  - [x] Aufbau einer JSON-Struktur für Helden (z.B. Name, Portrait-ID, Basis-Werte).
+  - [x] Aufbau einer Struktur für generische Feinde (z.B. "Goblin A") und Boss-Gegner (einzigartige Namen und leicht erhöhte Werte).
+- [x] **Erweiterung der Einheiten-Stats (`units.js`):**
+  - [x] **HP** (Lebenspunkte), **MP** (Bewegungspunkte / Movement), **Mana / SP** (Für Zauber und Fähigkeiten).
+  - [x] **Atk** (Angriff), **Def** (Verteidigung), **Spd** (Geschwindigkeit - für Ausweichen oder Doppelschlag), **Rng** (Reichweite).
+  - [x] **Traits** (Array für Spezialfähigkeiten, z.B. `['light', 'boss', 'flying']`).
+- [x] **Überarbeitung des Magie-Systems:**
+  - [x] Zauber kosten nun **Mana**, nicht mehr Bewegungspunkte.
+  - [x] Aktions-Menü anpassen: Einheiten können sich bewegen und *danach* zaubern, solange sie genug Mana haben.
 
-## Meilenstein 18: Game-Loop, Hub & Meta-Progression
-*Fokus: Vom einzelnen Kampf zum Kampagnen-Gefühl.*
+## Meilenstein 18: Game-Loop, Schmiede & Meta-Progression
+*Fokus: Siegbedingungen und strategische Upgrades im Hub etablieren.*
 
 - [ ] **Sieg- & Niederlage-Bedingungen (`CombatScene.js`):**
-  - [ ] Prüfung nach jedem Kill/Zug basierend auf `mission.json` (Typen: `defeat_all`, `defeat_boss`, `survive_turns`).
-- [ ] **XP-System & Level-Ups (`combat-system.js`):**
-  - [ ] XP-Vergabe: 10 XP für einen Angriff, 30 XP für einen Kill. Boss-Kills geben Extra-XP.
-  - [ ] Level-Up: Bei 100 XP steigt das Level. Zufällige (oder klassenbasierte) Erhöhung von 2-3 Stats.
-- [ ] **Persistenz & Der Hub (`storage.js` & `hub.js`):**
-  - [ ] Nach Missionsende: Speichern der Helden im LocalStorage. Rückkehr zur HubScene zur Missionsauswahl.
+  - [ ] Prüfung nach jedem Kill/Zug. Typen z.B.: `defeat_all`, `defeat_boss`.
+  - [ ] Belohnungs-Ausschüttung: Vergabe von einer Meta-Währung (z.B. "Reputation" oder "Coins") für gewonnene Missionen und besiegte Feinde.
+- [ ] **Rückkehr & Persistenz (`storage.js` & `hub.js`):**
+  - [ ] Speichern der gesammelten Währung und des Missions-Fortschritts im LocalStorage.
+  - [ ] Reibungsloser Szenen-Übergang vom Victory-Screen zurück zur `HubScene`.
+- [ ] **Das Hub-Upgrade-System ("Der Schmied"):**
+  - [ ] Einbau eines simplen Upgrade-Panels in der `HubScene`.
+  - [ ] **Entweder/Oder-Logik:** Spieler wählt einen Charakter aus und kann ihn für Währung aufwerten.
+  - [ ] **Option A (Offensive):** +1 Angriff ODER neues/verbessertes Angriffs-Item (z.B. Bowie-Messer -> Bann-Hammer).
+  - [ ] **Option B (Defensive):** +1 Verteidigung / HP ODER neues Rüstungs-/Support-Item.
+  - [ ] Speichern des gewählten Upgrade-Pfads im State, sodass die Einheit in der nächsten Mission direkt mit den neuen Werten (und neuem Waffennamen) initialisiert wird.
 
 ## Meilenstein 19: KI-Evolution (Die Taktik-Feinde)
 *Fokus: Die Gegner nutzen die neuen Mechaniken.*

@@ -1,4 +1,4 @@
-import { getPlayerUnits, getEnemyUnits } from '../entities/units.js';
+import { getPlayerUnits, getEnemyUnits, getUnitTurnState, getUnitHasCast } from '../entities/units.js';
 import { log } from '../engine/console.js';
 
 const WEAPON_NAMES = { sword: 'Schwert', axe: 'Axt', lance: 'Lanze', bow: 'Bogen', magic: 'Magie' };
@@ -9,10 +9,11 @@ let container = null;
 let previewContainer = null;
 
 // DOM-Referenzen
-let titleEl, typeEl, hpEl, maxHpEl, mpEl, maxMpEl, attackEl, defenseEl, weaponEl, spellsEl;
+let titleEl, portraitEl, typeEl, hpEl, maxHpEl, mpEl, maxMpEl, attackEl, defenseEl, weaponEl, manaEl, maxManaEl, spellsEl;
 let terrainInfoText, terrainStatsEl;
 let previewTitleEl, previewBodyEl, previewResultEl, previewVsEl;
 let previewLeftEl, previewRightEl;
+let actionPanelEl;
 
 export function setSpellCastCallback(callback) { onSpellCast = callback; }
 export function setSpellSelectCallback(callback) { onSpellSelect = callback; }
@@ -55,6 +56,9 @@ export function initCombatUI(parent, previewParent) {
     const mpP = document.createElement('p');
     mpP.innerHTML = 'MP: <span id="ui-unit-mp"></span>/<span id="ui-unit-max-mp"></span>';
     statsDiv.appendChild(mpP);
+    const manaP = document.createElement('p');
+    manaP.innerHTML = 'Mana: <span id="ui-unit-mana"></span>/<span id="ui-unit-max-mana"></span>';
+    statsDiv.appendChild(manaP);
     statsDiv.appendChild(addStat('Angriff', 'ui-unit-attack'));
     statsDiv.appendChild(addStat('Verteidigung', 'ui-unit-defense'));
     statsDiv.appendChild(addStat('Waffe', 'ui-unit-weapon'));
@@ -73,10 +77,10 @@ export function initCombatUI(parent, previewParent) {
     deselectBtn.textContent = 'Einheit abwählen';
     commandsDiv.appendChild(deselectBtn);
 
-    const waitBtn = document.createElement('button');
-    waitBtn.className = 'command-button';
-    waitBtn.textContent = 'Warten';
-    commandsDiv.appendChild(waitBtn);
+    actionPanelEl = document.createElement('div');
+    actionPanelEl.id = 'action-panel';
+    actionPanelEl.style.cssText = 'display:flex;flex-direction:column;gap:5px;margin-top:5px;';
+    commandsDiv.appendChild(actionPanelEl);
 
     unitDetails.appendChild(commandsDiv);
     container.appendChild(unitDetails);
@@ -148,11 +152,14 @@ export function initCombatUI(parent, previewParent) {
 
     // Referenzen
     titleEl = document.getElementById('unit-title');
+    portraitEl = document.getElementById('unit-portrait');
     typeEl = document.getElementById('ui-unit-type');
     hpEl = document.getElementById('ui-unit-hp');
     maxHpEl = document.getElementById('ui-unit-max-hp');
     mpEl = document.getElementById('ui-unit-mp');
     maxMpEl = document.getElementById('ui-unit-max-mp');
+    manaEl = document.getElementById('ui-unit-mana');
+    maxManaEl = document.getElementById('ui-unit-max-mana');
     attackEl = document.getElementById('ui-unit-attack');
     defenseEl = document.getElementById('ui-unit-defense');
     weaponEl = document.getElementById('ui-unit-weapon');
@@ -220,6 +227,8 @@ function fillUnitCard(card, unit, label, opts) {
     const { attack, defense } = calculateEffectiveStats(unit);
 
     card.portrait.style.background = color;
+    card.portrait.textContent = unit.portrait || '';
+    card.portrait.style.cssText += 'display:flex;align-items:center;justify-content:center;font-size:20px;';
     card.name.textContent = `${label}: ${unit.name}`;
 
     // HP
@@ -236,12 +245,17 @@ function fillUnitCard(card, unit, label, opts) {
         card.hpText.textContent = `${displayHp} / ${unit.maxHp} HP`;
     }
 
-    // Stats + Waffe mit Farbe
+    // Stats + Waffe mit Farbe + Mana
+    let manaStr = '';
+    if (unit.maxMana > 0) {
+        manaStr = ` | Mana: ${unit.mana}/${unit.maxMana}`;
+    }
+
     if (opts.showChange && opts.atkAfter !== undefined) {
         const atkColor = opts.atkAfter > attack ? 'green' : opts.atkAfter < attack ? 'red' : '';
-        card.stats.innerHTML = `Atk: <span style="color:${atkColor};font-weight:bold">${attack} → ${opts.atkAfter}</span> | Def: ${defense}<br>${weaponHtml(unit, opts.otherWeapon)}`;
+        card.stats.innerHTML = `Atk: <span style="color:${atkColor};font-weight:bold">${attack} → ${opts.atkAfter}</span> | Def: ${defense}${manaStr}<br>${weaponHtml(unit, opts.otherWeapon)}`;
     } else {
-        card.stats.innerHTML = `Atk: ${attack} | Def: ${defense}<br>${weaponHtml(unit, opts.otherWeapon)}`;
+        card.stats.innerHTML = `Atk: ${attack} | Def: ${defense}${manaStr}<br>${weaponHtml(unit, opts.otherWeapon)}`;
     }
 }
 
@@ -285,6 +299,149 @@ function showDamagePopup(card, amount, color) {
     requestAnimationFrame(animate);
 }
 
+// ─── Aktions-Panel (Buttons nach Zustand) ───
+
+let _onActionAttack = null;
+let _onActionWait = null;
+let _onActionMove = null;
+
+export function setActionCallbacks(onAttack, onWait, onMove) {
+    _onActionAttack = onAttack;
+    _onActionWait = onWait;
+    _onActionMove = onMove;
+}
+
+export function showActionPanel(unit) {
+    if (!actionPanelEl) return;
+    actionPanelEl.innerHTML = '';
+
+    if (!unit) return;
+
+    const turnState = getUnitTurnState(unit.id);
+    const hasAttacked = unit.hasAttacked;
+    const hasCast = getUnitHasCast(unit.id);
+
+    if (turnState === 'idle') {
+        if (!hasAttacked) {
+            const atkBtn = document.createElement('button');
+            atkBtn.className = 'command-button';
+            atkBtn.textContent = 'Angreifen';
+            atkBtn.addEventListener('click', () => {
+                if (_onActionAttack) _onActionAttack(unit);
+            });
+            actionPanelEl.appendChild(atkBtn);
+        }
+
+        if (unit.spells && unit.spells.length > 0 && !hasCast) {
+            unit.spells.forEach(spell => {
+                const btn = document.createElement('button');
+                btn.className = 'spell-button';
+                const costLabel = spell.manaCost ? `${spell.manaCost} Mana` : (spell.mpCost ? `${spell.mpCost} MP` : '');
+                btn.textContent = `${spell.name} (${costLabel})`;
+                btn.title = spell.target === 'ally' ? 'Verbündeter stärken' : 'Feind schwächen';
+
+                const effectiveCost = spell.manaCost !== undefined ? spell.manaCost : spell.mpCost;
+                if (unit.mana < effectiveCost) {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                }
+
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (onSpellSelect) onSpellSelect(unit, spell);
+                });
+                actionPanelEl.appendChild(btn);
+            });
+        }
+
+        const waitBtn = document.createElement('button');
+        waitBtn.className = 'command-button';
+        waitBtn.textContent = 'Warten';
+        waitBtn.addEventListener('click', () => {
+            if (_onActionWait) _onActionWait(unit);
+        });
+        actionPanelEl.appendChild(waitBtn);
+
+    } else if (turnState === 'moved') {
+        // Angriff, Zauber (falls verfügbar), Warten
+        if (!hasAttacked) {
+            const atkBtn = document.createElement('button');
+            atkBtn.className = 'command-button';
+            atkBtn.textContent = 'Angreifen';
+            atkBtn.addEventListener('click', () => {
+                if (_onActionAttack) _onActionAttack(unit);
+            });
+            actionPanelEl.appendChild(atkBtn);
+        }
+
+        if (unit.spells && unit.spells.length > 0 && !hasCast) {
+            unit.spells.forEach(spell => {
+                const btn = document.createElement('button');
+                btn.className = 'spell-button';
+                const costLabel = spell.manaCost ? `${spell.manaCost} Mana` : (spell.mpCost ? `${spell.mpCost} MP` : '');
+                btn.textContent = `${spell.name} (${costLabel})`;
+                btn.title = spell.target === 'ally' ? 'Verbündeter stärken' : 'Feind schwächen';
+
+                const effectiveCost = spell.manaCost !== undefined ? spell.manaCost : spell.mpCost;
+                if (unit.mana < effectiveCost) {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                }
+
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (onSpellSelect) onSpellSelect(unit, spell);
+                });
+                actionPanelEl.appendChild(btn);
+            });
+        }
+
+        const waitBtn2 = document.createElement('button');
+        waitBtn2.className = 'command-button';
+        waitBtn2.textContent = 'Warten';
+        waitBtn2.addEventListener('click', () => {
+            if (_onActionWait) _onActionWait(unit);
+        });
+        actionPanelEl.appendChild(waitBtn2);
+    }
+    // 'acted' → keine Buttons anzeigen
+}
+
+function combatSymbol(unit) {
+    if (unit.weapon === 'magic') return '✦';
+    return (unit.range || 1) > 1 ? '⊕' : '⚔';
+}
+
+function combatTitle(unit) {
+    if (unit.weapon === 'magic') return '✦ Magie';
+    return (unit.range || 1) > 1 ? '⊕ Fernkampf' : '⚔ Nahkampf';
+}
+
+// ─── Cursor-Symbol (unter dem Mauszeiger) ───
+
+let cursorSymbolEl = null;
+
+function ensureCursorSymbol() {
+    if (!cursorSymbolEl) {
+        cursorSymbolEl = document.createElement('div');
+        cursorSymbolEl.style.cssText = 'position:fixed;pointer-events:none;font-size:22px;z-index:999;transform:translate(-50%,-150%);text-shadow:0 0 4px rgba(0,0,0,0.8);transition:opacity 0.1s;opacity:0;';
+        document.body.appendChild(cursorSymbolEl);
+    }
+    return cursorSymbolEl;
+}
+
+export function showCursorSymbol(pointer, unit) {
+    const el = ensureCursorSymbol();
+    el.textContent = combatSymbol(unit);
+    el.style.left = pointer.event.clientX + 'px';
+    el.style.top = pointer.event.clientY + 'px';
+    el.style.opacity = '1';
+}
+
+export function hideCursorSymbol() {
+    if (cursorSymbolEl) cursorSymbolEl.style.opacity = '0';
+}
+
 // ─── Öffentliche Preview-Funktionen ───
 
 export function showCombatPreview(attacker, defender, prediction) {
@@ -292,7 +449,8 @@ export function showCombatPreview(attacker, defender, prediction) {
     previewLeftEl.container.style.display = '';
     previewRightEl.container.style.display = '';
     previewContainer.style.display = 'block';
-    previewTitleEl.textContent = '⚔ Kampf';
+    const sym = combatSymbol(attacker);
+    previewTitleEl.textContent = combatTitle(attacker);
 
     fillUnitCard(previewLeftEl, attacker, 'Angreifer', {
         showChange: true, hp: attacker.hp, hpAfter: prediction.attackerHpAfter,
@@ -302,7 +460,7 @@ export function showCombatPreview(attacker, defender, prediction) {
         showChange: true, hp: defender.hp, hpAfter: prediction.defenderHpAfter,
         otherWeapon: attacker.weapon
     });
-    previewVsEl.textContent = '⚔';
+    previewVsEl.textContent = sym;
 
     let lines = [];
     if (prediction.weaponBonus > 0) lines.push('<span style="color:green">▲ Waffenvorteil (+2)</span>');
@@ -331,12 +489,13 @@ export function animateCombatResult(leftUnit, rightUnit, opts) {
         previewLeftEl.container.style.display = '';
         previewRightEl.container.style.display = '';
         previewContainer.style.display = 'block';
-        previewTitleEl.textContent = opts.title || '⚔ Kampf';
+        const sym = combatSymbol(leftUnit);
+        previewTitleEl.textContent = opts.title || combatTitle(leftUnit);
 
         // Karten mit HP VOR der Animation
         fillUnitCard(previewLeftEl, leftUnit, leftUnit._label || 'Angreifer', { hp: opts.leftHpBefore, otherWeapon: rightUnit.weapon });
         fillUnitCard(previewRightEl, rightUnit, rightUnit._label || 'Verteidiger', { hp: opts.rightHpBefore, otherWeapon: leftUnit.weapon });
-        previewVsEl.textContent = '⚔';
+        previewVsEl.textContent = sym;
         previewResultEl.innerHTML = '';
 
         // Animation nach kurzer Verzögerung
@@ -432,12 +591,12 @@ export async function showEnemyAction(enemy, target, actionType, data) {
         target._label = 'Verteidiger';
         await animateCombatResult(enemy, target, {
             leftHpBefore: enemy.hp,
-            leftHpAfter: pred.defenderHpAfter,
+            leftHpAfter: pred.attackerHpAfter,
             rightHpBefore: target.hp,
-            rightHpAfter: pred.attackerHpAfter,
-            leftDmg: pred.canCounter ? pred.counterDmg : 0,
-            rightDmg: pred.attackDmg,
-            title: '⚔ Feindlicher Angriff'
+            rightHpAfter: pred.defenderHpAfter,
+            leftDmg: pred.attackDmg,
+            rightDmg: pred.canCounter ? pred.counterDmg : 0,
+            title: combatTitle(enemy)
         });
 
     } else if (actionType === 'move') {
@@ -458,7 +617,7 @@ export function hidePreview() {
     if (previewResultEl) previewResultEl.innerHTML = '';
 }
 
-// ─── Unit Panel (unverändert) ───
+// ─── Unit Panel ───
 
 function calculateEffectiveStats(unit) {
     let attack = unit.attack || 5;
@@ -476,63 +635,66 @@ function calculateEffectiveStats(unit) {
 
 export function clearUnitPanel() {
     if (titleEl) titleEl.textContent = 'Einheiten-Details';
+    if (portraitEl) { portraitEl.textContent = ''; portraitEl.style.background = '#eee'; }
     if (typeEl) typeEl.textContent = '';
     if (hpEl) hpEl.textContent = '';
     if (maxHpEl) maxHpEl.textContent = '';
     if (mpEl) mpEl.textContent = '';
     if (maxMpEl) maxMpEl.textContent = '';
+    if (manaEl) manaEl.textContent = '';
+    if (maxManaEl) maxManaEl.textContent = '';
     if (attackEl) attackEl.textContent = '';
     if (defenseEl) defenseEl.textContent = '';
     if (weaponEl) weaponEl.textContent = '';
     if (spellsEl) spellsEl.innerHTML = '';
+    if (actionPanelEl) actionPanelEl.innerHTML = '';
 }
 
 export function fillUnitPanel(unit) {
     const { attack, defense } = calculateEffectiveStats(unit);
 
     if (titleEl) titleEl.textContent = unit.name;
+    if (portraitEl) {
+        portraitEl.textContent = unit.portrait || '👤';
+        portraitEl.style.background = unit.color || '#eee';
+    }
     if (typeEl) typeEl.textContent = unit.type || ((unit.range || 1) > 1 ? 'Fernkampf' : 'Nahkampf');
     if (hpEl) hpEl.textContent = unit.hp;
     if (maxHpEl) maxHpEl.textContent = unit.maxHp;
     if (mpEl) mpEl.textContent = unit.mp;
     if (maxMpEl) maxMpEl.textContent = unit.maxMp;
+    if (manaEl) manaEl.textContent = unit.mana !== undefined ? unit.mana : '—';
+    if (maxManaEl) maxManaEl.textContent = unit.maxMana !== undefined ? unit.maxMana : '—';
     if (attackEl) attackEl.textContent = attack;
     if (defenseEl) defenseEl.textContent = defense;
     if (weaponEl) weaponEl.textContent = unit.weapon ? WEAPON_NAMES[unit.weapon] || unit.weapon : '—';
 
+    // Spell-Buttons im Detail-Panel (nur für angezeigte Einheit, nicht Aktion)
     if (spellsEl) {
         spellsEl.innerHTML = '';
-        if (unit.spells && unit.spells.length > 0) {
+        if (unit.spells && unit.spells.length > 0 && unit.team === 'player') {
             const spellsTitle = document.createElement('h4');
             spellsTitle.textContent = 'Zauber';
             spellsTitle.style.margin = '10px 0 5px 0';
             spellsEl.appendChild(spellsTitle);
 
             unit.spells.forEach((spell) => {
-                const spellButton = document.createElement('button');
-                spellButton.className = 'spell-button';
-                spellButton.textContent = `${spell.name} (${spell.mpCost} MP)`;
-                spellButton.title = spell.target === 'ally' ? 'Verbündeter stärken' : 'Feind schwächen';
-
-                if (unit.mp < spell.mpCost) {
-                    spellButton.disabled = true;
-                    spellButton.style.opacity = '0.5';
-                }
-
-                spellButton.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if (onSpellSelect) onSpellSelect(unit, spell);
-                });
-
-                spellsEl.appendChild(spellButton);
+                const spellInfo = document.createElement('div');
+                spellInfo.style.cssText = 'font-size:12px;margin:2px 0;padding:2px 4px;background:#f5f5f5;border-radius:3px;';
+                const costLabel = spell.manaCost ? `${spell.manaCost} Mana` : (spell.mpCost ? `${spell.mpCost} MP` : '');
+                spellInfo.textContent = `${spell.name} (${costLabel})`;
+                spellsEl.appendChild(spellInfo);
             });
         }
     }
+
+    // Aktions-Panel aktualisieren
+    showActionPanel(unit);
 }
 
 export function checkAllUnitsExhausted() {
     const playerUnits = getPlayerUnits();
-    const allExhausted = playerUnits.every(unit => unit.mp === 0);
+    const allExhausted = playerUnits.every(unit => unit.hasMoved || unit.turnState === 'acted');
     if (allExhausted) {
         log('Keine Einheit mehr zu bewegen. Neue Runde mit (Enter).', 'error');
     }
@@ -556,9 +718,13 @@ export function updateTerrainInfo(cell, terrainTypes) {
 export function destroyCombatUI() {
     if (container && container.parentNode) container.parentNode.removeChild(container);
     if (previewContainer && previewContainer.parentNode) previewContainer.parentNode.removeChild(previewContainer);
+    if (cursorSymbolEl && cursorSymbolEl.parentNode) cursorSymbolEl.parentNode.removeChild(cursorSymbolEl);
     container = null;
     previewContainer = null;
-    titleEl = typeEl = hpEl = maxHpEl = mpEl = maxMpEl = attackEl = defenseEl = weaponEl = spellsEl = null;
+    cursorSymbolEl = null;
+    titleEl = portraitEl = typeEl = hpEl = maxHpEl = mpEl = maxMpEl = manaEl = maxManaEl = attackEl = defenseEl = weaponEl = spellsEl = null;
     terrainInfoText = terrainStatsEl = null;
     previewLeftEl = previewRightEl = previewTitleEl = previewBodyEl = previewResultEl = previewVsEl = null;
+    actionPanelEl = null;
+    _onActionAttack = _onActionWait = _onActionMove = null;
 }
