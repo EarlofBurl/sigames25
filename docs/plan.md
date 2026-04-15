@@ -185,11 +185,25 @@
 - [x] **Speicher-Logik** (`storage.js`): hubData für Levels + Equipment
 
 ## Meilenstein 21: KI-Evolution (Die Taktik-Feinde)
-*Fokus: Die Gegner nutzen die neuen Mechaniken.*
+*Fokus: Die Gegner handeln strategisch, nutzen Terrain und werten Ziele aus.*
 
-- [ ] **Waffendreieck-Awareness:** KI priorisiert Ziele, gegen die sie einen Waffen-Vorteil hat.
-- [ ] **Terrain-Nutzung:** KI versucht, Fernkämpfer auf Hügel oder in Wälder zu stellen und meidet Sümpfe.
-- [ ] **Heiler- & Boss-Verhalten:** Gegnerische Heiler suchen verletzte Verbündete. Bosse (Trait `boss`) bleiben auf ihrer Festung stehen und warten, bis der Spieler in Reichweite kommt.
+- [x] **Target-Scoring (Intelligente Zielauswahl):**
+  - KI wählt nicht mehr stur den nächsten Gegner, sondern berechnet einen "Attraktivitäts-Wert" für jedes Ziel in Reichweite.
+  - *Faktoren:* Waffenvorteil (z.B. Axt greift Lanze an), Schwächster zuerst (Gegner mit < 30% HP werden priorisiert), Flankierungs-Bonus möglich.
+- [x] **Terrain-Bewusstsein & Defensive:**
+  - Bei der Bewegung auf ein Angriffsfeld bevorzugt die KI defensive Felder (Wald `+1 Def`, Hügel `+1 Def`).
+  - Vermeidung von negativen Feldern (Sumpf `-1 Def`) als Angriffsposition.
+- [x] **Fernkämpfer- & Kiting-Logik:**
+  - Bogenschützen und Magier halten maximalen Abstand (`range`) zum Ziel.
+  - Wenn ein Spieler direkt neben einem Bogenschützen steht, bewegt sich die KI (falls möglich) erst weg, bevor sie schießt.
+- [x] **Rückzug & Flucht:**
+  - Stark verletzte KI-Einheiten (z.B. unter 25% HP) priorisieren die Flucht auf ein defensives Feld (Wald/Hügel/Stadt) statt sinnlos anzugreifen.
+- [x] **Verbesserte Pfadfindung (Aggro-Handling):**
+  - Nutze `findPathAndCost` um zu prüfen, wen die KI wirklich erreichen kann, statt nur die Luftlinien-Distanz zu berechnen.
+  - Einheitenspezifischer Aggro-Radius basierend auf `baseSight` + `mp`.
+- [x] **Heiler- & Boss-Verhalten:**
+  - Gegnerische Heiler (`effect: 'heal'`) suchen verletzte Verbündete und heilen sie.
+  - Bosse (`trait: 'boss'`) halten ihre Festung und greifen nur aus der Nähe an oder wirken Debuff-Zauber.
 
 ## Meilenstein 22: Tooling, Tiled & Assets (Polishing)
 *Fokus: Der finale 16-Bit Japano-RPG Look.*

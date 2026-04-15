@@ -325,6 +325,10 @@ export function applyEffectToUnit(unitId, effect) {
 export function applyEffectToEnemy(enemyId, effect) {
     const enemy = state.enemyUnits.find(u => u.id === enemyId);
     if (enemy) {
+        if (effect.effect === 'heal') {
+            enemy.hp = Math.min(enemy.maxHp, enemy.hp + effect.value);
+            return;
+        }
         if (!enemy.activeEffects) enemy.activeEffects = [];
         enemy.activeEffects.push({ ...effect });
     }
@@ -339,6 +343,16 @@ export function setEnemyUnitPosition(id, row, col) {
 export function setEnemyUnitMp(id, mp) {
     const enemy = state.enemyUnits.find(u => u.id === id);
     if (enemy) enemy.mp = Math.max(0, mp);
+}
+
+export function setEnemyUnitMana(id, mana) {
+    const enemy = state.enemyUnits.find(u => u.id === id);
+    if (enemy) enemy.mana = Math.max(0, Math.min(enemy.maxMana, mana));
+}
+
+export function setEnemyHasCast(id, value) {
+    const enemy = state.enemyUnits.find(u => u.id === id);
+    if (enemy) enemy.hasCast = value;
 }
 
 export function removeEnemyUnit(index) {

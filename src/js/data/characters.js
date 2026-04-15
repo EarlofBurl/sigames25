@@ -171,5 +171,42 @@ export const enemies = {
         color: '#880000',
         traits: ['boss'],
         spells: []
+    },
+    hexer: {
+        name: 'Hexer',
+        portrait: '🧙',
+        weapon: 'magic',
+        hp: 10,
+        mp: 3,
+        mana: 8,
+        atk: 2,
+        def: 1,
+        spd: 3,
+        rng: 2,
+        baseSight: 4,
+        color: '#aa00aa',
+        traits: ['boss'],
+        spells: [
+            { name: 'Heilen', effect: 'heal', value: 8, duration: 0, target: 'ally', range: 2, manaCost: 3, element: 'heal' },
+            { name: 'Verzücken', effect: 'debuff_attack', value: 2, duration: 2, target: 'enemy', range: 2, manaCost: 4, element: 'dark' }
+        ]
+    },
+    goblin_healer: {
+        name: 'Goblin-Heiler',
+        portrait: '🧙',
+        weapon: 'magic',
+        hp: 6,
+        mp: 3,
+        mana: 6,
+        atk: 1,
+        def: 1,
+        spd: 3,
+        rng: 1,
+        baseSight: 3,
+        color: '#00aa00',
+        traits: [],
+        spells: [
+            { name: 'Heilen', effect: 'heal', value: 5, duration: 0, target: 'ally', range: 2, manaCost: 2, element: 'heal' }
+        ]
     }
 };
