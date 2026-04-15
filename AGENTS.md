@@ -23,6 +23,7 @@ No test, lint, or typecheck commands exist.
 
 ## Key Gotchas
 
+- **DOM-Overlays blockieren Phaser-Input NICHT automatisch.** Wenn DOM-Overlays (z.B. Hub-Menüs, Dialoge) über dem Phaser-Canvas liegen, muss `this.input.enabled = false` beim Öffnen und `this.input.enabled = true` beim Schließen gesetzt werden, um Click-Through zu verhindern.
 - **Phaser-Renderer: `Phaser.AUTO` (WebGL), NICHT `Phaser.CANVAS`.** Der Canvas-Renderer in Phaser 3.90.0 hat einen Bug mit Graphics-Objekten.
 - **Tilemap-Scale**: Tiled-Tiles sind 16×16, Spiel-Tiles 50×50. `tilemapLayer.setScale(50/16)`. Tile-Index +1 (firstgid=1) → Terrain-Name.
 - **Renderer-Modul**: `renderer.js` erzeugt intern Tilemap + Graphics. `initRenderer(scene, mission)` wird einmal aufgerufen.

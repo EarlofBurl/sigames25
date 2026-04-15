@@ -137,30 +137,61 @@
   - [x] Zauber kosten nun **Mana**, nicht mehr Bewegungspunkte.
   - [x] Aktions-Menü anpassen: Einheiten können sich bewegen und *danach* zaubern, solange sie genug Mana haben.
 
-## Meilenstein 18: Game-Loop, Schmiede & Meta-Progression
-*Fokus: Siegbedingungen und strategische Upgrades im Hub etablieren.*
+## Meilenstein 18: Map-Immersion & Map-Interaktion
+*Fokus: Die Karte lebt! Städte bekommen Namen, können besetzt werden und enthalten Loot.*
 
-- [ ] **Sieg- & Niederlage-Bedingungen (`CombatScene.js`):**
-  - [ ] Prüfung nach jedem Kill/Zug. Typen z.B.: `defeat_all`, `defeat_boss`.
-  - [ ] Belohnungs-Ausschüttung: Vergabe von einer Meta-Währung (z.B. "Reputation" oder "Coins") für gewonnene Missionen und besiegte Feinde.
-- [ ] **Rückkehr & Persistenz (`storage.js` & `hub.js`):**
-  - [ ] Speichern der gesammelten Währung und des Missions-Fortschritts im LocalStorage.
-  - [ ] Reibungsloser Szenen-Übergang vom Victory-Screen zurück zur `HubScene`.
-- [ ] **Das Hub-Upgrade-System ("Der Schmied"):**
-  - [ ] Einbau eines simplen Upgrade-Panels in der `HubScene`.
-  - [ ] **Entweder/Oder-Logik:** Spieler wählt einen Charakter aus und kann ihn für Währung aufwerten.
-  - [ ] **Option A (Offensive):** +1 Angriff ODER neues/verbessertes Angriffs-Item (z.B. Bowie-Messer -> Bann-Hammer).
-  - [ ] **Option B (Defensive):** +1 Verteidigung / HP ODER neues Rüstungs-/Support-Item.
-  - [ ] Speichern des gewählten Upgrade-Pfads im State, sodass die Einheit in der nächsten Mission direkt mit den neuen Werten (und neuem Waffennamen) initialisiert wird.
+- [x] **Stadt- & Festungs-Labels (`renderer.js`):**
+  - [x] Auslesen von Custom Properties aus dem Tiled-JSON (z.B. `name: "Baesweiler"` auf einem Stadt-Tile).
+  - [x] Rendern des Textes zentriert direkt unter dem jeweiligen Tile (mit kleiner, gut lesbarer Bitmap-Font oder Standard-Font mit Stroke).
+- [x] **Besetzungs-System (Eroberungen):**
+  - [x] Wenn eine Spieler-Einheit ihren Zug auf einer unbesetzten (oder feindlichen) Stadt/Festung beendet, wechselt der Besitz zum Spieler.
+  - [x] Visuelles Feedback: blauer Rand (Spieler) / roter Rand (Feind) / grauer Rand (neutral).
+- [x] **Map-Loot (Der Ausrüstungs-Orb):**
+  - [x] Map-Tiles können die Custom Property `hasOrb: true` haben.
+  - [x] Betritt der Spieler dieses Feld zum ersten Mal, ploppt eine Meldung auf ("Ausrüstungs-Orb gefunden!") und der Orb wandert in den temporären Missions-Speicher.
+- [x] **Umbau der Mission 01 (`mission_01.tmj` & `mission_01.js`):**
+  - [x] Angepasste Tiled-Map: 1 Stadt ("Baesweiler" mit Orb) und 1 Festung ("Altenburg").
+  - [x] Vergabe von Namen via Custom Properties.
+  - [x] `defeatCondition: 'defeat_all'` in mission_01.js.
 
-## Meilenstein 19: KI-Evolution (Die Taktik-Feinde)
+## Meilenstein 19: Dynamische Missionsziele & Abrechnung
+*Fokus: Die neuen Siegbedingungen und der Reputations-Rechner.*
+
+- [x] **Die 5 Siegbedingungen (`CombatScene.js` & `mission_*.js`):**
+  - [x] Implementierung der Logik-Prüfung am Ende jedes Zuges basierend auf der JSON-Config:
+    1. `defeat_all`: Alle feindlichen Einheiten sind besiegt. (Ziel für Mission 01).
+    2. `defeat_boss`: Die feindliche Einheit mit dem Trait `boss` ist besiegt.
+    3. `survive_turns`: Der Spieler hat noch Einheiten, wenn Runde X erreicht ist.
+    4. `occupy_location`: Ein bestimmtes Feld (X,Y) wurde vom Spieler besetzt.
+    5. `victory_points`: Der Spieler hält gleichzeitig X Städte/Festungen.
+- [x] **Der Reputations-Rechner (`scoring-system.js`):**
+  - [x] Berechnung nach Missionsende:
+    - **Base:** Basis-Reputation der Mission.
+    - **War-Trophy:** Summe der Max-HP aller besiegten Gegner.
+    - **Strategic Points:** Bonus für jede am Ende gehaltene Stadt/Festung.
+    - **Golf-Bonus:** `max(0, (Zielrunden - BenötigteRunden) * Multiplikator)`.
+- [x] **State-Transfer:** - [x] Übergabe der berechneten Reputation und gefundenen Orbs an den globalen `storage.js` beim Verlassen der Szene.
+
+## Meilenstein 20: Der Hub - Ordenverleihung & Die Küche
+*Fokus: Strategische Upgrades zwischen den Missionen. Screen-Flow: Titel → Hub → Mission → Hub.*
+
+- [x] **Screen-Flow**: Titel → Hub → Mission → Hub
+- [x] **Title-Screen** (`title.js`): "SI-Games 25" + "Start" Button
+- [x] **Hub-UI**: Top-Leiste `Augsburg | 💎 X Orbs | ⭐ X Reputation` + 3 Buttons
+- [x] **Konventsküche**: Ausrüstungs-Submenu mit 4 Stufen (Waffe + Rüstung, Orb-Kosten)
+- [x] **Ordensverleihung**: Level-Up-Submenu (exponentielle Reputations-Kosten)
+- [x] **Ausrüstungs-System** (`data/equipment.js`): Waffen + Rüstung je 4 Stufen pro Held
+- [x] **Level-Up-System** (`characters.js` erweitert): growthHp, growthAtk, growthDef
+- [x] **Speicher-Logik** (`storage.js`): hubData für Levels + Equipment
+
+## Meilenstein 21: KI-Evolution (Die Taktik-Feinde)
 *Fokus: Die Gegner nutzen die neuen Mechaniken.*
 
 - [ ] **Waffendreieck-Awareness:** KI priorisiert Ziele, gegen die sie einen Waffen-Vorteil hat.
 - [ ] **Terrain-Nutzung:** KI versucht, Fernkämpfer auf Hügel oder in Wälder zu stellen und meidet Sümpfe.
 - [ ] **Heiler- & Boss-Verhalten:** Gegnerische Heiler suchen verletzte Verbündete. Bosse (Trait `boss`) bleiben auf ihrer Festung stehen und warten, bis der Spieler in Reichweite kommt.
 
-## Meilenstein 20: Tooling, Tiled & Assets (Polishing)
+## Meilenstein 22: Tooling, Tiled & Assets (Polishing)
 *Fokus: Der finale 16-Bit Japano-RPG Look.*
 
 - [ ] **Erweitertes Tiled-Mapping:** Einbindung des finalen Tilesets. Nutzung von "Custom Properties" in Tiled für Feldeigenschaften.

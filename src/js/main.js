@@ -3,12 +3,13 @@
 
 import Phaser from 'phaser';
 import { gameConfig } from './config.js';
+import { TitleScene } from './scenes/title.js';
 import { HubScene } from './scenes/hub.js';
 import { CombatScene } from './scenes/combat.js';
 import { mission01 } from './data/missions/mission_01.js';
 
 // Szenen registrieren
-gameConfig.scene = [HubScene, CombatScene];
+gameConfig.scene = [TitleScene, HubScene, CombatScene];
 
 // Mission-Daten global verfügbar machen
 const game = new Phaser.Game(gameConfig);

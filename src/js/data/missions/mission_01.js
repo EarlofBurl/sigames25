@@ -8,8 +8,10 @@ export const mission01 = {
     description: 'Feiere das 25-jährige Jubiläum des si-games.com Forums, indem du die erste Mission erfolgreich abschließt!',
     theme: 'classic',
     mapFile: 'assets/maps/mission_01.tmj',
+    defeatCondition: 'defeat_all',
+    targetRounds: 15,
+    baseReputation: 100,
     objectives: [
-        'Erreiche das Zielgebiet',
         'Besiege alle Gegner'
     ],
     playerUnits: [

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { initRenderer, drawGrid, getGridData, setSelectedTarget, clearSelectedTarget, setSelectedUnit, clearSelectedUnit, setVisibilityGrid, getVisibilityData } from '../engine/renderer.js';
+import { initRenderer, drawGrid, getGridData, setSelectedTarget, clearSelectedTarget, setSelectedUnit, clearSelectedUnit, setVisibilityGrid, getVisibilityData, setLocationOwner, getLocationOwner, collectOrb } from '../engine/renderer.js';
+import { GRID_SIZE } from '../config.js';
 import { terrainTypes, isPassable, isAdjacentToEnemy } from '../engine/terrain.js';
 import {
     initPlayerUnits, initEnemyUnits, getCurrentUnit, getCurrentUnitPosition, setCurrentUnitPosition,
@@ -14,6 +15,8 @@ import { executeCombat, predictCombat } from '../engine/combat-system.js';
 import { findPathAndCost } from '../engine/movement-system.js';
 import { executeEnemyTurn } from '../engine/enemy-ai.js';
 import { updateVisibility, getVisibilityStatuses } from '../engine/visibility-system.js';
+import { checkVictoryCondition, calculateReputation } from '../engine/scoring-system.js';
+import { saveMissionRewards } from '../engine/storage.js';
 
 const CELL_SIZE = 50;
 
@@ -84,31 +87,78 @@ export class CombatScene extends Phaser.Scene {
             return;
         }
 
-        // --- UI-MODULE INITIALISIEREN ---
-        const mainArea = document.getElementById('main-area');
+        // --- LAYOUT ERSTELLEN ---
+        const app = document.getElementById('app');
+        app.innerHTML = '';
 
-        // Bottom-Bar erstellen
-        const bottomBar = document.createElement('div');
-        bottomBar.id = 'bottom-bar';
-        const logSection = document.createElement('div');
-        logSection.id = 'log-section';
-        bottomBar.appendChild(logSection);
-        const previewSection = document.createElement('div');
-        previewSection.id = 'preview-section';
-        bottomBar.appendChild(previewSection);
-        document.body.appendChild(bottomBar);
+        const combatLayout = document.createElement('div');
+        combatLayout.id = 'combat-layout';
 
-        initCombatUI(mainArea, previewSection);
-        initConsole(logSection);
+        // Top row (unit panel + map)
+        const topRow = document.createElement('div');
+        topRow.className = 'combat-top-row';
+
+        // Unit Panel (links, oben)
+        const unitPanel = document.createElement('div');
+        unitPanel.id = 'unit-panel';
+        topRow.appendChild(unitPanel);
+
+        // Map Area (mitte)
+        const mapArea = document.createElement('div');
+        mapArea.id = 'map-area';
+        topRow.appendChild(mapArea);
+
+        combatLayout.appendChild(topRow);
+
+        // Bottom row (action log + combat preview)
+        const bottomRow = document.createElement('div');
+        bottomRow.className = 'combat-bottom-row';
+
+        const actionLog = document.createElement('div');
+        actionLog.id = 'action-log';
+        bottomRow.appendChild(actionLog);
+
+        const combatPreview = document.createElement('div');
+        combatPreview.id = 'combat-preview';
+        combatPreview.innerHTML = '<span style="color:#ffd700;font-size:16px;">⚔ Kampf-Vorschau</span>';
+        bottomRow.appendChild(combatPreview);
+
+        combatLayout.appendChild(bottomRow);
+
+        app.appendChild(combatLayout);
+
+        // --- UI MODULE INITIALISIEREN ---
+        initCombatUI(unitPanel);
+        initConsole(actionLog);
         initDialog();
 
-        // Top-Bar einblenden
-        const topBar = document.getElementById('top-bar');
-        if (topBar) topBar.style.display = 'flex';
+        this.missionState = {
+            collectedOrbs: [],
+            turnCount: 1,
+            capturedLocations: {},
+            defeatedEnemies: [],
+            missionEnded: false
+        };
 
-        // --- RENDERER INITIALISIEREN (Tilemap + Graphics-Overlay) ---
+        // Top-Bar einblenden
+        const hubTopBar = document.getElementById('hub-top-bar');
+        if (hubTopBar) hubTopBar.remove();
+
+        const combatTopBar = document.getElementById('top-bar');
+        if (combatTopBar) combatTopBar.style.display = 'flex';
+
+        // --- PHASER CANVAS IN MAP-AREA INITIALISIEREN ---
         initRenderer(this, this.mission);
         grid = getGridData().grid;
+
+        // Phaser canvas in map-area positionieren
+        const canvas = this.game.canvas;
+        canvas.style.position = 'absolute';
+        canvas.style.top = '50%';
+        canvas.style.left = '50%';
+        canvas.style.transform = 'translate(-50%, -50%)';
+        canvas.style.zIndex = '1';
+        mapArea.appendChild(canvas);
 
         if (this.mission.playerUnits) initPlayerUnits(this.mission.playerUnits);
         if (this.mission.enemies) initEnemyUnits(this.mission.enemies);
@@ -179,6 +229,30 @@ export class CombatScene extends Phaser.Scene {
         let turnCounter = 1;
         const turnCounterElement = document.getElementById('turn-number');
 
+        const updateLocationOwnership = () => {
+            const players = getPlayerUnits();
+            const enemies = getEnemyUnits();
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    if (grid[r] && grid[r][c] && grid[r][c].locationType) {
+                        const key = `${r},${c}`;
+                        const playerOnTile = players.some(u => u.row === r && u.col === c);
+                        const enemyOnTile = enemies.some(e => e.row === r && e.col === c);
+
+                        if (playerOnTile) {
+                            setLocationOwner(r, c, 'player');
+                            this.missionState.capturedLocations[key] = 'player';
+                        } else if (enemyOnTile) {
+                            setLocationOwner(r, c, 'enemy');
+                            this.missionState.capturedLocations[key] = 'enemy';
+                        } else if (!this.missionState.capturedLocations.hasOwnProperty(key)) {
+                            setLocationOwner(r, c, 'neutral');
+                        }
+                    }
+                }
+            }
+        };
+
         const endTurnLogic = async () => {
             if (!isPlayerTurn) return;
 
@@ -207,10 +281,78 @@ export class CombatScene extends Phaser.Scene {
             if (turnCounterElement) turnCounterElement.textContent = turnCounter;
             log(`Runde ${turnCounter} gestartet. Alle MP und Mana aufgefüllt.`);
 
+            updateLocationOwnership();
             setVisibilityGrid(updateVisibility(grid, getPlayerUnits()));
             drawGrid();
 
             isPlayerTurn = true;
+            checkMissionEnd();
+        };
+
+        const checkMissionEnd = () => {
+            if (this.missionState.missionEnded) return;
+            const result = checkVictoryCondition(
+                this.mission,
+                this.missionState,
+                getPlayerUnits(),
+                getEnemyUnits(),
+                turnCounter
+            );
+            if (result) {
+                this.missionState.missionEnded = true;
+                showResultScreen(result);
+            }
+        };
+
+        const showResultScreen = (result) => {
+            const overlay = document.createElement('div');
+            overlay.id = 'result-overlay';
+            overlay.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:2000;';
+
+            const isVictory = result === 'victory';
+            const title = document.createElement('div');
+            title.textContent = isVictory ? `${this.mission.title} erfolgreich abgeschlossen!` : 'Niederlage!';
+            title.style.cssText = `font-size:36px;font-weight:bold;color:${isVictory ? '#44ff44' : '#ff4444'};margin-bottom:30px;text-align:center;`;
+
+            const breakdown = calculateReputation(
+                this.mission,
+                this.missionState,
+                turnCounter,
+                this.missionState.defeatedEnemies
+            );
+
+            const lines = [
+                `Basis: ${breakdown.base}`,
+                `Kriegsbeute: +${breakdown.warTrophy}`,
+                `Strategiepunkte: +${breakdown.strategicPoints}`,
+                `Runden-Bonus: +${breakdown.golfBonus}`,
+                '',
+                `Gesamt: ${breakdown.total} Reputation`
+            ];
+
+            const text = document.createElement('div');
+            text.style.cssText = 'color:white;font-size:20px;text-align:center;line-height:1.8;';
+            text.innerHTML = lines.join('<br>');
+
+            const orbText = document.createElement('div');
+            orbText.style.cssText = 'color:#ffd700;font-size:24px;margin-top:20px;';
+            orbText.textContent = `Orbs eingesammelt: ${this.missionState.collectedOrbs.length}`;
+
+            const button = document.createElement('button');
+            button.textContent = 'Weiter';
+            button.style.cssText = 'margin-top:30px;padding:15px 40px;font-size:20px;cursor:pointer;';
+            button.addEventListener('click', () => {
+                saveMissionRewards(breakdown.total, this.missionState.collectedOrbs.length, this.mission.id);
+                overlay.remove();
+                this.scene.stop();
+                this.scene.start('HubScene');
+            });
+
+            overlay.appendChild(title);
+            overlay.appendChild(text);
+            overlay.appendChild(orbText);
+            overlay.appendChild(button);
+            document.body.appendChild(overlay);
         };
 
         const endTurnButton = document.getElementById('end-turn-button');
@@ -371,6 +513,14 @@ export class CombatScene extends Phaser.Scene {
                         setCurrentUnitPosition(row, col);
                         setCurrentUnitMp(getCurrentUnitAttributes().mp - selectedTarget.cost);
 
+                        // Orb einsammeln
+                        const orbCollected = collectOrb(row, col);
+                        if (orbCollected) {
+                            this.missionState.collectedOrbs.push({ row, col });
+                            playDialog([{ character: 'System', text: 'Ausrüstungs-Orb gefunden!' }]);
+                        }
+
+                        updateLocationOwnership();
                         setVisibilityGrid(updateVisibility(grid, getPlayerUnits()));
 
                         // Einheit neu laden nach Bewegung (State ist jetzt 'moved')
@@ -426,9 +576,17 @@ export class CombatScene extends Phaser.Scene {
                         });
 
                         setVisibilityGrid(updateVisibility(grid, getPlayerUnits()));
+
+                        // Feind besiegt?
+                        if (enemyPos.hp <= 0) {
+                            this.missionState.defeatedEnemies.push({ maxHp: enemyPos.maxHp || enemyPos.hp });
+                            log(`${enemyPos.name} wurde besiegt!`, 'attack');
+                        }
+
                         resetSelection();
                         checkAllUnitsExhausted();
                         drawGrid();
+                        checkMissionEnd();
 
                     } else {
                         resetSelection();
@@ -527,9 +685,9 @@ export class CombatScene extends Phaser.Scene {
         destroyConsole();
         destroyDialog();
 
-        // Bottom-Bar entfernen
-        const bottomBar = document.getElementById('bottom-bar');
-        if (bottomBar) bottomBar.remove();
+        // Combat Layout entfernen
+        const combatLayout = document.getElementById('combat-layout');
+        if (combatLayout) combatLayout.remove();
 
         // State zurücksetzen
         selectedUnit = null;

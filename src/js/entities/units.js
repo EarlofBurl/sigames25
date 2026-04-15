@@ -3,6 +3,8 @@
 // Nutzt die Charakter-Datenbank (characters.js) als Vorlage
 
 import { heroes, enemies } from '../data/characters.js';
+import { equipment as equipmentData, getStatsAtLevel } from '../data/equipment.js';
+import { loadHubData } from '../engine/storage.js';
 
 const state = {
     playerUnits: [],
@@ -58,11 +60,31 @@ export function createUnit(characterId, row, col, team, overrides = {}) {
 
 // Player-Einheiten initialisieren (mit characterId oder inline-Daten)
 export function initPlayerUnits(unitsData) {
+    const hubData = loadHubData();
+
     state.playerUnits = unitsData.map((data, index) => {
         let unit;
         if (data.characterId) {
+            const char = heroes[data.characterId];
+            const level = hubData.heroLevels[data.characterId] || 1;
+            const eq = hubData.heroEquipment[data.characterId] || { weaponStage: 0, armorStage: 0 };
+            const weaponStage = eq.weaponStage || 0;
+            const armorStage = eq.armorStage || 0;
+            const weapon = equipmentData[data.characterId]?.weapons[weaponStage];
+            const armor = equipmentData[data.characterId]?.armors[armorStage];
+
+            const leveledStats = getStatsAtLevel(data.characterId, level, char);
+
+            const hubOverrides = {
+                hp: leveledStats.hp + (armor?.hpBonus || 0),
+                maxHp: leveledStats.hp + (armor?.hpBonus || 0),
+                atk: leveledStats.atk + (weapon?.atkBonus || 0),
+                def: leveledStats.def + (armor?.defBonus || 0)
+            };
+
             unit = createUnit(data.characterId, data.row, data.col, 'player', {
                 ...data,
+                ...hubOverrides,
                 id: data.id || `player_${index}`,
                 isHero: data.isHero !== undefined ? data.isHero : true
             });

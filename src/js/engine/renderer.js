@@ -25,6 +25,8 @@ let selectedUnit = null;
 let visibilityGrid = {};
 let costLabels = [];
 let VISIBILITY_STATUS;
+let locationLabels = [];
+let locationOwners = {}; // { "row,col": 'neutral' | 'player' | 'enemy' }
 
 export function initGrid() {
     grid = Array.from({ length: GRID_SIZE }, () =>
@@ -52,13 +54,22 @@ export function initRenderer(phaserScene, mission) {
     tilemapLayer.setScale(SCALE);
     tilemapLayer.setDepth(0);
 
-    // Grid-Daten aus Tilemap lesen
+    // Grid-Daten aus Tilemap lesen + Custom Properties
     for (let r = 0; r < GRID_SIZE; r++) {
         for (let c = 0; c < GRID_SIZE; c++) {
             const tile = tilemap.getTileAt(c, r);
             if (tile) {
                 const terrainName = TILE_TO_TERRAIN[tile.index] || 'plains';
                 grid[r][c] = { type: terrainName };
+                if (tile.properties) {
+                    grid[r][c].name = tile.properties.name || null;
+                    grid[r][c].locationType = tile.properties.locationType || null;
+                    grid[r][c].hasOrb = tile.properties.hasOrb || false;
+                }
+                // Initial ownership
+                if (grid[r][c].locationType) {
+                    locationOwners[`${r},${c}`] = 'neutral';
+                }
             }
         }
     }
@@ -73,6 +84,70 @@ export function initRenderer(phaserScene, mission) {
 function clearCostLabels() {
     costLabels.forEach(t => t.destroy());
     costLabels = [];
+}
+
+function setLocationOwner(row, col, owner) {
+    const key = `${row},${col}`;
+    locationOwners[key] = owner;
+}
+
+function getLocationOwner(row, col) {
+    return locationOwners[`${row},${col}`] || 'neutral';
+}
+
+function collectOrb(row, col) {
+    const key = `${row},${col}`;
+    if (grid[row] && grid[row][col] && grid[row][col].hasOrb) {
+        grid[row][col].hasOrb = false;
+        return true;
+    }
+    return false;
+}
+
+function clearLocationLabels() {
+    locationLabels.forEach(l => l.destroy());
+    locationLabels = [];
+}
+
+function drawOwnershipBorders() {
+    if (!gfx) return;
+    const BORDER_WIDTH = 3;
+    for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+            const cell = grid[r][c];
+            if (!cell.locationType) continue;
+            const owner = locationOwners[`${r},${c}`] || 'neutral';
+            const x = c * CELL_SIZE;
+            const y = r * CELL_SIZE;
+            let color;
+            if (owner === 'player') color = 0x4444ff;
+            else if (owner === 'enemy') color = 0xff4444;
+            else color = 0x888888;
+            gfx.lineStyle(BORDER_WIDTH, color, 1.0);
+            gfx.strokeRect(x + 1, y + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+        }
+    }
+}
+
+function drawLocationLabels() {
+    if (!scene) return;
+    clearLocationLabels();
+    for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+            const cell = grid[r][c];
+            if (!cell.name) continue;
+            const x = c * CELL_SIZE;
+            const y = r * CELL_SIZE + CELL_SIZE + 2;
+            const label = scene.add.text(x + CELL_SIZE / 2, y, cell.name, {
+                fontFamily: 'Arial', fontSize: '10px',
+                color: '#ffffff',
+                stroke: '#000000', strokeThickness: 2
+            });
+            label.setOrigin(0.5, 0);
+            label.setDepth(5);
+            locationLabels.push(label);
+        }
+    }
 }
 
 function addCostLabel(col, row, cost, isRed, isZoC) {
@@ -120,6 +195,9 @@ export function drawGrid() {
         }
     }
 
+    // Besitz-Ränder für Städte/Festungen
+    drawOwnershipBorders();
+
     // Spieler-Einheiten
     getPlayerUnits().forEach(u => {
         gfx.fillStyle(parseInt(u.color.replace('#', ''), 16));
@@ -136,6 +214,9 @@ export function drawGrid() {
     });
 
     drawSelectionHighlight();
+
+    // Standort-Labels
+    drawLocationLabels();
 }
 
 function drawSelectionHighlight() {
@@ -227,3 +308,5 @@ export function clearSelectedTarget() {
 export function getGridData() {
     return { grid, visibilityGrid };
 }
+
+export { setLocationOwner, getLocationOwner, collectOrb };

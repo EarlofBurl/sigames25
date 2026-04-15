@@ -19,7 +19,11 @@ export const heroes = {
         spells: [
             { name: 'Anfeuern', effect: 'buff_attack', value: 1, duration: 1, target: 'ally', range: 1, manaCost: 2, mpCost: 0 },
             { name: 'Dissen', effect: 'debuff_attack', value: 1, duration: 1, target: 'enemy', range: 1, manaCost: 2, mpCost: 0 }
-        ]
+        ],
+        level: 1,
+        growthHp: 2,
+        growthAtk: 1,
+        growthDef: 1
     },
     ritter: {
         name: 'Ritter',
@@ -35,7 +39,11 @@ export const heroes = {
         baseSight: 3,
         color: '#0000ff',
         traits: [],
-        spells: []
+        spells: [],
+        level: 1,
+        growthHp: 3,
+        growthAtk: 2,
+        growthDef: 1
     },
     bogenschuetze: {
         name: 'Bogenschütze',
@@ -51,7 +59,11 @@ export const heroes = {
         baseSight: 5,
         color: '#00ff00',
         traits: ['light'],
-        spells: []
+        spells: [],
+        level: 1,
+        growthHp: 2,
+        growthAtk: 2,
+        growthDef: 0
     },
     artillerie: {
         name: 'Artillerie',
@@ -67,7 +79,11 @@ export const heroes = {
         baseSight: 4,
         color: '#ffaa00',
         traits: [],
-        spells: []
+        spells: [],
+        level: 1,
+        growthHp: 1,
+        growthAtk: 2,
+        growthDef: 1
     },
     berserker: {
         name: 'Berserker',
@@ -83,7 +99,11 @@ export const heroes = {
         baseSight: 2,
         color: '#ff8800',
         traits: [],
-        spells: []
+        spells: [],
+        level: 1,
+        growthHp: 4,
+        growthAtk: 3,
+        growthDef: 0
     }
 };
 
