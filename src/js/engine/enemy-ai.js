@@ -190,7 +190,9 @@ async function executeEnemySpell(enemy, target, spell, onAction, onEnemyAction, 
         effect: spell.effect,
         value: spell.value,
         duration: spell.duration,
-        caster: enemy.name
+        caster: enemy.name,
+        traitName: spell.traitName,
+        traitStat: spell.traitStat
     });
 
     setEnemyUnitMana(enemy.id, enemy.mana - spell.manaCost);

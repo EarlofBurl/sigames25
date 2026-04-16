@@ -6,6 +6,25 @@ import { log } from '../engine/console.js';
 
 const WEAPON_NAMES = { sword: 'Schwert', axe: 'Axt', lance: 'Lanze', bow: 'Bogen', magic: 'Magie' };
 
+const PORTRAIT_KEYS = {
+    'assets/portraits/zarewitsch/portrait_zarewitsch_neutral.png': 'portrait_zarewitsch',
+    'assets/portraits/carl_the_great/portrait_carl_the_great_neutral.png': 'portrait_carl',
+    'assets/portraits/enemies/portrait_enemy_TikTok.png': 'portrait_tiktok',
+    'assets/portraits/enemies/portrait_enemy_Insta.png': 'portrait_insta',
+    'assets/portraits/enemies/portrait_enemy_facebook.png': 'portrait_facebook'
+};
+
+function getPortraitKey(portraitPath) {
+    return PORTRAIT_KEYS[portraitPath] || null;
+}
+
+function portraitHtml(portraitPath, size = 42, extraStyle = '') {
+    if (portraitPath && portraitPath.includes('/')) {
+        return `<img src="${portraitPath}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:4px;${extraStyle}" />`;
+    }
+    return `<div style="font-size:${size}px;display:flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;">${portraitPath || '?'}</div>`;
+}
+
 let onSpellCast = null;
 let onSpellSelect = null;
 
@@ -235,7 +254,7 @@ export function showCombatPreview(leftUnit, rightUnit, pred) {
 
     previewEl.innerHTML = `
         <div style="flex:1;display:flex;align-items:stretch;min-width:0;">
-            <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;">${leftUnit.portrait || '?'}</div>
+            <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;">${portraitHtml(leftUnit.portrait, 42)}</div>
             ${infoCol(leftUnit, true, leftHpAfter, leftHpAfter, leftAdv)}
         </div>
         <div style="display:flex;align-items:center;justify-content:center;width:40px;flex-shrink:0;">
@@ -243,7 +262,7 @@ export function showCombatPreview(leftUnit, rightUnit, pred) {
         </div>
         <div style="flex:1;display:flex;align-items:stretch;min-width:0;">
             ${infoCol(rightUnit, false, rightHpAfter, rightHpAfter, rightAdv)}
-            <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;">${rightUnit.portrait || '?'}</div>
+            <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;">${portraitHtml(rightUnit.portrait, 42)}</div>
         </div>
     `;
 }
@@ -263,15 +282,17 @@ export function hidePreview() {
 function calculateEffectiveStats(unit) {
     let attack = unit.attack || 5;
     let defense = unit.defense || 2;
+    let attackDelta = 0;
+    let defenseDelta = 0;
     if (unit.activeEffects) {
         unit.activeEffects.forEach(e => {
-            if (e.effect === 'buff_attack') attack += e.value;
-            if (e.effect === 'debuff_attack') attack -= e.value;
-            if (e.effect === 'buff_defense') defense += e.value;
-            if (e.effect === 'debuff_defense') defense -= e.value;
+            if (e.effect === 'buff_attack') { attack += e.value; attackDelta += e.value; }
+            if (e.effect === 'debuff_attack') { attack -= e.value; attackDelta -= e.value; }
+            if (e.effect === 'buff_defense') { defense += e.value; defenseDelta += e.value; }
+            if (e.effect === 'debuff_defense') { defense -= e.value; defenseDelta -= e.value; }
         });
     }
-    return { attack, defense };
+    return { attack, defense, attackDelta, defenseDelta };
 }
 
 // ─── Fill Unit Panel ───
@@ -294,20 +315,47 @@ export function fillUnitPanel(unit) {
         return;
     }
 
-    const { attack, defense } = calculateEffectiveStats(unit);
+    const { attack, defense, attackDelta, defenseDelta } = calculateEffectiveStats(unit);
     const wName = WEAPON_NAMES[unit.weapon] || unit.weapon || '—';
 
+    const atkColor = attackDelta > 0 ? '#44ff44' : attackDelta < 0 ? '#ff4444' : '#ccc';
+    const defColor = defenseDelta > 0 ? '#44ff44' : defenseDelta < 0 ? '#ff4444' : '#ccc';
+    const atkDeltaStr = attackDelta > 0 ? `+${attackDelta}` : attackDelta < 0 ? `${attackDelta}` : '';
+    const defDeltaStr = defenseDelta > 0 ? `+${defenseDelta}` : defenseDelta < 0 ? `${defenseDelta}` : '';
+
     titleEl.textContent = unit.name;
-    portraitEl.textContent = unit.portrait || '?';
+    if (unit.portrait && unit.portrait.includes('/')) {
+        portraitEl.innerHTML = `<img src="${unit.portrait}" style="width:100%;height:100%;object-fit:cover;border-radius:4px;" />`;
+    } else {
+        portraitEl.textContent = unit.portrait || '?';
+    }
     typeEl.textContent = unit.isHero ? (unit.range > 1 ? 'Fernkampf' : 'Nahkampf') : 'Feind';
     hpEl.textContent = unit.hp;
     maxHpEl.textContent = unit.maxHp;
     mpEl.textContent = unit.mp;
     maxMpEl.textContent = unit.maxMp;
     manaEl.innerHTML = `Mana: <span id="ui-mana-val">${unit.mana}</span>/<span id="ui-max-mana-val">${unit.maxMana}</span>`;
-    attackEl.innerHTML = `Atk: <span id="ui-atk-val">${attack}</span>`;
-    defenseEl.innerHTML = `Def: <span id="ui-def-val">${defense}</span>`;
+    attackEl.innerHTML = `Atk: <span id="ui-atk-val" style="color:${atkColor}">${attack}${atkDeltaStr}</span>`;
+    defenseEl.innerHTML = `Def: <span id="ui-def-val" style="color:${defColor}">${defense}${defDeltaStr}</span>`;
     weaponEl.innerHTML = `Waffe: <span id="ui-weapon-val">${wName}</span>`;
+
+    // Active traits
+    let traitsHtml = '';
+    if (unit.activeEffects && unit.activeEffects.length > 0) {
+        traitsHtml = '<div style="margin-top:6px;padding-top:6px;border-top:1px solid #333;font-size:10px;">';
+        unit.activeEffects.forEach(effect => {
+            if (effect.effect === 'heal') return;
+            const isPositive = effect.effect === 'buff_attack' || effect.effect === 'buff_defense';
+            const isNegative = effect.effect === 'debuff_attack' || effect.effect === 'debuff_defense';
+            const color = isPositive ? '#44ff44' : isNegative ? '#ff4444' : '#888';
+            const sign = isPositive ? '+' : isNegative ? '' : '';
+            const value = effect.value !== undefined ? `${sign}${effect.value} ${effect.traitStat || effect.effect.replace('buff_', '').replace('debuff_', '')}` : '';
+            const name = effect.traitName || effect.effect;
+            const dur = effect.duration > 0 ? ` (${effect.duration})` : '';
+            traitsHtml += `<div style="color:${color};margin-bottom:2px;">◆ ${name} ${value}${dur}</div>`;
+        });
+        traitsHtml += '</div>';
+    }
 
     // Spells
     spellsEl.innerHTML = '';
@@ -323,6 +371,7 @@ export function fillUnitPanel(unit) {
             spellsEl.appendChild(btn);
         });
     }
+    spellsEl.innerHTML += traitsHtml;
 
     // Action buttons
     actionPanelEl.innerHTML = '';
@@ -383,11 +432,24 @@ export function showSpellPreview(caster, target, spell) {
     const previewEl = document.getElementById('combat-preview');
     if (!previewEl) return;
 
-    const sym = spell.element === 'fire' ? '🔥' : spell.element === 'ice' ? '❄️' : spell.element === 'heal' ? '💚' : '✦';
-    const effectColor = spell.element === 'fire' ? '#ff6633' : spell.element === 'ice' ? '#66ccff' : spell.element === 'heal' ? '#44ff44' : '#cc88ff';
-    const spellEffect = spell.target === 'ally'
-        ? `+${spell.value || 0} ${spell.effect}`
-        : `-${spell.value || 0} ${spell.effect}`;
+    const sym = spell.element === 'fire' ? '🔥' : spell.element === 'ice' ? '❄️' : spell.element === 'heal' ? '💚' : spell.element === 'dark' ? '💜' : spell.effect === 'cleanse' ? '✨' : spell.effect === 'social_ban' ? '🚫' : '✦';
+    const effectColor = spell.element === 'fire' ? '#ff6633' : spell.element === 'ice' ? '#66ccff' : spell.element === 'heal' ? '#44ff44' : spell.element === 'dark' ? '#cc66ff' : spell.effect === 'cleanse' ? '#ffff44' : spell.effect === 'social_ban' ? '#ff4444' : '#cc88ff';
+    let spellEffect = '';
+    if (spell.effect === 'cleanse') {
+        spellEffect = 'Entfernt Traits';
+    } else if (spell.effect === 'heal') {
+        spellEffect = `+${spell.value || 0} HP`;
+    } else if (spell.effect === 'buff_attack' || spell.effect === 'buff_defense') {
+        spellEffect = `+${spell.value || 0} ${spell.effect.replace('buff_', '')}`;
+    } else if (spell.effect === 'debuff_attack' || spell.effect === 'debuff_defense') {
+        spellEffect = `-${spell.value || 0} ${spell.effect.replace('debuff_', '')}`;
+    } else if (spell.effect === 'social_ban') {
+        spellEffect = '🚫 Bannt SocialMedia!';
+    } else {
+        spellEffect = spell.target === 'ally'
+            ? `+${spell.value || 0} ${spell.effect}`
+            : `-${spell.value || 0} ${spell.effect}`;
+    }
 
     const casterInfo = `
         <div style="flex:2;display:flex;flex-direction:column;justify-content:stretch;gap:0;min-width:0;">
@@ -424,7 +486,7 @@ export function showSpellPreview(caster, target, spell) {
 
     previewEl.innerHTML = `
         <div style="flex:1;display:flex;align-items:stretch;min-width:0;">
-            <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;">${caster.portrait || '?'}</div>
+            <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;">${portraitHtml(caster.portrait, 42)}</div>
             ${casterInfo}
         </div>
         <div style="display:flex;align-items:center;justify-content:center;width:40px;flex-shrink:0;">
@@ -432,7 +494,7 @@ export function showSpellPreview(caster, target, spell) {
         </div>
         <div style="flex:1;display:flex;align-items:stretch;min-width:0;">
             ${targetInfo}
-            <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;">${target.portrait || '?'}</div>
+            <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;">${portraitHtml(target.portrait, 42)}</div>
         </div>
     `;
 }
@@ -462,7 +524,7 @@ export async function animateCombatResult(leftUnit, rightUnit, opts) {
 
     previewEl.innerHTML = `
         <div style="flex:1;display:flex;align-items:stretch;min-width:0;">
-            <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;opacity:0;animation:slideIn 0.3s ease-out forwards;">${leftUnit.portrait || '?'}</div>
+            <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;opacity:0;animation:slideIn 0.3s ease-out forwards;">${portraitHtml(leftUnit.portrait, 42)}</div>
             ${animateInfoCol(leftUnit, true, leftHpBefore, leftHpAfter, leftAdv, rightDmg)}
         </div>
         <div style="display:flex;align-items:center;justify-content:center;width:40px;flex-shrink:0;">
@@ -470,7 +532,7 @@ export async function animateCombatResult(leftUnit, rightUnit, opts) {
         </div>
         <div style="flex:1;display:flex;align-items:stretch;min-width:0;">
             ${animateInfoCol(rightUnit, false, rightHpBefore, rightHpAfter, rightAdv, leftDmg)}
-            <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;opacity:0;animation:slideIn 0.3s ease-out forwards;">${rightUnit.portrait || '?'}</div>
+            <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;opacity:0;animation:slideIn 0.3s ease-out forwards;">${portraitHtml(rightUnit.portrait, 42)}</div>
         </div>
     `;
 
@@ -491,11 +553,24 @@ export async function animateSpellResult(caster, target, spell) {
     const previewEl = document.getElementById('combat-preview');
     if (!previewEl) return Promise.resolve();
 
-    const sym = spell.element === 'fire' ? '🔥' : spell.element === 'ice' ? '❄️' : spell.element === 'heal' ? '💚' : '✦';
-    const effectColor = spell.element === 'fire' ? '#ff6633' : spell.element === 'ice' ? '#66ccff' : spell.element === 'heal' ? '#44ff44' : '#cc88ff';
-    const spellEffect = spell.target === 'ally'
-        ? `+${spell.value || 0} ${spell.effect}`
-        : `-${spell.value || 0} ${spell.effect}`;
+    const sym = spell.element === 'fire' ? '🔥' : spell.element === 'ice' ? '❄️' : spell.element === 'heal' ? '💚' : spell.element === 'dark' ? '💜' : spell.effect === 'cleanse' ? '✨' : spell.effect === 'social_ban' ? '🚫' : '✦';
+    const effectColor = spell.element === 'fire' ? '#ff6633' : spell.element === 'ice' ? '#66ccff' : spell.element === 'heal' ? '#44ff44' : spell.element === 'dark' ? '#cc66ff' : spell.effect === 'cleanse' ? '#ffff44' : spell.effect === 'social_ban' ? '#ff4444' : '#cc88ff';
+    let spellEffect = '';
+    if (spell.effect === 'cleanse') {
+        spellEffect = 'Entfernt Traits';
+    } else if (spell.effect === 'heal') {
+        spellEffect = `+${spell.value || 0} HP`;
+    } else if (spell.effect === 'buff_attack' || spell.effect === 'buff_defense') {
+        spellEffect = `+${spell.value || 0} ${spell.effect.replace('buff_', '')}`;
+    } else if (spell.effect === 'debuff_attack' || spell.effect === 'debuff_defense') {
+        spellEffect = `-${spell.value || 0} ${spell.effect.replace('debuff_', '')}`;
+    } else if (spell.effect === 'social_ban') {
+        spellEffect = '🚫 Bannt SocialMedia!';
+    } else {
+        spellEffect = spell.target === 'ally'
+            ? `+${spell.value || 0} ${spell.effect}`
+            : `-${spell.value || 0} ${spell.effect}`;
+    }
 
     const casterInfo = `
         <div style="flex:2;display:flex;flex-direction:column;justify-content:stretch;gap:0;min-width:0;">
@@ -532,7 +607,7 @@ export async function animateSpellResult(caster, target, spell) {
 
     previewEl.innerHTML = `
         <div style="flex:1;display:flex;align-items:stretch;min-width:0;">
-            <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;opacity:0;animation:slideIn 0.3s ease-out forwards;">${caster.portrait || '?'}</div>
+            <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;opacity:0;animation:slideIn 0.3s ease-out forwards;">${portraitHtml(caster.portrait, 42)}</div>
             ${casterInfo}
         </div>
         <div style="display:flex;align-items:center;justify-content:center;width:40px;flex-shrink:0;">
@@ -540,7 +615,7 @@ export async function animateSpellResult(caster, target, spell) {
         </div>
         <div style="flex:1;display:flex;align-items:stretch;min-width:0;">
             ${targetInfo}
-            <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;opacity:0;animation:slideIn 0.3s ease-out forwards;">${target.portrait || '?'}</div>
+            <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;opacity:0;animation:slideIn 0.3s ease-out forwards;">${portraitHtml(target.portrait, 42)}</div>
         </div>
     `;
 
@@ -576,7 +651,7 @@ export async function showEnemyAction(enemy, target, type, data) {
 
         previewEl.innerHTML = `
             <div style="flex:1;display:flex;align-items:stretch;min-width:0;">
-                <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;opacity:0;animation:slideIn 0.3s ease-out forwards;">${enemy.portrait || '?'}</div>
+                <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;opacity:0;animation:slideIn 0.3s ease-out forwards;">${portraitHtml(enemy.portrait, 28)}</div>
                 ${animateInfoCol(enemy, true, enemyHpBefore, enemyHpAfter, enemyAdv, counterDmg)}
             </div>
             <div style="display:flex;align-items:center;justify-content:center;width:40px;flex-shrink:0;">
@@ -584,7 +659,7 @@ export async function showEnemyAction(enemy, target, type, data) {
             </div>
             <div style="flex:1;display:flex;align-items:stretch;min-width:0;">
                 ${animateInfoCol(target, false, targetHpBefore, targetHpAfter, targetAdv, pred.attackDmg)}
-                <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;opacity:0;animation:slideIn 0.3s ease-out forwards;">${target.portrait || '?'}</div>
+                <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;opacity:0;animation:slideIn 0.3s ease-out forwards;">${portraitHtml(target.portrait, 42)}</div>
             </div>
         `;
 
@@ -606,7 +681,7 @@ export async function showEnemyAction(enemy, target, type, data) {
         previewEl.style.justifyContent = 'center';
         previewEl.innerHTML = `
             <div style="text-align:center;">
-                <div style="font-size:28px;margin-bottom:4px;">${enemy.portrait || '?'}</div>
+                <div style="font-size:28px;margin-bottom:4px;">${portraitHtml(enemy.portrait, 28)}</div>
                 <div style="font-size:12px;color:#fff;font-weight:bold;">${enemy.name}</div>
                 <div style="font-size:11px;color:#aaa;">bewegt sich...</div>
             </div>

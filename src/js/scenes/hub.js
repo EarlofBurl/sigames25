@@ -161,7 +161,10 @@ export class HubScene extends Phaser.Scene {
             card.style.cssText = 'background:#2a2a2a;border:1px solid #444;padding:10px;margin-bottom:8px;border-radius:5px;';
             card.innerHTML = `
                 <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
-                    <span style="font-size:14px;">${hero.portrait} ${hero.name}</span>
+                    <span style="font-size:14px;display:flex;align-items:center;gap:8px;">
+                        ${hero.portrait && hero.portrait.includes('/') ? `<img src="${hero.portrait}" style="width:24px;height:24px;object-fit:cover;border-radius:3px;" />` : hero.portrait}
+                        ${hero.name}
+                    </span>
                 </div>
                 <div style="color:#888;font-size:11px;margin-bottom:5px;">
                     Waffe: ${weapon.name} (+${weapon.atkBonus} Atk)<br>
@@ -223,7 +226,10 @@ export class HubScene extends Phaser.Scene {
             card.style.cssText = 'background:#2a2a2a;border:1px solid #444;padding:10px;margin-bottom:8px;border-radius:5px;';
             card.innerHTML = `
                 <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
-                    <span style="font-size:14px;">${hero.portrait} ${hero.name}</span>
+                    <span style="font-size:14px;display:flex;align-items:center;gap:8px;">
+                        ${hero.portrait && hero.portrait.includes('/') ? `<img src="${hero.portrait}" style="width:24px;height:24px;object-fit:cover;border-radius:3px;" />` : hero.portrait}
+                        ${hero.name}
+                    </span>
                 </div>
                 <div style="color:#888;font-size:11px;margin-bottom:5px;">
                     Lv ${heroLevel} → ${heroLevel + 1} | HP: ${statsNow.hp}→${statsNext.hp} ATK: ${statsNow.atk}→${statsNext.atk} DEF: ${statsNow.def}→${statsNext.def}

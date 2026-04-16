@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template>
+ <object width="51.25" height="32">
+  <properties>
+   <property name="hasOrb" value="true"/>
+   <property name="heals" value="true"/>
+   <property name="inkKnot" value="augsburg_dialog"/>
+   <property name="label" value="Augsburg"/>
+   <property name="type" value="city"/>
+  </properties>
+ </object>
+</template>

@@ -318,6 +318,17 @@ export function applyEffectToUnit(unitId, effect) {
     const unit = state.playerUnits.find(u => u.id === unitId);
     if (unit) {
         if (!unit.activeEffects) unit.activeEffects = [];
+
+        if (effect.effect === 'cleanse') {
+            if (unit.activeEffects) {
+                unit.activeEffects = unit.activeEffects.filter(e => {
+                    const isNegative = e.effect === 'debuff_attack' || e.effect === 'debuff_defense';
+                    return !isNegative;
+                });
+            }
+            return;
+        }
+
         unit.activeEffects.push({ ...effect });
     }
 }
@@ -327,6 +338,15 @@ export function applyEffectToEnemy(enemyId, effect) {
     if (enemy) {
         if (effect.effect === 'heal') {
             enemy.hp = Math.min(enemy.maxHp, enemy.hp + effect.value);
+            return;
+        }
+        if (effect.effect === 'cleanse') {
+            if (enemy.activeEffects) {
+                enemy.activeEffects = enemy.activeEffects.filter(e => {
+                    const isNegative = e.effect === 'debuff_attack' || e.effect === 'debuff_defense';
+                    return !isNegative;
+                });
+            }
             return;
         }
         if (!enemy.activeEffects) enemy.activeEffects = [];

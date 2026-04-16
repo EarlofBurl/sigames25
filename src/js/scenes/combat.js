@@ -48,12 +48,34 @@ let onSpellCast = (caster, targetUnit, spell) => {
     if (spell.target === 'ally') {
         applyEffectToUnit(targetUnit.id, {
             effect: spell.effect, value: spell.value,
-            duration: spell.duration, caster: caster.name
+            duration: spell.duration, caster: caster.name,
+            traitName: spell.traitName, traitStat: spell.traitStat
         });
     } else {
+        if (spell.effect === 'social_ban') {
+            const hasTrait = targetUnit.traits && targetUnit.traits.includes('SocialMedia');
+            if (hasTrait) {
+                const enemies = getEnemyUnits();
+                const enemyIndex = enemies.findIndex(e => e.id === targetUnit.id);
+                if (enemyIndex !== -1) {
+                    enemies[enemyIndex].traits = enemies[enemyIndex].traits.filter(t => t !== 'SocialMedia');
+                    log(`${caster.name} bannt ${targetUnit.name}! SocialMedia-Trait entfernt!`, 'attack');
+                }
+            } else {
+                log(`${caster.name} wirkt ${spell.name}, aber ${targetUnit.name} ist kein SocialMedia-Trait!`, 'default');
+            }
+            unitCastSpell(casterUnit.id, spell.manaCost);
+            animateSpellResult(casterUnit || caster, targetUnit, spell);
+            currentSpell = null;
+            drawGrid();
+            fillUnitPanel(casterUnit || caster);
+            checkAllUnitsExhausted();
+            return;
+        }
         applyEffectToEnemy(targetUnit.id, {
             effect: spell.effect, value: spell.value,
-            duration: spell.duration, caster: caster.name
+            duration: spell.duration, caster: caster.name,
+            traitName: spell.traitName, traitStat: spell.traitStat
         });
     }
 
@@ -79,6 +101,12 @@ export class CombatScene extends Phaser.Scene {
         const mapFile = (this.mission && this.mission.mapFile) || 'assets/maps/mission_01.tmj';
         this.load.image('terrain_tileset', 'assets/tileset.png');
         this.load.tilemapTiledJSON('mission_map', mapFile);
+
+        this.load.image('portrait_zarewitsch', 'assets/portraits/zarewitsch/portrait_zarewitsch_neutral.png');
+        this.load.image('portrait_carl', 'assets/portraits/carl_the_great/portrait_carl_the_great_neutral.png');
+        this.load.image('portrait_tiktok', 'assets/portraits/enemies/portrait_enemy_TikTok.png');
+        this.load.image('portrait_insta', 'assets/portraits/enemies/portrait_enemy_Insta.png');
+        this.load.image('portrait_facebook', 'assets/portraits/enemies/portrait_enemy_facebook.png');
     }
 
     create() {

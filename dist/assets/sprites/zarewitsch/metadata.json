@@ -1,0 +1,87 @@
+{
+  "character": {
+    "id": "2fd01552-756b-47d9-90b8-071694657bbe",
+    "name": "A Zar like 18 century uniform (with yellow cape) wearing male person",
+    "prompt": "A Zar like 18 century uniform (with yellow cape) wearing male person",
+    "size": {
+      "width": 36,
+      "height": 36
+    },
+    "template_id": "mannequin",
+    "directions": 4,
+    "view": "high top-down",
+    "created_at": "2026-04-16T12:38:23.961509+00:00"
+  },
+  "frames": {
+    "rotations": {
+      "south": "rotations/south.png",
+      "west": "rotations/west.png",
+      "east": "rotations/east.png",
+      "north": "rotations/north.png"
+    },
+    "animations": {
+      "Breathing_Idle-61187020": {
+        "south": [
+          "animations/Breathing_Idle-61187020/south/frame_000.png",
+          "animations/Breathing_Idle-61187020/south/frame_001.png",
+          "animations/Breathing_Idle-61187020/south/frame_002.png",
+          "animations/Breathing_Idle-61187020/south/frame_003.png"
+        ],
+        "north": [
+          "animations/Breathing_Idle-61187020/north/frame_000.png",
+          "animations/Breathing_Idle-61187020/north/frame_001.png",
+          "animations/Breathing_Idle-61187020/north/frame_002.png",
+          "animations/Breathing_Idle-61187020/north/frame_003.png"
+        ],
+        "west": [
+          "animations/Breathing_Idle-61187020/west/frame_000.png",
+          "animations/Breathing_Idle-61187020/west/frame_001.png",
+          "animations/Breathing_Idle-61187020/west/frame_002.png",
+          "animations/Breathing_Idle-61187020/west/frame_003.png"
+        ],
+        "east": [
+          "animations/Breathing_Idle-61187020/east/frame_000.png",
+          "animations/Breathing_Idle-61187020/east/frame_001.png",
+          "animations/Breathing_Idle-61187020/east/frame_002.png",
+          "animations/Breathing_Idle-61187020/east/frame_003.png"
+        ]
+      },
+      "animation-ae1d2bf4": {
+        "south": [
+          "animations/animation-ae1d2bf4/south/frame_000.png",
+          "animations/animation-ae1d2bf4/south/frame_001.png",
+          "animations/animation-ae1d2bf4/south/frame_002.png",
+          "animations/animation-ae1d2bf4/south/frame_003.png",
+          "animations/animation-ae1d2bf4/south/frame_004.png",
+          "animations/animation-ae1d2bf4/south/frame_005.png"
+        ],
+        "east": [
+          "animations/animation-ae1d2bf4/east/frame_000.png",
+          "animations/animation-ae1d2bf4/east/frame_001.png",
+          "animations/animation-ae1d2bf4/east/frame_002.png",
+          "animations/animation-ae1d2bf4/east/frame_003.png",
+          "animations/animation-ae1d2bf4/east/frame_004.png",
+          "animations/animation-ae1d2bf4/east/frame_005.png"
+        ],
+        "north": [
+          "animations/animation-ae1d2bf4/north/frame_000.png",
+          "animations/animation-ae1d2bf4/north/frame_001.png",
+          "animations/animation-ae1d2bf4/north/frame_002.png",
+          "animations/animation-ae1d2bf4/north/frame_003.png",
+          "animations/animation-ae1d2bf4/north/frame_004.png",
+          "animations/animation-ae1d2bf4/north/frame_005.png"
+        ],
+        "west": [
+          "animations/animation-ae1d2bf4/west/frame_000.png",
+          "animations/animation-ae1d2bf4/west/frame_001.png",
+          "animations/animation-ae1d2bf4/west/frame_002.png",
+          "animations/animation-ae1d2bf4/west/frame_003.png",
+          "animations/animation-ae1d2bf4/west/frame_004.png",
+          "animations/animation-ae1d2bf4/west/frame_005.png"
+        ]
+      }
+    }
+  },
+  "export_version": "2.0",
+  "export_date": "2026-04-16T12:43:11.823924"
+}

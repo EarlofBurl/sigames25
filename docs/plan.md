@@ -205,8 +205,77 @@
   - Gegnerische Heiler (`effect: 'heal'`) suchen verletzte Verbündete und heilen sie.
   - Bosse (`trait: 'boss'`) halten ihre Festung und greifen nur aus der Nähe an oder wirken Debuff-Zauber.
 
-## Meilenstein 22: Tooling, Tiled & Assets (Polishing)
-*Fokus: Der finale 16-Bit Japano-RPG Look.*
 
-- [ ] **Erweitertes Tiled-Mapping:** Einbindung des finalen Tilesets. Nutzung von "Custom Properties" in Tiled für Feldeigenschaften.
-- [ ] **Charakter-Portraits & InkJS-Dialoge:** Einbinden von Anime-Portraits für die Dialog-Boxen (`dialog.js`). Migration zu echten InkJS-Story-Files für Verzweigungen und Insider-Jokes.
+## Meilenstein 22: Tooling, Tiled & Assets (Polishing)
+*Fokus: Der finale 16-Bit Japano-RPG Look. Echte Tiled-Maps, Charakter-Sprites und InkJS-Dialoge ersetzen alle Platzhalter.*
+
+***
+
+### 22a: Tiled-Map-Pipeline & Terrain-Integration
+
+- [ ] **Tileset-Pfad relativ setzen:** In der `mission_01.tmj` den absoluten Tileset-Pfad durch `assets/BaseSet.png` ersetzen (einmalig per `sed` oder in Tiled). Gilt als Standard für alle zukünftigen Maps.
+- [ ] **Terrain-Properties korrigieren:** Im Tileset-Editor alle Hill-Tiles (IDs 160–165, 200–205) von `"terrains"` (Plural, Tippfehler) auf `"terrain"` umbenennen, damit `terrain.js` die Tiles korrekt als `hill` erkennt.
+- [ ] **Neues Terrain `wall` und `gate` ergänzen:** In `terrain.js` zwei neue Einträge hinzufügen: `wall` (unpassierbar, kein Verteidigungsbonus) und `gate` (passierbar, +2 Verteidigung). Entsprechende Tileset-Tiles in Tiled mit `terrain = wall` bzw. `terrain = gate` taggen.
+- [ ] **Decor-Layer-Priorisierung in `renderer.js`:** Beim Auslesen des Terrain-Typs prüft der Renderer zuerst den `Terrain_Decor`-Layer. Hat das Decor-Tile ein `terrain`-Property (z.B. Brücke über Fluss), gewinnt das Decor. Ansonsten gilt das Tile im `Terrain_Base`-Layer.
+- [ ] **Units-Layer entfernt:** Der leere `Units`-Layer wird aus der `.tmj` gelöscht. Einheiten-Startpositionen kommen ausschließlich aus `mission_XX.js`, nicht aus Tiled.
+
+***
+
+### 22b: Stadt- und Trigger-Objekte in Tiled
+
+- [ ] **Städte als Rechteck-Objekte im Triggers-Layer:** Jede Stadt (z.B. Augsburg) wird als benanntes Rechteck-Objekt angelegt, das alle zugehörigen Tiles umschließt. Das `name`-Feld in Tiled trägt den Stadtnamen (kein extra `label`-Property nötig — Phaser liest `obj.name` direkt aus).
+- [ ] **City-Template anlegen:** Ein Tiled-Template `city_template.tx` mit den Standard-Properties wird einmalig gespeichert: `heals = true`, `hasOrb = false`, `inkKnot = ""`. Pro Instanz werden nur `name` und `inkKnot` überschrieben.
+- [ ] **Trigger-Objekte (Punkt-Objekte):** Für positionsbasierte Events (z.B. „Spieler betritt Feld X") werden Punkt-Objekte im `Triggers`-Layer gesetzt mit den Properties `type = trigger` und `inkKnot = <knot_name>`.
+- [ ] **Renderer liest Triggers-Layer aus:** `renderer.js` iteriert beim Laden der Map über alle Objekte im `Triggers`-Layer. Städte werden als Zonen gespeichert (col/row aus `obj.x / tileSize`), Stadtname wird als Text über dem Objekt-Rechteck gerendert (Depth 20, kleiner weißer Font mit Stroke).
+- [ ] **`CombatScene` prüft Trigger bei Bewegung:** Nach jeder Einheitenbewegung wird geprüft, ob die neue Position innerhalb eines Stadt-Rechtecks oder auf einem Trigger-Punkt liegt. Treffer lösen den hinterlegten `inkKnot` in `dialog.js` aus.
+
+***
+
+### 22c: Charakter-Sprite-System
+
+- [ ] **Sprite-Ordnerstruktur etabliert:**
+  - Helden-Sprites: `public/assets/sprites/heroes/<character_key>/spritesheet.png` + `spritesheet.json`
+  - Gegner-Sprites: `public/assets/sprites/enemies/<character_key>/spritesheet.png` + `spritesheet.json`
+  - `<character_key>` entspricht exakt dem Key in `characters.js` (z.B. `carl_the_great`, `zarewitsch`, `tiktok`)
+- [ ] **Spritesheet-Build-Workflow (PixelLab → Phaser):** Neue Charakter-Sprites werden mit `build_spritesheet.py` aus dem PixelLab-Export gebaut: `python3 build_spritesheet.py --meta <export>/metadata.json --out public/assets/sprites/heroes/<key> --name <key>`. Das Skript erzeugt `spritesheet.png`, `spritesheet.json` und `phaser_snippet.js`.
+- [ ] **Atlas-Format:** Alle Spritesheets nutzen das Phaser-3-Atlas-Format (multi-pack, `textures[]`-Array). Geladen wird mit `this.load.atlas(charKey, '...spritesheet.png', '...spritesheet.json')` in `CombatScene.preload()`.
+- [ ] **Animations-Key-Konvention:** `<char_key>_<animation_name>_<direction>` (z.B. `carl_the_great_fight_stance_idle_south`). Richtungen: `south`, `west`, `east`, `north`. Standbilder (Rotations): `<char_key>_rotation_<direction>` mit `repeat: 0`.
+- [ ] **`renderer.js` auf Sprites umstellen:** Die bisherige Graphics-basierte Unit-Darstellung (farbige Quadrate/Kreise) wird durch echte `this.add.sprite()`-Instanzen ersetzt. Beim Erstellen einer Unit wird der passende Atlas geladen und die Idle-Animation der aktuellen Blickrichtung abgespielt.
+- [ ] **Richtungswechsel bei Bewegung:** Nach jeder Bewegung wird die Blickrichtung der Einheit (south/west/east/north) anhand der Bewegungsrichtung aktualisiert und die entsprechende Idle-Animation abgespielt.
+
+***
+
+### 22d: Portrait-System
+
+- [ ] **Portrait-Ordnerstruktur:** Portraits liegen unter `public/assets/portraits/<character_key>/portrait_<character_key>_neutral.png` (Helden) bzw. `public/assets/portraits/enemies/portrait_enemy_<key>.png` (Gegner). Die Pfade entsprechen exakt den `portrait`-Feldern in `characters.js`.
+- [ ] **Portraits in `combat-ui.js` einbinden:** Das Unit-Panel (links) zeigt das Portrait der ausgewählten Einheit. Die Combat-Preview (5-Spalten-Layout: Porträt | Info | VS | Info | Porträt) nutzt die Portrait-Pfade aus `characters.js` direkt als `<img src="...">`.
+- [ ] **Fallback:** Wenn kein Portrait vorhanden, wird ein neutrales Platzhalter-Icon gezeigt (kein JS-Fehler).
+
+***
+
+### 22e: Mission-Datei-Workflow (Manuel-Sprech → JS)
+
+- [ ] **`mission_XX.md` als Arbeitsformat:** Jede neue Mission wird zunächst als Markdown-Datei beschrieben (Karte, Einheiten, Startpositionen, Gegner mit Verhalten, Trigger, Belohnungen, Siegbedingung, Niederlagebedingung). Keine direkte JS-Bearbeitung nötig.
+- [ ] **Opencode generiert `mission_XX.js`:** Die `.md` wird opencode übergeben zusammen mit `architecture.md` und `characters.js`. Opencode erstellt daraus eine vollständige `mission_XX.js` passend zur bestehenden Missionsstruktur (`mapFile`, `playerUnits`, `enemyUnits`, `triggers`, `victoryCondition`, `defeatCondition`, `rewards`).
+- [ ] **Trigger-Struktur in `mission_XX.js`:**
+  ```js
+  triggers: [
+    { col: 5, row: 3, inkKnot: 'ambush_dialog' },
+    { col: 8, row: 8, inkKnot: 'boss_encounter' },
+    { type: 'onStart', inkKnot: 'mission_01_intro' },
+    { type: 'onUnitDeath', unitId: 'tiktok', inkKnot: 'boss_warning' }
+  ]
+  ```
+- [ ] **Neue Maps folgen derselben Konvention:** Tiled-Map als `public/assets/maps/mission_XX.tmj`, relativer Tileset-Pfad `assets/BaseSet.png`, Layer `Terrain_Base`, `Terrain_Decor`, `Triggers` (ohne `Units`-Layer).
+
+***
+
+### 22f: InkJS-Dialoge & Story-Integration
+*Vorbereitung für Meilenstein 23: Narrative.*
+
+- [ ] **InkJS einbinden:** `inkjs` als npm-Paket installieren (`npm install inkjs`). Import in `dialog.js`.
+- [ ] **Ink-Story-Dateien:** Dialoge werden als `.ink`-Dateien unter `src/data/dialogs/` verfasst und mit dem Ink-Compiler (`inklecate`) zu `.json` kompiliert. Die kompilierten JSONs landen unter `public/assets/dialogs/`.
+- [ ] **`dialog.js` auf InkJS umstellen:** Statt statischer Dialog-Arrays liest `dialog.js` die Ink-JSON-Story, spielt sie ab und rendert Text + Auswahloptionen im bestehenden Dialog-Overlay. Verzweigungen und Variablen (z.B. Reputation, besiegte Gegner) werden über `story.variablesState` übergeben.
+- [ ] **Knot-basierter Einstieg:** `dialog.js` erhält eine Funktion `playKnot(storyFile, knotName)` — `CombatScene` und `HubScene` rufen diese mit dem `inkKnot`-Wert aus den Triggern auf.
+- [ ] **Portrait im Dialog:** Sprechende Charaktere zeigen ihr Portrait links im Dialog-Overlay. Der sprechende Charakter wird per Ink-Tag (`# speaker: carl_the_great`) übergeben und `dialog.js` lädt das passende Portrait aus `characters.js`.
+- [ ] **Hub-Dialoge:** Team-Gespräche im Hub (zwischen Missionen) werden ebenfalls als Ink-Knots verfasst. Der Hub kann `playKnot('hub_dialogs.json', 'after_mission_01')` aufrufen.

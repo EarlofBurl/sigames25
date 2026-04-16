@@ -12,14 +12,15 @@ No test, lint, or typecheck commands exist.
 ## Architecture Quick Reference
 
 - **Entry**: `src/index.html` loads `src/js/main.js` → creates Phaser Game, registers scenes
-- **Scene flow**: `main.js` → Phaser Game → `HubScene` / `CombatScene` (Phaser.Scene)
+- **Scene flow**: `main.js` → Phaser Game → `HubScene` / `CombatScene` / `TitleScene` (Phaser.Scene)
 - **Rendering**: `CombatScene` uses Phaser Tilemap (`make.tilemap()`) for terrain + Graphics overlay (`add.graphics()`) for fog, units, highlights. Text-Kosten-Labels via `add.text()` mit depth 10.
 - **Input**: Phaser Input System (`this.input.on('pointerdown')`, `this.input.keyboard`). Keine DOM-Events.
-- **UI**: DOM-Elemente (Console, Dialog, Info-Panel) werden dynamisch von den UI-Modulen erstellt und in `shutdown()` entfernt. NICHT in `index.html` hardkodiert.
+- **UI**: DOM-Elemente (Console, Dialog, Info-Panel, Combat-Preview) werden dynamisch von den UI-Modulen erstellt und in `shutdown()` entfernt. NICHT in `index.html` hardkodiert.
 - **Maps**: Tiled JSON (`public/assets/maps/*.tmj`) + Tileset-PNG (`public/assets/tileset.png`). Tile-IDs → Terrain-Namen via `TILE_TO_TERRAIN` in renderer.js.
-- **Data/logic split**: `src/js/data/` holds pure data (terrain properties, missions); `src/js/engine/` and `src/js/entities/` hold logic
+- **Data/logic split**: `src/js/data/` holds pure data (terrain properties, missions, characters, equipment); `src/js/engine/` and `src/js/entities/` hold logic
 - **Missions**: each mission in `src/js/data/missions/`, collected by `missions/index.js`. Mission data is passed via `game.registry.set('mission', ...)`.
 - **State**: units.js uses a single `state` object (nicht mehr `export let`). Funktionen arbeiten über das State-Objekt.
+- **Enemy KI** (enemy-ai.js): Target-Scoring, Terrain-Bewertung, Kiting, Rückzug, Healer/Boss-Verhalten
 
 ## Key Gotchas
 
@@ -44,65 +45,54 @@ No test, lint, or typecheck commands exist.
 
 ```
 src/js/
-├── main.js                    # Phaser Game-Boot, registriert HubScene + CombatScene
+├── main.js                    # Phaser Game-Boot, registriert TitleScene + HubScene + CombatScene
 ├── config.js                  # Phaser Game-Config (WebGL, pixelArt, 500x500)
 ├── engine/
 │   ├── renderer.js            # Tilemap (Terrain) + Graphics (Fog/Units/Highlights)
 │   ├── input.js               # reine Utility: isPassable(), getMovementCost()
-│   ├── combat-system.js       # damage calculation, counter-attacks (reine Logik)
-│   ├── movement-system.js     # Dijkstra pathfinding, movement cost (reine Logik)
-│   ├── visibility-system.js   # fog of war, sight calculation (reine Logik)
-│   ├── enemy-ai.js            # aggro radius, pathfinding, auto-attack (Callback onAction)
-│   ├── storage.js             # LocalStorage save/load (reine Logik)
-│   ├── console.js             # action log UI (dynamisch erstellt/entfernt)
-│   └── dialog.js              # dialog overlay (dynamisch erstellt/entfernt)
+│   ├── terrain.js             # Terrain-Datenbank (isPassable, getMovementCost, isAdjacentToEnemy)
+│   ├── combat-system.js       # Schadensberechnung, Gegenangriffe, predictCombat (reine Logik)
+│   ├── movement-system.js      # Dijkstra-Pfadfindung (findPathAndCost), movement cost
+│   ├── visibility-system.js    # Nebel des Krieges, Sichtberechnung
+│   ├── enemy-ai.js            # Target-Scoring, Terrain-Bewertung, Kiting, Rückzug, Healer/Boss
+│   ├── scoring-system.js      # Siegbedingungen, Reputation-Berechnung
+│   ├── storage.js             # LocalStorage Speichern/Laden (hubData, missionRewards)
+│   ├── console.js             # Aktions-Log (dynamisch erstellt/entfernt)
+│   └── dialog.js              # Dialog-Overlay (dynamisch erstellt/entfernt)
 ├── entities/
-│   └── units.js               # State-Objekt + Funktionen (player/enemy units, turn tracking)
+│   └── units.js               # State-Objekt + Funktionen (playerUnits, enemyUnits, currentUnitIndex)
 ├── scenes/
-│   ├── hub.js                  # HubScene (Phaser.Scene) — Titel + Buttons via add.text()
-│   ├── combat.js               # CombatScene (Phaser.Scene) — preload Tilemap, create Spiellogik
-│   └── combat-ui.js            # unit panel, terrain info, spell UI (dynamisch erstellt/entfernt)
+│   ├── title.js               # TitleScene (Phaser.Scene) — Startbildschirm
+│   ├── hub.js                  # HubScene (Phaser.Scene) — Orden, Ausrüstung, Level-Up
+│   ├── combat.js               # CombatScene (Phaser.Scene) — Spiellogik, Runden, Input
+│   └── combat-ui.js            # Unit-Panel, Terrain-Info, Zauber-UI, Combat-Preview (dynamisch)
 └── data/
-    ├── terrain.js              # terrain types, defense, sight mods, themes (keine Farben mehr)
+    ├── characters.js           # Helden (heroes) + Gegner (enemies) inkl. Level-Up-Growths
+    ├── equipment.js            # Waffen + Rüstungen je 4 Stufen pro Held
     └── missions/
-        ├── mission_01.js       # Mission-Daten (playerUnits, enemies, mapFile)
-        └── index.js            # Mission-Index
+        ├── mission_01.js      # Mission-Daten (playerUnits, enemies, mapFile, defeatCondition)
+        └── index.js           # Missions-Index
 
 public/assets/
 ├── tileset.png                 # Terrain-Tileset (16×16, 7 Tiles)
 ├── maps/
-│   └── mission_01.tmj          # Tiled-JSON-Karte (10×10)
+│   └── mission_01.tmj         # Tiled-JSON-Karte (10×10, Custom Properties für Cities/Festungen)
 ├── dialogs/                    # Ink-JSON (geplant)
 └── sprites/                    # Pixel-Art-Sprites (geplant)
 ```
 
-## Migrationsstatus (Vanilla → Phaser 3)
+## Enemy-KI (enemy-ai.js)
 
-**Phase 0 (abgeschlossen):** Phaser 3 installiert, Game-Config, Vite, Assets-Ordner
+Die KI nutzt ein Scoring-System statt einfacher Distanz:
 
-**Phase 1 (abgeschlossen):** `main.js` → Phaser Game-Boot. HubScene + CombatScene → Phaser.Scene. SceneManager gelöscht.
-
-**Phase 2 (abgeschlossen):**
-- `renderer.js` → Phaser Graphics (`this.add.graphics()`). Canvas 2D API komplett ersetzt. WebGL-Renderer (Canvas-Renderer hat Bug).
-- `combat.js` → Phaser Input (`this.input.on('pointerdown')`, `this.input.keyboard`). DOM-Events komplett entfernt.
-- `input.js` → reine Utility-Funktionen.
-
-**Phase 3 (abgeschlossen):**
-- `console.js`, `dialog.js`, `combat-ui.js` → erzeugen eigene DOM-Elemente dynamisch
-- `index.html` → nur noch `#top-bar` und `#app`
-
-**Phase 4 (abgeschlossen):**
-- `combat-system.js` + `enemy-ai.js` von `renderer.js` entkoppelt (Callback `onAction`)
-
-**Phase 5 (abgeschlossen):**
-- `units.js` → State-Objekt (`const state = {...}`), keine `export let` mehr
-- `renderer.js` → Phaser Tilemap (`make.tilemap()`) statt Graphics für Terrain
-- Mission-Daten → Tiled-JSON (`public/assets/maps/mission_01.tmj`)
-- Tileset-PNG generiert (`public/assets/tileset.png`, 16×16, 7 Tiles)
-- Legacy-Dateien gelöscht (`hero.js`, `enemy.js`)
-
-**Nächster Schritt:** Meilenstein 15 (Siegbedingungen, XP/Leveling). Oder Pixel-Art-Tileset/Sprites erstellen.
+- **Target-Scoring**: `scoreTarget()` — wertet Ziele nach Waffenvorteil, HP-Zustand, Flankierung, Schadenspotenzial
+- **Terrain-Bewertung**: `getTerrainScoreAt()` — Fortress +5, City +4, Hills/Forest +3, Sumpf -5
+- **Aggro-Radius**: `baseSight + ceil(maxMp)` statt hart kodiertes `3`
+- **Kiting**: `findKitingPosition()` — Fernkämpfer weichen zurück wenn Spieler direkt daneben
+- **Rückzug**: `findRetreatPosition()` — unter 25% HP → Flucht auf defensives Terrain
+- **Heiler**: `findHealTarget()` — sucht verwundete Verbündete in Reichweite
+- **Boss**: `trait: 'boss'` — hält Stellung, nutzt Debuff-Zauber, greift aus Reichweite an
 
 ## Current Progress
 
-Milestones 1–14 complete. M15 planned. Phaser-Migration komplett abgeschlossen (Phasen 0–5).
+Milestones 1–21 complete. M22 planned (Tooling, Tileset, Portrait-Assets).
