@@ -54,7 +54,8 @@ export function createUnit(characterId, row, col, team, overrides = {}) {
         hasAttacked: false,
         hasMoved: false,
         hasCast: false,
-        turnState: 'idle' // 'idle' | 'moved' | 'acted'
+        turnState: 'idle', // 'idle' | 'moved' | 'acted'
+        facing: 'south'
     };
 }
 
@@ -223,13 +224,35 @@ export function setCurrentUnitIndex(index) {
     }
 }
 
-export function setCurrentUnitPosition(row, col) {
+export function setCurrentUnitPosition(row, col, facing = null) {
     const unit = state.playerUnits[state.currentUnitIndex];
     if (unit) {
+        if (facing) {
+            unit.facing = facing;
+        } else if (unit.row !== undefined && unit.col !== undefined) {
+            const dRow = row - unit.row;
+            const dCol = col - unit.col;
+            if (Math.abs(dRow) >= Math.abs(dCol)) {
+                unit.facing = dRow >= 0 ? 'south' : 'north';
+            } else {
+                unit.facing = dCol >= 0 ? 'east' : 'west';
+            }
+        }
         unit.row = row;
         unit.col = col;
         unit.hasMoved = true;
         if (unit.turnState === 'idle') unit.turnState = 'moved';
+    }
+}
+
+export function setUnitFacing(unitId, facing) {
+    const unit = state.playerUnits.find(u => u.id === unitId);
+    if (unit) {
+        unit.facing = facing;
+    }
+    const enemy = state.enemyUnits.find(u => u.id === unitId);
+    if (enemy) {
+        enemy.facing = facing;
     }
 }
 
@@ -355,9 +378,24 @@ export function applyEffectToEnemy(enemyId, effect) {
 }
 
 // Feind-Manipulation
-export function setEnemyUnitPosition(id, row, col) {
+export function setEnemyUnitPosition(id, row, col, facing = null) {
     const enemy = state.enemyUnits.find(u => u.id === id);
-    if (enemy) { enemy.row = row; enemy.col = col; enemy.hasMoved = true; }
+    if (enemy) {
+        if (facing) {
+            enemy.facing = facing;
+        } else if (enemy.row !== undefined && enemy.col !== undefined) {
+            const dRow = row - enemy.row;
+            const dCol = col - enemy.col;
+            if (Math.abs(dRow) >= Math.abs(dCol)) {
+                enemy.facing = dRow >= 0 ? 'south' : 'north';
+            } else {
+                enemy.facing = dCol >= 0 ? 'east' : 'west';
+            }
+        }
+        enemy.row = row;
+        enemy.col = col;
+        enemy.hasMoved = true;
+    }
 }
 
 export function setEnemyUnitMp(id, mp) {

@@ -172,7 +172,7 @@
     - **Golf-Bonus:** `max(0, (Zielrunden - BenötigteRunden) * Multiplikator)`.
 - [x] **State-Transfer:** - [x] Übergabe der berechneten Reputation und gefundenen Orbs an den globalen `storage.js` beim Verlassen der Szene.
 
-## Meilenstein 20: Der Hub - Ordenverleihung & Die Küche
+## Meilenstein 20: Der Hub - Ordenverleihung, Die Küche & Spielstand-Verwaltung
 *Fokus: Strategische Upgrades zwischen den Missionen. Screen-Flow: Titel → Hub → Mission → Hub.*
 
 - [x] **Screen-Flow**: Titel → Hub → Mission → Hub
@@ -183,6 +183,10 @@
 - [x] **Ausrüstungs-System** (`data/equipment.js`): Waffen + Rüstung je 4 Stufen pro Held
 - [x] **Level-Up-System** (`characters.js` erweitert): growthHp, growthAtk, growthDef
 - [x] **Speicher-Logik** (`storage.js`): hubData für Levels + Equipment
+- [x] **Spielstand-Verwaltung (3 Slots):**
+  - [x] **Titel-Screen "Spielstand laden"-Button**: Im Title-Screen ein Menü mit 3 Spielständen (Slot 1, Slot 2, Slot 3). Jeder Slot zeigt Info: aktuelle Mission, Spielzeit, letzter Speicherpunkt.
+  - [x] **Hub "Speichern & Laden"-Button**: Im Hub ein zusätzlicher Button, der ein Overlay öffnet mit "Speichern" und "Laden"-Optionen für die 3 Slots.
+  - [x] **Speicherstruktur erweitern**: `storage.js` speichert Array `saveSlots: [{ slot: 1, hubData, timestamp, playTime }, ...]` zusätzlich zum aktiven Slot.
 
 ## Meilenstein 21: KI-Evolution (Die Taktik-Feinde)
 *Fokus: Die Gegner handeln strategisch, nutzen Terrain und werten Ziele aus.*
@@ -213,35 +217,32 @@
 
 ### 22a: Tiled-Map-Pipeline & Terrain-Integration
 
-- [ ] **Tileset-Pfad relativ setzen:** In der `mission_01.tmj` den absoluten Tileset-Pfad durch `assets/BaseSet.png` ersetzen (einmalig per `sed` oder in Tiled). Gilt als Standard für alle zukünftigen Maps.
-- [ ] **Terrain-Properties korrigieren:** Im Tileset-Editor alle Hill-Tiles (IDs 160–165, 200–205) von `"terrains"` (Plural, Tippfehler) auf `"terrain"` umbenennen, damit `terrain.js` die Tiles korrekt als `hill` erkennt.
-- [ ] **Neues Terrain `wall` und `gate` ergänzen:** In `terrain.js` zwei neue Einträge hinzufügen: `wall` (unpassierbar, kein Verteidigungsbonus) und `gate` (passierbar, +2 Verteidigung). Entsprechende Tileset-Tiles in Tiled mit `terrain = wall` bzw. `terrain = gate` taggen.
-- [ ] **Decor-Layer-Priorisierung in `renderer.js`:** Beim Auslesen des Terrain-Typs prüft der Renderer zuerst den `Terrain_Decor`-Layer. Hat das Decor-Tile ein `terrain`-Property (z.B. Brücke über Fluss), gewinnt das Decor. Ansonsten gilt das Tile im `Terrain_Base`-Layer.
-- [ ] **Units-Layer entfernt:** Der leere `Units`-Layer wird aus der `.tmj` gelöscht. Einheiten-Startpositionen kommen ausschließlich aus `mission_XX.js`, nicht aus Tiled.
+- [x] **Neues Terrain `wall` und `gate` ergänzen:** In `terrain.js` zwei neue Einträge hinzufügen: `wall` (unpassierbar, kein Verteidigungsbonus) und `gate` (passierbar, +2 Verteidigung). Entsprechende Tileset-Tiles in Tiled mit `terrain = wall` bzw. `terrain = gate` taggen.
+- [x] **Decor-Layer-Priorisierung in `renderer.js`:** Beim Auslesen des Terrain-Typs prüft der Renderer zuerst den `Terrain_Decor`-Layer. Hat das Decor-Tile ein `terrain`-Property (z.B. Brücke über Fluss), gewinnt das Decor. Ansonsten gilt das Tile im `Terrain_Base`-Layer.
 
 ***
 
 ### 22b: Stadt- und Trigger-Objekte in Tiled
 
-- [ ] **Städte als Rechteck-Objekte im Triggers-Layer:** Jede Stadt (z.B. Augsburg) wird als benanntes Rechteck-Objekt angelegt, das alle zugehörigen Tiles umschließt. Das `name`-Feld in Tiled trägt den Stadtnamen (kein extra `label`-Property nötig — Phaser liest `obj.name` direkt aus).
-- [ ] **City-Template anlegen:** Ein Tiled-Template `city_template.tx` mit den Standard-Properties wird einmalig gespeichert: `heals = true`, `hasOrb = false`, `inkKnot = ""`. Pro Instanz werden nur `name` und `inkKnot` überschrieben.
-- [ ] **Trigger-Objekte (Punkt-Objekte):** Für positionsbasierte Events (z.B. „Spieler betritt Feld X") werden Punkt-Objekte im `Triggers`-Layer gesetzt mit den Properties `type = trigger` und `inkKnot = <knot_name>`.
-- [ ] **Renderer liest Triggers-Layer aus:** `renderer.js` iteriert beim Laden der Map über alle Objekte im `Triggers`-Layer. Städte werden als Zonen gespeichert (col/row aus `obj.x / tileSize`), Stadtname wird als Text über dem Objekt-Rechteck gerendert (Depth 20, kleiner weißer Font mit Stroke).
-- [ ] **`CombatScene` prüft Trigger bei Bewegung:** Nach jeder Einheitenbewegung wird geprüft, ob die neue Position innerhalb eines Stadt-Rechtecks oder auf einem Trigger-Punkt liegt. Treffer lösen den hinterlegten `inkKnot` in `dialog.js` aus.
+- [x] **Städte als Rechteck-Objekte im Triggers-Layer:** Jede Stadt (z.B. Augsburg) wird als benanntes Rechteck-Objekt angelegt, das alle zugehörigen Tiles umschließt. Das `name`-Feld in Tiled trägt den Stadtnamen (kein extra `label`-Property nötig — Phaser liest `obj.name` direkt aus).
+- [x] **Trigger-Objekte (Punkt-Objekte):** Für positionsbasierte Events (z.B. „Spieler betritt Feld X") werden Punkt-Objekte im `Triggers`-Layer gesetzt mit den Properties `type = trigger` und `inkKnot = <knot_name>`.
+- [x] **Renderer liest Triggers-Layer aus:** `renderer.js` iteriert beim Laden der Map über alle Objekte im `Triggers`-Layer. Städte werden als Zonen gespeichert (col/row aus `obj.x / tileSize`), Stadtname wird als Text über dem Objekt-Rechteck gerendert (Depth 20, kleiner weißer Font mit Stroke).
+- [x] **`CombatScene` prüft Trigger bei Bewegung:** Nach jeder Einheitenbewegung wird geprüft, ob die neue Position innerhalb eines Stadt-Rechtecks oder auf einem Trigger-Punkt liegt. Treffer lösen den hinterlegten `inkKnot` in `dialog.js` aus.
+- [ ] **City-Template anlegen (optional):** Ein Tiled-Template `city_template.tx` mit den Standard-Properties wird einmalig gespeichert: `heals = true`, `hasOrb = false`, `inkKnot = ""`. Pro Instanz werden nur `name` und `inkKnot` überschrieben.
 
 ***
 
 ### 22c: Charakter-Sprite-System
 
-- [ ] **Sprite-Ordnerstruktur etabliert:**
+- [x] **Sprite-Ordnerstruktur etabliert:**
   - Helden-Sprites: `public/assets/sprites/heroes/<character_key>/spritesheet.png` + `spritesheet.json`
   - Gegner-Sprites: `public/assets/sprites/enemies/<character_key>/spritesheet.png` + `spritesheet.json`
   - `<character_key>` entspricht exakt dem Key in `characters.js` (z.B. `carl_the_great`, `zarewitsch`, `tiktok`)
 - [ ] **Spritesheet-Build-Workflow (PixelLab → Phaser):** Neue Charakter-Sprites werden mit `build_spritesheet.py` aus dem PixelLab-Export gebaut: `python3 build_spritesheet.py --meta <export>/metadata.json --out public/assets/sprites/heroes/<key> --name <key>`. Das Skript erzeugt `spritesheet.png`, `spritesheet.json` und `phaser_snippet.js`.
-- [ ] **Atlas-Format:** Alle Spritesheets nutzen das Phaser-3-Atlas-Format (multi-pack, `textures[]`-Array). Geladen wird mit `this.load.atlas(charKey, '...spritesheet.png', '...spritesheet.json')` in `CombatScene.preload()`.
-- [ ] **Animations-Key-Konvention:** `<char_key>_<animation_name>_<direction>` (z.B. `carl_the_great_fight_stance_idle_south`). Richtungen: `south`, `west`, `east`, `north`. Standbilder (Rotations): `<char_key>_rotation_<direction>` mit `repeat: 0`.
-- [ ] **`renderer.js` auf Sprites umstellen:** Die bisherige Graphics-basierte Unit-Darstellung (farbige Quadrate/Kreise) wird durch echte `this.add.sprite()`-Instanzen ersetzt. Beim Erstellen einer Unit wird der passende Atlas geladen und die Idle-Animation der aktuellen Blickrichtung abgespielt.
-- [ ] **Richtungswechsel bei Bewegung:** Nach jeder Bewegung wird die Blickrichtung der Einheit (south/west/east/north) anhand der Bewegungsrichtung aktualisiert und die entsprechende Idle-Animation abgespielt.
+- [x] **Atlas-Format:** Alle Spritesheets nutzen das Phaser-3-Atlas-Format (multi-pack, `textures[]`-Array). Geladen wird mit `this.load.atlas(charKey, '...spritesheet.png', '...spritesheet.json')` in `CombatScene.preload()`.
+- [x] **Animations-Key-Konvention:** `<char_key>_<animation_name>_<direction>` (z.B. `carl_the_great_fight_stance_idle_south`). Richtungen: `south`, `west`, `east`, `north`. Standbilder (Rotations): `<char_key>_rotation_<direction>` mit `repeat: 0`.
+- [x] **`renderer.js` auf Sprites umstellen:** Die bisherige Graphics-basierte Unit-Darstellung (farbige Quadrate/Kreise) wird durch echte `this.add.sprite()`-Instanzen ersetzt. Beim Erstellen einer Unit wird der passende Atlas geladen und die Idle-Animation der aktuellen Blickrichtung abgespielt.
+- [x] **Richtungswechsel bei Bewegung:** Nach jeder Bewegung wird die Blickrichtung der Einheit (south/west/east/north) anhand der Bewegungsrichtung aktualisiert und die entsprechende Idle-Animation abgespielt.
 
 ***
 
@@ -251,9 +252,19 @@
 - [ ] **Portraits in `combat-ui.js` einbinden:** Das Unit-Panel (links) zeigt das Portrait der ausgewählten Einheit. Die Combat-Preview (5-Spalten-Layout: Porträt | Info | VS | Info | Porträt) nutzt die Portrait-Pfade aus `characters.js` direkt als `<img src="...">`.
 - [ ] **Fallback:** Wenn kein Portrait vorhanden, wird ein neutrales Platzhalter-Icon gezeigt (kein JS-Fehler).
 
+### 22e: InkJS-Dialoge & Story-Integration
+*Vorbereitung für Meilenstein 23: Narrative.*
+
+- [ ] **InkJS einbinden:** `inkjs` als npm-Paket installieren (`npm install inkjs`). Import in `dialog.js`.
+- [ ] **Ink-Story-Dateien:** Dialoge werden als `.ink`-Dateien unter `src/data/dialogs/` verfasst und mit dem Ink-Compiler (`inklecate`) zu `.json` kompiliert. Die kompilierten JSONs landen unter `public/assets/dialogs/`.
+- [ ] **`dialog.js` auf InkJS umstellen:** Statt statischer Dialog-Arrays liest `dialog.js` die Ink-JSON-Story, spielt sie ab und rendert Text + Auswahloptionen im bestehenden Dialog-Overlay. Verzweigungen und Variablen (z.B. Reputation, besiegte Gegner) werden über `story.variablesState` übergeben.
+- [ ] **Knot-basierter Einstieg:** `dialog.js` erhält eine Funktion `playKnot(storyFile, knotName)` — `CombatScene` und `HubScene` rufen diese mit dem `inkKnot`-Wert aus den Triggern auf.
+- [ ] **Portrait im Dialog:** Sprechende Charaktere zeigen ihr Portrait links im Dialog-Overlay. Der sprechende Charakter wird per Ink-Tag (`# speaker: carl_the_great`) übergeben und `dialog.js` lädt das passende Portrait aus `characters.js`.
+- [ ] **Hub-Dialoge:** Team-Gespräche im Hub (zwischen Missionen) werden ebenfalls als Ink-Knots verfasst. Der Hub kann `playKnot('hub_dialogs.json', 'after_mission_01')` aufrufen.
+
 ***
 
-### 22e: Mission-Datei-Workflow (Manuel-Sprech → JS)
+### 22f: Mission-Datei-Workflow (Manuel-Sprech → JS)
 
 - [ ] **`mission_XX.md` als Arbeitsformat:** Jede neue Mission wird zunächst als Markdown-Datei beschrieben (Karte, Einheiten, Startpositionen, Gegner mit Verhalten, Trigger, Belohnungen, Siegbedingung, Niederlagebedingung). Keine direkte JS-Bearbeitung nötig.
 - [ ] **Opencode generiert `mission_XX.js`:** Die `.md` wird opencode übergeben zusammen mit `architecture.md` und `characters.js`. Opencode erstellt daraus eine vollständige `mission_XX.js` passend zur bestehenden Missionsstruktur (`mapFile`, `playerUnits`, `enemyUnits`, `triggers`, `victoryCondition`, `defeatCondition`, `rewards`).
@@ -266,16 +277,119 @@
     { type: 'onUnitDeath', unitId: 'tiktok', inkKnot: 'boss_warning' }
   ]
   ```
+  oder 
+  triggers: [
+  // Einzelfeld
+  { col: 3, row: 7, inkKnot: 'ufo_crash', oneShot: true },
+  
+  // Kleiner Bereich (Felder 1-5, Reihe 4)
+  { cols: [1,2,3,4,5], row: 4, inkKnot: 'ambush_revealed', oneShot: true },
+
+  // Story-Events ohne Ort
+  { type: 'onStart',     inkKnot: 'mission_intro' },
+  { type: 'onRound',     round: 3, inkKnot: 'reinforcements_arrive' },
+  { type: 'onUnitDeath', unitId: 'tiktok', inkKnot: 'boss_enraged' },
+  { type: 'onCityTaken', cityName: 'Augsburg', inkKnot: 'augsburg_falls' }
+]
 - [ ] **Neue Maps folgen derselben Konvention:** Tiled-Map als `public/assets/maps/mission_XX.tmj`, relativer Tileset-Pfad `assets/BaseSet.png`, Layer `Terrain_Base`, `Terrain_Decor`, `Triggers` (ohne `Units`-Layer).
 
 ***
 
-### 22f: InkJS-Dialoge & Story-Integration
-*Vorbereitung für Meilenstein 23: Narrative.*
 
-- [ ] **InkJS einbinden:** `inkjs` als npm-Paket installieren (`npm install inkjs`). Import in `dialog.js`.
-- [ ] **Ink-Story-Dateien:** Dialoge werden als `.ink`-Dateien unter `src/data/dialogs/` verfasst und mit dem Ink-Compiler (`inklecate`) zu `.json` kompiliert. Die kompilierten JSONs landen unter `public/assets/dialogs/`.
-- [ ] **`dialog.js` auf InkJS umstellen:** Statt statischer Dialog-Arrays liest `dialog.js` die Ink-JSON-Story, spielt sie ab und rendert Text + Auswahloptionen im bestehenden Dialog-Overlay. Verzweigungen und Variablen (z.B. Reputation, besiegte Gegner) werden über `story.variablesState` übergeben.
-- [ ] **Knot-basierter Einstieg:** `dialog.js` erhält eine Funktion `playKnot(storyFile, knotName)` — `CombatScene` und `HubScene` rufen diese mit dem `inkKnot`-Wert aus den Triggern auf.
-- [ ] **Portrait im Dialog:** Sprechende Charaktere zeigen ihr Portrait links im Dialog-Overlay. Der sprechende Charakter wird per Ink-Tag (`# speaker: carl_the_great`) übergeben und `dialog.js` lädt das passende Portrait aus `characters.js`.
-- [ ] **Hub-Dialoge:** Team-Gespräche im Hub (zwischen Missionen) werden ebenfalls als Ink-Knots verfasst. Der Hub kann `playKnot('hub_dialogs.json', 'after_mission_01')` aufrufen.
+
+## Meilenstein 23: Reisekarte & MapScene (Indiana Jones Style)
+*Fokus: Atmosphärischer Übergang zwischen Hub und Mission — eine animierte Übersichtskarte zeigt die Reiseroute.*
+
+### 23a: MapScene Grundstruktur
+
+- [ ] **Neue Szene `src/js/scenes/map.js`** anlegen und in `main.js` registrieren.
+- [ ] **Szenen-Flow erweitern:** `HubScene` startet nicht mehr direkt `CombatScene`, sondern `MapScene`. `MapScene` startet nach der Animation automatisch `CombatScene`.
+- [ ] **Hintergrund-Asset:** Eine stilisierte, leicht vergilbte Pergament-Karte von Mitteleuropa/Deutschland als PNG (`public/assets/ui/world_map.png`). Generierbar mit Flux/Midjourney: *„aged parchment map of medieval germany, illustrated top-down rpg style, no text, no labels, warm sepia tones"*.
+- [ ] **Missions-Punkte:** Jede Mission hat in `mission_XX.js` eine `mapPosition: { x: 310, y: 220 }` — Pixelkoordinaten auf der Weltkarte. `MapScene` liest die aktuelle und die nächste Mission aus dem Registry und platziert Marker-Sprites (`map_pin`) an den entsprechenden Positionen.
+- [ ] **Abgeschlossene Missionen** werden mit einem anderen Marker dargestellt (z.B. ausgefüllter Kreis oder Häkchen-Sprite).
+
+### 23b: Animierter Reisepfad
+
+- [ ] **Roter Strich-Tween:** Mit `Phaser.GameObjects.Graphics` und `this.tweens.addCounter()` wird ein roter Linienpfad animiert, der sich von der letzten Mission zur nächsten zieht (Dauer ca. 2 Sekunden).
+- [ ] **Kurvenführung (optional):** Statt einer geraden Linie kann ein Bezier-Kurven-Pfad via `Phaser.Curves.CubicBezier` genutzt werden für einen natürlicheren Routenverlauf.
+- [ ] **Reise-Sprite:** Ein kleines Figur- oder Fahrzeug-Sprite (Pferd, Kutsche — je nach Mission-Theme) bewegt sich entlang des Pfades mit `this.tweens.add({ targets: sprite, ... })`.
+- [ ] **Nach der Animation:** Kurze Pause (500ms), dann automatischer Start von `CombatScene`.
+
+### 23c: Missions-Titel & Kontext-Dialog
+
+- [ ] **Missions-Titel einblenden:** Nachdem der Pfad fertig gezeichnet ist, erscheint der Missionsname (`mission.title`) als Text-Overlay mit Fade-In-Animation — mittig unten, großer Font, leicht vintage.
+- [ ] **Optionaler Ink-Knot:** Wenn `mission.mapKnot` gesetzt ist, spielt `dialog.js` einen kurzen Intro-Dialog auf der Karte ab (z.B. Carl erklärt das Ziel) bevor die Szene wechselt. Ohne `mapKnot` startet die Mission direkt.
+- [ ] **Skip-Option:** Klick oder Leertaste überspringt die Animation und startet die Mission sofort — für Wiederholungsspieler.
+
+### 23d: `mission_XX.js` Erweiterung
+
+- [ ] **Neue Felder in jeder Mission:**
+  ```js
+  mapPosition: { x: 310, y: 220 },  // Position auf der Weltkarte
+  mapKnot: 'mission_02_travel',       // optional: Ink-Dialog auf der Karte
+  theme: 'medieval'                   // beeinflusst Reise-Sprite-Auswahl
+  ```
+- [ ] **`missions/index.js`** exportiert die Missions-Reihenfolge als Array — `MapScene` liest daraus ab welche Mission die vorherige war und wo der Pfad startet.
+
+***
+
+## Meilenstein 24: Audio — Musik & Soundeffekte
+*Fokus: Der Sound vervollständigt die 16-Bit JRPG Atmosphäre.*
+
+### 24a: Audio-Infrastruktur
+
+- [ ] **Phaser Audio-System aktivieren:** In `config.js` den `audio`-Block ergänzen: `{ disableWebAudio: false }`. Phaser 3 nutzt Web Audio API automatisch mit Fallback auf HTML5 Audio.
+- [ ] **Asset-Ordnerstruktur:**
+  ```
+  public/assets/audio/
+  ├── music/
+  │   ├── title.ogg         ← Titelbildschirm
+  │   ├── hub.ogg           ← Hub zwischen Missionen
+  │   ├── map.ogg           ← Reisekarte
+  │   ├── combat.ogg        ← Kampf (normal)
+  │   ├── combat_boss.ogg   ← Kampf gegen Boss
+  │   └── victory.ogg       ← Siegmelodie
+  └── sfx/
+      ├── sword_hit.ogg
+      ├── axe_hit.ogg
+      ├── magic_cast.ogg
+      ├── unit_move.ogg
+      ├── unit_select.ogg
+      ├── city_capture.ogg
+      ├── unit_death.ogg
+      └── dialog_blip.ogg   ← Text-Typewriter-Sound
+  ```
+- [ ] **Immer `.ogg` als primäres Format** (beste Browser-Kompatibilität + kleinste Dateigröße). Optional `.mp3` als Fallback für Safari: `this.load.audio('combat', ['audio/music/combat.ogg', 'audio/music/combat.mp3'])`.
+
+### 24b: Musik-Manager (`engine/audio.js`)
+
+- [ ] **Neues Modul `src/js/engine/audio.js`** — zentrales Musik- und SFX-Management, damit keine Szene direkt `this.sound` aufruft.
+- [ ] **Funktionen:**
+  - `playMusic(key, fadeIn = 500)` — startet Musik mit Fade-In, stoppt vorherige mit Fade-Out
+  - `stopMusic(fadeOut = 500)` — sanftes Ausblenden
+  - `playSfx(key, volume = 1)` — einmaliger Soundeffekt
+  - `setMusicVolume(vol)` / `setSfxVolume(vol)` — für spätere Einstellungen
+- [ ] **Musik-Loop:** Alle Musikstücke laufen mit `loop: true`. Kampfmusik wechselt bei Boss-Encounter auf `combat_boss` (mit Crossfade).
+- [ ] **Szenen-Übergänge:** Jede Szene ruft `audio.playMusic('hub')` etc. in `create()` auf. Der Audio-Manager verhindert Neustart wenn dieselbe Musik schon läuft.
+
+### 24c: Soundeffekte im Kampf
+
+- [ ] **Waffenspezifische Treffer-Sounds:** `combat-system.js` gibt beim Angriff den Waffentyp zurück → `audio.playSfx('sword_hit')` / `axe_hit` / `magic_cast` etc.
+- [ ] **Bewegungs-Sound:** `unit_move` wird einmalig beim Start einer Bewegung abgespielt (nicht pro Schritt).
+- [ ] **Auswahl-Sound:** `unit_select` beim Anklicken einer eigenen Einheit.
+- [ ] **Stadt-Eroberung:** `city_capture` + kurzer Fanfare-Jingle wenn eine Stadt den Besitzer wechselt.
+- [ ] **Tod einer Einheit:** `unit_death` mit leichtem Pitch-Down-Effekt (`rate: 0.8`).
+- [ ] **Dialog-Typewriter:** `dialog_blip` spielt bei jedem angezeigten Zeichen — mit `detune`-Variation pro Charakter (Carl: tief, Zarewitsch: hoch) für Charakter-Gefühl ohne echte Sprachausgabe.
+
+### 24d: Audio-Quellen & Tools
+
+- [ ] **Musik:** [OpenGameArt.org](https://opengameart.org) (CC0/CC-BY Lizenzen) — Suchbegriffe: *„JRPG battle theme"*, *„medieval fantasy loop"*, *„8bit tactical"*. Alternativ: [Pixabay Music](https://pixabay.com/music/) (kostenlos, keine Attribution nötig).
+- [ ] **SFX:** [Freesound.org](https://freesound.org) (CC0 Filter setzen) oder mit **sfxr/jsfxr** ([nutzen](https://sfxr.me)) selbst generieren — perfekt für 16-Bit Retro-Sounds in 30 Sekunden.
+- [ ] **Musik selbst generieren:** [Suno.ai](https://suno.com) oder [Udio](https://udio.com) — Prompt-Beispiel: *„16-bit SNES tactical RPG battle theme, Fire Emblem style, loopable, 120 BPM"*.
+- [ ] **Loop-Punkte setzen:** Musik-Dateien mit [Audacity](https://www.audacityteam.org/) auf saubere Loop-Punkte trimmen (Anfang = Ende ohne Knacksen).
+
+### 24e: Einstellungen im Hub
+
+- [ ] **Einfaches Audio-Menü im Hub:** Musik-Lautstärke (Slider oder +/- Buttons) und SFX-Lautstärke separat regelbar.
+- [ ] **Werte in `storage.js` speichern:** `audioSettings: { musicVol: 0.7, sfxVol: 1.0 }` — werden beim Start aus dem Storage geladen und an `audio.js` übergeben.
+- [ ] **Mute-Toggle:** Ein Lautsprecher-Icon im HubScene-Header schaltet alle Audio stumm/an.

@@ -3,11 +3,11 @@
 
 import Phaser from 'phaser';
 
-// Grid-Konstanten (aus renderer.js übernommen)
-export const GRID_SIZE = 10;
 export const CELL_SIZE = 50;
-export const GAME_WIDTH = GRID_SIZE * CELL_SIZE;  // 500
-export const GAME_HEIGHT = GRID_SIZE * CELL_SIZE; // 500
+export const GAME_WIDTH = 30 * CELL_SIZE;  // 1500
+export const GAME_HEIGHT = 20 * CELL_SIZE; // 1000
+export const GRID_COLS = 30;
+export const GRID_ROWS = 20;
 
 // Phaser-Konfiguration
 export const gameConfig = {

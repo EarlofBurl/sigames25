@@ -634,10 +634,10 @@ export async function showEnemyAction(enemy, target, type, data) {
         const enemyMaxHp = enemy.maxHp || 10;
         const targetMaxHp = target.maxHp || 10;
 
+        const targetHpBefore = data.targetHpBefore !== undefined ? data.targetHpBefore : target.hp + pred.attackDmg;
         const targetHpAfter = target.hp;
-        const targetHpBefore = targetHpAfter + pred.attackDmg;
+        const enemyHpBefore = data.enemyHpBefore !== undefined ? data.enemyHpBefore : (pred.canCounter ? enemy.hp + pred.counterDmg : enemy.hp);
         const enemyHpAfter = enemy.hp;
-        const enemyHpBefore = pred.canCounter ? enemyHpAfter + pred.counterDmg : enemyHpAfter;
 
         const counterDmg = pred.canCounter ? (pred.counterDmg || 0) : 0;
 
@@ -651,7 +651,7 @@ export async function showEnemyAction(enemy, target, type, data) {
 
         previewEl.innerHTML = `
             <div style="flex:1;display:flex;align-items:stretch;min-width:0;">
-                <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;opacity:0;animation:slideIn 0.3s ease-out forwards;">${portraitHtml(enemy.portrait, 28)}</div>
+                <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;opacity:0;animation:slideIn 0.3s ease-out forwards;">${portraitHtml(enemy.portrait, 42)}</div>
                 ${animateInfoCol(enemy, true, enemyHpBefore, enemyHpAfter, enemyAdv, counterDmg)}
             </div>
             <div style="display:flex;align-items:center;justify-content:center;width:40px;flex-shrink:0;">
@@ -711,8 +711,15 @@ export function showCursorSymbol(pointer, unit) {
         document.body.appendChild(cursorSymbolEl);
     }
     cursorSymbolEl.style.display = 'block';
-    cursorSymbolEl.style.left = pointer.x + 'px';
-    cursorSymbolEl.style.top = pointer.y + 'px';
+    const canvas = document.querySelector('canvas');
+    if (canvas) {
+        const rect = canvas.getBoundingClientRect();
+        cursorSymbolEl.style.left = (rect.left + pointer.x) + 'px';
+        cursorSymbolEl.style.top = (rect.top + pointer.y) + 'px';
+    } else {
+        cursorSymbolEl.style.left = pointer.x + 'px';
+        cursorSymbolEl.style.top = pointer.y + 'px';
+    }
     cursorSymbolEl.textContent = unit && unit.range > 1 ? (unit.weapon === 'magic' ? '✦' : '⊕') : '⚔';
 }
 

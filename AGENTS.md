@@ -3,9 +3,10 @@
 ## Dev Commands
 
 ```sh
-npm run dev       # dev server on port 8080
 npm run build     # production build → dist/
 ```
+
+**Der dev server (`npm run dev`) läuft immer. Starte ihn NICHT — prüfe nur den Build.**
 
 No test, lint, or typecheck commands exist.
 
@@ -16,7 +17,7 @@ No test, lint, or typecheck commands exist.
 - **Rendering**: `CombatScene` uses Phaser Tilemap (`make.tilemap()`) for terrain + Graphics overlay (`add.graphics()`) for fog, units, highlights. Text-Kosten-Labels via `add.text()` mit depth 10.
 - **Input**: Phaser Input System (`this.input.on('pointerdown')`, `this.input.keyboard`). Keine DOM-Events.
 - **UI**: DOM-Elemente (Console, Dialog, Info-Panel, Combat-Preview) werden dynamisch von den UI-Modulen erstellt und in `shutdown()` entfernt. NICHT in `index.html` hardkodiert.
-- **Maps**: Tiled JSON (`public/assets/maps/*.tmj`) + Tileset-PNG (`public/assets/tileset.png`). Tile-IDs → Terrain-Namen via `TILE_TO_TERRAIN` in renderer.js.
+- **Maps**: Tiled JSON (`public/assets/maps/*.tmj`) + Tileset-PNG (`public/assets/BaseSet.png`). Tile-IDs → Terrain-Namen via `terrain`-Property in Tileset JSON.
 - **Data/logic split**: `src/js/data/` holds pure data (terrain properties, missions, characters, equipment); `src/js/engine/` and `src/js/entities/` hold logic
 - **Missions**: each mission in `src/js/data/missions/`, collected by `missions/index.js`. Mission data is passed via `game.registry.set('mission', ...)`.
 - **State**: units.js uses a single `state` object (nicht mehr `export let`). Funktionen arbeiten über das State-Objekt.
@@ -29,7 +30,7 @@ No test, lint, or typecheck commands exist.
 - **Tilemap-Scale**: Tiled-Tiles sind 16×16, Spiel-Tiles 50×50. `tilemapLayer.setScale(50/16)`. Tile-Index +1 (firstgid=1) → Terrain-Name.
 - **Renderer-Modul**: `renderer.js` erzeugt intern Tilemap + Graphics. `initRenderer(scene, mission)` wird einmal aufgerufen.
 - **Kosten-Labels**: `addCostLabel()` erzeugt `scene.add.text()`-Objekte mit depth 10, die bei jedem `drawGrid()`-Aufruf neu erstellt werden.
-- **Phaser Canvas-Größe**: 500×500 (10×10 Grid × 50px). Weltkoordinaten = Pixelkoordinaten. `pointer.x / 50 = col`, `pointer.y / 50 = row`.
+- **Phaser Canvas-Größe**: 1500×1000 (30×20 Grid × 50px). Weltkoordinaten = Pixelkoordinaten. `pointer.x / 50 = col`, `pointer.y / 50 = row`.
 - **Kein SceneManager mehr**: `engine/scene-manager.js` gelöscht. Scene-Wechsel über `this.scene.start('HubScene')` / `this.scene.start('CombatScene')`.
 - **Missions-Daten via Registry**: `main.js` → `game.registry.set('mission', mission01)`. `CombatScene.init()` → `this.mission = (data && data.mission) || this.registry.get('mission')`.
 - **Phaser shutdown()**: Beim Verlassen der CombatScene wird `shutdown()` aufgerufen (NICHT `onExit`). Alle UI-Module werden dort zerstört.
@@ -46,7 +47,7 @@ No test, lint, or typecheck commands exist.
 ```
 src/js/
 ├── main.js                    # Phaser Game-Boot, registriert TitleScene + HubScene + CombatScene
-├── config.js                  # Phaser Game-Config (WebGL, pixelArt, 500x500)
+├── config.js                  # Phaser Game-Config (WebGL, pixelArt, 1500x1000)
 ├── engine/
 │   ├── renderer.js            # Tilemap (Terrain) + Graphics (Fog/Units/Highlights)
 │   ├── input.js               # reine Utility: isPassable(), getMovementCost()
@@ -74,9 +75,9 @@ src/js/
         └── index.js           # Missions-Index
 
 public/assets/
-├── tileset.png                 # Terrain-Tileset (16×16, 7 Tiles)
+├── BaseSet.png                 # Terrain-Tileset (16×16, 40 Spalten)
 ├── maps/
-│   └── mission_01.tmj         # Tiled-JSON-Karte (10×10, Custom Properties für Cities/Festungen)
+│   └── mission_01.tmj         # Tiled-JSON-Karte (30×20, Custom Properties für Cities/Festungen)
 ├── dialogs/                    # Ink-JSON (geplant)
 └── sprites/                    # Pixel-Art-Sprites (geplant)
 ```
@@ -95,4 +96,4 @@ Die KI nutzt ein Scoring-System statt einfacher Distanz:
 
 ## Current Progress
 
-Milestones 1–21 complete. M22 planned (Tooling, Tileset, Portrait-Assets).
+Milestones 1–21 complete. M22a complete (Tiled-Map-Pipeline & Terrain-Integration).

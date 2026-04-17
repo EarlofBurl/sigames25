@@ -1,65 +1,6709 @@
 {
-    "compressionlevel": -1,
-    "height": 10,
-    "infinite": false,
-    "orientation": "orthogonal",
-    "renderorder": "right-down",
-    "tileheight": 16,
-    "tilewidth": 16,
-    "tiledversion": "1.10.2",
-    "type": "map",
-    "version": "1.10",
-    "width": 10,
-    "tilesets": [
+  "compressionlevel": -1,
+  "height": 20,
+  "infinite": false,
+  "layers": [
+    {
+      "data": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        1,
+        287,
+        289,
+        4,
+        62,
+        63,
+        183,
+        184,
+        4,
+        5,
+        1,
+        2,
+        3,
+        4,
+        5,
+        1,
+        2,
+        3,
+        4,
+        5,
+        1,
+        2,
+        3,
+        4,
+        5,
+        41,
+        42,
+        43,
+        44,
+        45,
+        41,
+        287,
+        289,
+        44,
+        62,
+        183,
+        183,
+        184,
+        44,
+        45,
+        41,
+        42,
+        43,
+        44,
+        45,
+        41,
+        42,
+        43,
+        44,
+        45,
+        41,
+        42,
+        43,
+        44,
+        45,
+        81,
+        82,
+        83,
+        84,
+        85,
+        81,
+        287,
+        289,
+        84,
+        62,
+        183,
+        183,
+        184,
+        84,
+        85,
+        81,
+        82,
+        83,
+        84,
+        85,
+        81,
+        82,
+        83,
+        84,
+        85,
+        81,
+        82,
+        83,
+        84,
+        85,
+        121,
+        122,
+        123,
+        124,
+        2,
+        3,
+        287,
+        289,
+        124,
+        182,
+        183,
+        183,
+        184,
+        124,
+        125,
+        121,
+        122,
+        123,
+        124,
+        125,
+        121,
+        122,
+        123,
+        124,
+        125,
+        121,
+        122,
+        123,
+        124,
+        125,
+        1,
+        2,
+        3,
+        2,
+        3,
+        43,
+        287,
+        289,
+        3,
+        102,
+        186,
+        63,
+        27,
+        24,
+        5,
+        1,
+        2,
+        3,
+        4,
+        5,
+        1,
+        2,
+        3,
+        4,
+        5,
+        1,
+        2,
+        3,
+        4,
+        5,
+        41,
+        42,
+        43,
+        2,
+        3,
+        83,
+        327,
+        253,
+        249,
+        3,
+        102,
+        186,
+        63,
+        64,
+        41,
+        41,
+        42,
+        43,
+        44,
+        45,
+        41,
+        42,
+        43,
+        44,
+        45,
+        41,
+        42,
+        43,
+        44,
+        45,
+        81,
+        82,
+        83,
+        42,
+        43,
+        3,
+        82,
+        327,
+        253,
+        249,
+        43,
+        222,
+        66,
+        27,
+        24,
+        81,
+        82,
+        83,
+        84,
+        85,
+        81,
+        82,
+        83,
+        84,
+        85,
+        81,
+        82,
+        83,
+        84,
+        85,
+        121,
+        122,
+        123,
+        82,
+        83,
+        43,
+        3,
+        3,
+        327,
+        253,
+        249,
+        43,
+        62,
+        63,
+        27,
+        24,
+        122,
+        123,
+        124,
+        125,
+        121,
+        122,
+        123,
+        124,
+        125,
+        121,
+        122,
+        123,
+        124,
+        125,
+        1,
+        2,
+        3,
+        3,
+        3,
+        3,
+        3,
+        43,
+        43,
+        287,
+        289,
+        83,
+        182,
+        63,
+        63,
+        184,
+        2,
+        3,
+        4,
+        5,
+        1,
+        2,
+        3,
+        4,
+        5,
+        1,
+        2,
+        3,
+        4,
+        5,
+        41,
+        42,
+        3,
+        43,
+        3,
+        43,
+        43,
+        43,
+        3,
+        287,
+        289,
+        82,
+        182,
+        63,
+        63,
+        184,
+        42,
+        43,
+        44,
+        45,
+        41,
+        42,
+        43,
+        44,
+        45,
+        41,
+        42,
+        43,
+        44,
+        45,
+        81,
+        3,
+        43,
+        3,
+        3,
+        1,
+        3,
+        43,
+        3,
+        287,
+        289,
+        42,
+        182,
+        63,
+        63,
+        184,
+        82,
+        83,
+        84,
+        85,
+        81,
+        82,
+        83,
+        84,
+        85,
+        81,
+        82,
+        83,
+        84,
+        85,
+        121,
+        3,
+        3,
+        3,
+        43,
+        3,
+        43,
+        43,
+        3,
+        287,
+        289,
+        82,
+        182,
+        63,
+        63,
+        184,
+        122,
+        123,
+        124,
+        125,
+        121,
+        122,
+        123,
+        124,
+        125,
+        121,
+        122,
+        123,
+        124,
+        125,
+        1,
+        43,
+        43,
+        3,
+        3,
+        3,
+        3,
+        43,
+        3,
+        287,
+        289,
+        3,
+        62,
+        63,
+        63,
+        184,
+        2,
+        3,
+        4,
+        5,
+        1,
+        2,
+        3,
+        4,
+        5,
+        1,
+        2,
+        3,
+        4,
+        5,
+        41,
+        1,
+        1,
+        43,
+        43,
+        43,
+        3,
+        3,
+        43,
+        287,
+        289,
+        43,
+        62,
+        63,
+        63,
+        184,
+        42,
+        43,
+        44,
+        45,
+        41,
+        42,
+        43,
+        44,
+        45,
+        41,
+        42,
+        43,
+        44,
+        45,
+        81,
+        82,
+        83,
+        84,
+        85,
+        81,
+        43,
+        43,
+        43,
+        287,
+        289,
+        82,
+        62,
+        63,
+        63,
+        184,
+        82,
+        83,
+        84,
+        85,
+        81,
+        1,
+        83,
+        84,
+        85,
+        81,
+        82,
+        83,
+        84,
+        85,
+        121,
+        122,
+        123,
+        124,
+        125,
+        121,
+        122,
+        123,
+        124,
+        287,
+        289,
+        122,
+        62,
+        63,
+        63,
+        184,
+        122,
+        123,
+        124,
+        125,
+        121,
+        122,
+        123,
+        124,
+        125,
+        121,
+        122,
+        123,
+        124,
+        125,
+        1,
+        2,
+        3,
+        4,
+        5,
+        1,
+        2,
+        3,
+        4,
+        287,
+        289,
+        2,
+        62,
+        63,
+        63,
+        184,
+        2,
+        3,
+        4,
+        5,
+        1,
+        2,
+        3,
+        4,
+        5,
+        1,
+        2,
+        3,
+        4,
+        5,
+        41,
+        42,
+        43,
+        44,
+        45,
+        41,
+        42,
+        43,
+        44,
+        287,
+        289,
+        42,
+        62,
+        63,
+        63,
+        64,
+        42,
+        43,
+        44,
+        45,
+        41,
+        42,
+        43,
+        44,
+        45,
+        41,
+        42,
+        43,
+        44,
+        45,
+        81,
+        82,
+        83,
+        84,
+        85,
+        81,
+        82,
+        83,
+        84,
+        287,
+        289,
+        82,
+        62,
+        63,
+        63,
+        184,
+        82,
+        83,
+        84,
+        85,
+        81,
+        82,
+        83,
+        84,
+        85,
+        81,
+        82,
+        83,
+        84,
+        85,
+        121,
+        122,
+        123,
+        124,
+        125,
+        121,
+        122,
+        123,
+        124,
+        287,
+        289,
+        122,
+        62,
+        63,
+        63,
+        184,
+        122,
+        123,
+        124,
+        125,
+        121,
+        122,
+        123,
+        124,
+        125,
+        121,
+        122,
+        123,
+        124,
+        125
+      ],
+      "height": 20,
+      "id": 1,
+      "name": "Terrain_Base",
+      "opacity": 1,
+      "type": "tilelayer",
+      "visible": true,
+      "width": 30,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "data": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        862,
+        903,
+        903,
+        903,
+        903,
+        903,
+        903,
+        903,
+        903,
+        903,
+        903,
+        903,
+        903,
+        903,
+        863,
+        864,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        942,
+        943,
+        943,
+        943,
+        943,
+        943,
+        943,
+        943,
+        943,
+        943,
+        943,
+        943,
+        943,
+        944,
+        903,
+        904,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        903,
+        904,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        903,
+        904,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        903,
+        904,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        942,
+        944,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        862,
+        863,
+        864,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        902,
+        903,
+        904,
+        0,
+        0,
+        862,
+        863,
+        864,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        942,
+        943,
+        944,
+        0,
+        0,
+        902,
+        903,
+        904,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1314,
+        1315,
+        1315,
+        1315,
+        1316,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        942,
+        943,
+        944,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1356,
+        1268,
+        1471,
+        1349,
+        1356,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1356,
+        1186,
+        1511,
+        0,
+        1356,
+        0,
+        0,
+        0,
+        0,
+        0,
+        862,
+        863,
+        864,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1394,
+        1395,
+        1475,
+        1395,
+        1396,
+        0,
+        0,
+        0,
+        0,
+        0,
+        902,
+        903,
+        904,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        287,
+        249,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        942,
+        943,
+        944,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        287,
+        289,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        287,
+        289,
+        0,
+        862,
+        863,
+        864,
+        0,
+        0,
+        0,
+        0,
+        0,
+        862,
+        863,
+        864,
+        0,
+        0,
+        0,
+        0,
+        258,
+        332,
+        1155,
+        1156,
+        1156,
+        1158,
+        332,
+        332,
+        332,
+        332,
+        332,
+        332,
+        301,
+        329,
+        0,
+        902,
+        903,
+        904,
+        0,
+        0,
+        0,
+        0,
+        0,
+        902,
+        903,
+        904,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        942,
+        943,
+        944,
+        0,
+        0,
+        0,
+        0,
+        0,
+        942,
+        943,
+        944,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "height": 20,
+      "id": 4,
+      "name": "Terrain_Decor",
+      "opacity": 1,
+      "type": "tilelayer",
+      "visible": true,
+      "width": 30,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "draworder": "topdown",
+      "id": 3,
+      "name": "Triggers",
+      "objects": [
         {
-            "columns": 10,
-            "firstgid": 1,
-            "image": "tileset.png",
-            "imageheight": 16,
-            "imagewidth": 160,
-            "margin": 0,
-            "name": "terrain",
-            "spacing": 0,
-            "tilecount": 10,
-            "tileheight": 16,
-            "tilewidth": 16,
-            "tiles": [
-                {"id": 0, "type": "plains"},
-                {"id": 1, "type": "hills"},
-                {"id": 2, "type": "road"},
-                {"id": 3, "type": "water"},
-                {"id": 4, "type": "bridge"},
-                {"id": 5, "type": "mountain"},
-                {"id": 6, "type": "city", "properties": [{"name": "name", "type": "string", "value": "Baesweiler"}, {"name": "locationType", "type": "string", "value": "city"}, {"name": "hasOrb", "type": "bool", "value": true}]},
-                {"id": 7, "type": "swamp"},
-                {"id": 8, "type": "forest"},
-                {"id": 9, "type": "fortress", "properties": [{"name": "name", "type": "string", "value": "Altenburg"}, {"name": "locationType", "type": "string", "value": "fortress"}]}
-            ]
+          "id": 5,
+          "name": "Augsburg",
+          "template": "city_template.tx",
+          "x": 300,
+          "y": 144,
+          "width": 80,
+          "height": 48,
+          "type": "city",
+          "properties": [
+            {
+              "name": "heals",
+              "type": "bool",
+              "value": true
+            },
+            {
+              "name": "hasOrb",
+              "type": "bool",
+              "value": false
+            },
+            {
+              "name": "inkKnot",
+              "type": "string",
+              "value": ""
+            }
+          ]
         }
-    ],
-    "layers": [
+      ],
+      "opacity": 1,
+      "type": "objectgroup",
+      "visible": true,
+      "x": 0,
+      "y": 0
+    }
+  ],
+  "nextlayerid": 5,
+  "nextobjectid": 6,
+  "orientation": "orthogonal",
+  "renderorder": "right-down",
+  "tiledversion": "1.12.1",
+  "tileheight": 16,
+  "tilesets": [
+    {
+      "columns": 40,
+      "firstgid": 1,
+      "image": "../BaseSet.png",
+      "imageheight": 640,
+      "imagewidth": 640,
+      "margin": 0,
+      "name": "BaseSet",
+      "spacing": 0,
+      "tilecount": 1600,
+      "tileheight": 16,
+      "tiles": [
         {
-            "data": [
-                 1,  3,  2, 10, 10,  2,  1,  1,  1,  1,
-                 2,  3,  1, 10, 10,  2,  1,  3,  3,  1,
-                 1,  3,  3,  3,  3,  3,  3,  3,  2,  1,
-                 7,  3,  1,  1,  1,  1,  1,  1,  1,  1,
-                 1,  3,  1,  1,  1,  1,  1,  1,  9,  1,
-                 2,  1,  1,  1,  1,  1,  1,  5,  1,  1,
-                 2,  1,  4,  4,  4,  4,  4,  5,  4,  4,
-                 1,  1,  4,  4,  4,  4,  4,  4,  4,  4,
-                 8,  8,  2,  1,  1,  1,  1,  1,  1,  1,
-                 8,  8,  1,  1,  1,  3,  3,  1,  1,  1
-            ],
-            "height": 10,
-            "id": 1,
-            "name": "terrain",
-            "opacity": 1,
-            "type": "tilelayer",
-            "visible": true,
-            "width": 10,
-            "x": 0,
-            "y": 0
+          "id": 0,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "plains"
+            }
+          ]
+        },
+        {
+          "id": 1,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "plains"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "plains"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "plains"
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "plains"
+            }
+          ]
+        },
+        {
+          "id": 21,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 22,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 23,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 24,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 25,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 26,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 27,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 28,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 29,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 30,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 31,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 32,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 33,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 34,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 35,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 40,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "plains"
+            }
+          ]
+        },
+        {
+          "id": 41,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "plains"
+            }
+          ]
+        },
+        {
+          "id": 42,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "plains"
+            }
+          ]
+        },
+        {
+          "id": 43,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "plains"
+            }
+          ]
+        },
+        {
+          "id": 44,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "plains"
+            }
+          ]
+        },
+        {
+          "id": 61,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 62,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 63,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 64,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 65,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 66,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 67,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 68,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 69,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 70,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 71,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 72,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 73,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 74,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 75,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 80,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "plains"
+            }
+          ]
+        },
+        {
+          "id": 81,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "plains"
+            }
+          ]
+        },
+        {
+          "id": 82,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "plains"
+            }
+          ]
+        },
+        {
+          "id": 83,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "plains"
+            }
+          ]
+        },
+        {
+          "id": 84,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "plains"
+            }
+          ]
+        },
+        {
+          "id": 101,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 102,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 103,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 104,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 105,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 106,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 107,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 108,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 109,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 110,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 111,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 112,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 113,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 114,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 115,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 120,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "plains"
+            }
+          ]
+        },
+        {
+          "id": 121,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "plains"
+            }
+          ]
+        },
+        {
+          "id": 122,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "plains"
+            }
+          ]
+        },
+        {
+          "id": 123,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "plains"
+            }
+          ]
+        },
+        {
+          "id": 124,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "plains"
+            }
+          ]
+        },
+        {
+          "id": 141,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 142,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 143,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 144,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 145,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 146,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 147,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 148,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 149,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 150,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 151,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 152,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 153,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 154,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 155,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 160,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "hill"
+            }
+          ]
+        },
+        {
+          "id": 161,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "hill"
+            }
+          ]
+        },
+        {
+          "id": 162,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "hill"
+            }
+          ]
+        },
+        {
+          "id": 163,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "hill"
+            }
+          ]
+        },
+        {
+          "id": 164,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "hill"
+            }
+          ]
+        },
+        {
+          "id": 165,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "hill"
+            }
+          ]
+        },
+        {
+          "id": 181,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 182,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 183,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 184,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 185,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 186,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 187,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 188,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 189,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 190,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 191,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 192,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 193,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 194,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 195,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 200,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "hill"
+            }
+          ]
+        },
+        {
+          "id": 201,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "hill"
+            }
+          ]
+        },
+        {
+          "id": 202,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "hill"
+            }
+          ]
+        },
+        {
+          "id": 203,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "hill"
+            }
+          ]
+        },
+        {
+          "id": 204,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "hill"
+            }
+          ]
+        },
+        {
+          "id": 205,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "hill"
+            }
+          ]
+        },
+        {
+          "id": 221,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 222,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 223,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 224,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 225,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 226,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 227,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 228,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 229,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 230,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 231,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 232,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 233,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 234,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 235,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "river"
+            }
+          ]
+        },
+        {
+          "id": 246,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 247,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 248,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 249,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 250,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 251,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 252,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 253,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 254,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 255,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 256,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 257,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 258,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 259,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 260,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 286,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 287,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 288,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 289,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 290,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 291,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 292,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 293,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 294,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 295,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 296,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 297,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 298,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 299,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 300,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 326,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 327,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 328,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 329,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 330,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 331,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 332,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 333,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 334,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 335,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 336,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 337,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 338,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 339,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 340,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 366,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 367,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 368,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 369,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 370,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 371,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 372,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 373,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 374,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 375,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 376,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 377,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 378,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 379,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 380,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 406,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 407,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 408,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 409,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 410,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 411,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 412,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 413,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 414,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 415,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 416,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 417,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 418,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 419,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 420,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 446,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 447,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 448,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 449,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 450,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 451,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 452,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 453,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 454,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 455,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 456,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 457,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 458,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 459,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 460,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "road"
+            }
+          ]
+        },
+        {
+          "id": 741,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 742,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 743,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 744,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 745,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 746,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 747,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 748,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 749,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 750,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 751,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 752,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 753,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 754,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 755,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 756,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 757,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 758,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 759,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 781,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 782,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 783,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 784,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 785,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 786,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 787,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 788,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 789,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 790,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 791,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 792,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 793,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 794,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 795,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 796,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 797,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 798,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 799,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 821,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 822,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 823,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 824,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 825,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 826,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 827,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 828,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 829,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 830,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 831,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 832,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 833,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 834,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 835,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 836,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 837,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 838,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 839,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 846,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "mountain"
+            }
+          ]
+        },
+        {
+          "id": 847,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "mountain"
+            }
+          ]
+        },
+        {
+          "id": 848,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "mountain"
+            }
+          ]
+        },
+        {
+          "id": 849,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "mountain"
+            }
+          ]
+        },
+        {
+          "id": 850,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "mountain"
+            }
+          ]
+        },
+        {
+          "id": 851,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "mountain"
+            }
+          ]
+        },
+        {
+          "id": 861,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 862,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 863,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 864,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 865,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 866,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 867,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 868,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 869,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 870,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 871,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 872,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 873,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 874,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 875,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 876,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 877,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 878,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 879,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 886,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "mountain"
+            }
+          ]
+        },
+        {
+          "id": 887,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "mountain"
+            }
+          ]
+        },
+        {
+          "id": 888,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "mountain"
+            }
+          ]
+        },
+        {
+          "id": 889,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "mountain"
+            }
+          ]
+        },
+        {
+          "id": 890,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "mountain"
+            }
+          ]
+        },
+        {
+          "id": 891,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "mountain"
+            }
+          ]
+        },
+        {
+          "id": 901,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 902,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 903,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 904,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 905,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 906,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 907,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 908,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 909,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 910,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 911,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 912,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 913,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 914,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 915,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 916,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 917,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 918,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 919,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 941,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 942,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 943,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 944,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 945,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 946,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 947,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 948,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 949,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 950,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 951,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 952,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 953,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 954,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 955,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 956,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 957,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 958,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 959,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "forest"
+            }
+          ]
+        },
+        {
+          "id": 1073,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1074,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1075,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1076,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1077,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1078,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1079,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1104,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1105,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1113,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1114,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1115,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1116,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1117,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1118,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1119,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1144,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1145,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1153,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1154,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1155,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1156,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1157,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1158,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1159,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1184,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1185,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1193,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1194,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1195,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1196,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1197,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1198,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1199,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1233,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1234,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1235,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1236,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1237,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1238,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1239,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "bridge"
+            }
+          ]
+        },
+        {
+          "id": 1255,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1256,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1257,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1258,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1259,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1260,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1261,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1262,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1263,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1264,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1265,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1266,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1267,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1268,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1269,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1270,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1295,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1296,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1297,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1298,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1299,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1300,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1301,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1302,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1303,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1304,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1305,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1306,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1307,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1308,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1309,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1310,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1313,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "walls"
+            }
+          ]
+        },
+        {
+          "id": 1314,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "walls"
+            }
+          ]
+        },
+        {
+          "id": 1315,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "walls"
+            }
+          ]
+        },
+        {
+          "id": 1335,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1336,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1337,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1338,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1339,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1340,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1341,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1342,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1343,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1344,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1345,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1346,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1347,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1348,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1349,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1350,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1353,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "walls"
+            }
+          ]
+        },
+        {
+          "id": 1354,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "walls"
+            }
+          ]
+        },
+        {
+          "id": 1355,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "walls"
+            }
+          ]
+        },
+        {
+          "id": 1375,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1376,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1377,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1378,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1379,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1380,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1381,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1382,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1383,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1384,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1385,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1386,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1387,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1388,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1389,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1390,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1393,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "walls"
+            }
+          ]
+        },
+        {
+          "id": 1394,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "walls"
+            }
+          ]
+        },
+        {
+          "id": 1395,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "walls"
+            }
+          ]
+        },
+        {
+          "id": 1415,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1416,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1417,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1418,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1419,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1420,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1421,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1422,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1423,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1424,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1425,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1426,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1427,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1428,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1429,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1430,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1433,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "walls"
+            }
+          ]
+        },
+        {
+          "id": 1434,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "gate"
+            }
+          ]
+        },
+        {
+          "id": 1435,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "walls"
+            }
+          ]
+        },
+        {
+          "id": 1436,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "walls"
+            }
+          ]
+        },
+        {
+          "id": 1455,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1456,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1457,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1458,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1459,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1460,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1461,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1462,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1463,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1464,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1465,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1466,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1467,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1468,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1469,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1470,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1472,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "walls"
+            }
+          ]
+        },
+        {
+          "id": 1473,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "walls"
+            }
+          ]
+        },
+        {
+          "id": 1474,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "gate"
+            }
+          ]
+        },
+        {
+          "id": 1475,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "walls"
+            }
+          ]
+        },
+        {
+          "id": 1476,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "walls"
+            }
+          ]
+        },
+        {
+          "id": 1495,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1496,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1497,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1498,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1499,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1500,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1501,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1502,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1503,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1504,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1505,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1506,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1507,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1508,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1509,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1510,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1535,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1536,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1537,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1538,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1539,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1540,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1541,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1542,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1543,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1544,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1545,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1546,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1547,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1548,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1549,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1550,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1575,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1576,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1577,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1578,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1579,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1580,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1581,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1582,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1583,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1584,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1585,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1586,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1587,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1588,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1589,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
+        },
+        {
+          "id": 1590,
+          "properties": [
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "city"
+            }
+          ]
         }
-    ]
+      ],
+      "tilewidth": 16
+    }
+  ],
+  "tilewidth": 16,
+  "type": "map",
+  "version": "1.10",
+  "width": 30
 }

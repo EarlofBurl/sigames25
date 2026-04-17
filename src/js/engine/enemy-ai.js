@@ -3,6 +3,7 @@ import { log } from '../engine/console.js';
 import { findPathAndCost } from '../engine/movement-system.js';
 import { executeEnemyCombat, predictCombat } from '../engine/combat-system.js';
 import { isPassable } from '../engine/terrain.js';
+import { getVisibilityStatus, getVisibilityStatuses } from '../engine/visibility-system.js';
 
 const WEAPON_TRIANGLE = {
     sword: 'axe',
@@ -22,6 +23,13 @@ const TERRAIN_SCORE = {
     bridge: 0,
     mountain: -999
 };
+
+const VISIBILITY = getVisibilityStatuses();
+
+function enemyIsVisibleToPlayers(enemy) {
+    const status = getVisibilityStatus(null, enemy.row, enemy.col);
+    return status === VISIBILITY.VISIBLE;
+}
 
 function isOccupiedByAnyUnit(row, col, excludeEnemyIndex = -1) {
     const players = getPlayerUnits();
@@ -99,19 +107,20 @@ function findBestTarget(enemy, players, grid, allEnemies) {
     const aggroRadius = getAggroRadius(enemy);
 
     for (const player of players) {
+        const distance = Math.abs(enemy.row - player.row) + Math.abs(enemy.col - player.col);
+
+        // Nur Ziele innerhalb der Sichtweite beachten
+        if (distance > enemy.baseSight) continue;
+
         const path = findPathAndCost(
             { row: enemy.row, col: enemy.col },
             { row: player.row, col: player.col },
             grid,
-            enemy.maxMp * 2,
+            enemy.maxMp * 3,
             enemy
         );
 
         if (!path.path) continue;
-
-        const distance = Math.abs(enemy.row - player.row) + Math.abs(enemy.col - player.col);
-
-        if (path.cost > enemy.maxMp && distance > aggroRadius) continue;
 
         const effectiveDistance = path.cost <= enemy.maxMp ? path.cost : distance;
         const score = scoreTarget(enemy, player, effectiveDistance, grid, allEnemies);
@@ -198,10 +207,12 @@ async function executeEnemySpell(enemy, target, spell, onAction, onEnemyAction, 
     setEnemyUnitMana(enemy.id, enemy.mana - spell.manaCost);
     setEnemyHasCast(enemy.id, true);
 
-    if (healAmount > 0) {
-        log(`${enemy.name} heilt ${target.name} um ${healAmount} HP! (${target.hp}/${target.maxHp})`, 'enemy');
-    } else {
-        log(`${enemy.name} wirkt ${spell.name} auf ${target.name}!`, 'enemy');
+    if (enemyIsVisibleToPlayers(enemy)) {
+        if (healAmount > 0) {
+            log(`${enemy.name} heilt ${target.name} um ${healAmount} HP! (${target.hp}/${target.maxHp})`, 'enemy');
+        } else {
+            log(`${enemy.name} wirkt ${spell.name} auf ${target.name}!`, 'enemy');
+        }
     }
 
     if (onEnemyAction) {
@@ -356,7 +367,9 @@ export async function executeEnemyTurn(grid, onAction = null, onEnemyAction = nu
                 if (onAction) onAction();
                 if (onEnemyAction) await onEnemyAction('move', enemy, null, { from: fromPos, to: retreatPos });
                 else await waitOrSkip(weiterBtn, 2000);
-                log(`${enemy.name} zieht sich auf ein sicheres Feld zurück! (${enemy.hp}/${enemy.maxHp} HP)`, 'enemy');
+                if (enemyIsVisibleToPlayers(enemy)) {
+                    log(`${enemy.name} zieht sich auf ein sicheres Feld zurück! (${enemy.hp}/${enemy.maxHp} HP)`, 'enemy');
+                }
                 await waitOrSkip(weiterBtn, 500);
                 continue;
             }
@@ -364,27 +377,21 @@ export async function executeEnemyTurn(grid, onAction = null, onEnemyAction = nu
 
         if (isBoss) {
             const bossTarget = findBestTarget(enemy, players, grid, enemies);
-            if (bossTarget) {
-                const distToTarget = Math.abs(enemy.row - bossTarget.row) + Math.abs(enemy.col - bossTarget.col);
-
-                if (hasDebuffSpell && enemy.mana > 0) {
-                    const debuffAction = findDebuffTarget(enemy, players, grid);
-                    if (debuffAction) {
-                        await executeEnemySpell(enemy, debuffAction.target, debuffAction.spell, onAction, onEnemyAction, weiterBtn);
-                        await waitOrSkip(weiterBtn, 2000);
+                if (bossTarget) {
+                    const distToTarget = Math.abs(enemy.row - bossTarget.row) + Math.abs(enemy.col - bossTarget.col);
+                    if (distToTarget <= enemyRange) {
+                        const pred = predictCombat(enemy, bossTarget, distToTarget, grid, enemies);
+                        const enemyHpBefore = enemy.hp;
+                        const targetHpBefore = bossTarget.hp;
+                        executeEnemyCombat(enemy, i, bossTarget, distToTarget);
+                        if (onAction) onAction();
+                        if (onEnemyAction) await onEnemyAction('attack', enemy, bossTarget, { ...pred, enemyHpBefore, targetHpBefore });
+                        else await waitOrSkip(weiterBtn, 2000);
+                        continue;
+                    } else if (enemyIsVisibleToPlayers(enemy)) {
+                        log(`${enemy.name} hält die Stellung.`, 'enemy');
                     }
                 }
-
-                if (distToTarget <= enemyRange) {
-                    const pred = predictCombat(enemy, bossTarget, distToTarget, grid, enemies);
-                    executeEnemyCombat(enemy, i, bossTarget, distToTarget);
-                    if (onAction) onAction();
-                    if (onEnemyAction) await onEnemyAction('attack', enemy, bossTarget, pred);
-                    else await waitOrSkip(weiterBtn, 2000);
-                }
-            } else {
-                log(`${enemy.name} hält die Stellung.`, 'enemy');
-            }
             await waitOrSkip(weiterBtn, 500);
             continue;
         }
@@ -428,10 +435,12 @@ export async function executeEnemyTurn(grid, onAction = null, onEnemyAction = nu
         const target = findBestTarget(enemy, players, grid, enemies);
 
         if (!target) {
-            if (hpRatio < 0.25) {
-                log(`${enemy.name} ist zu verwundet und sieht keine Ziele.`, 'enemy');
-            } else {
-                log(`${enemy.name} sieht keine lohnenden Ziele.`, 'enemy');
+            if (enemyIsVisibleToPlayers(enemy)) {
+                if (hpRatio < 0.25) {
+                    log(`${enemy.name} ist zu verwundet und sieht keine Ziele.`, 'enemy');
+                } else {
+                    log(`${enemy.name} sieht keine lohnenden Ziele.`, 'enemy');
+                }
             }
             await waitOrSkip(weiterBtn, 500);
             continue;
@@ -449,14 +458,18 @@ export async function executeEnemyTurn(grid, onAction = null, onEnemyAction = nu
                     if (onAction) onAction();
                     if (onEnemyAction) await onEnemyAction('move', enemy, null, { from: fromPos, to: kitePos });
                     else await waitOrSkip(weiterBtn, 2000);
-                    log(`${enemy.name} weicht zurück und schiesst aus der Distanz!`, 'enemy');
+                    if (enemyIsVisibleToPlayers(enemy)) {
+                        log(`${enemy.name} weicht zurück und schiesst aus der Distanz!`, 'enemy');
+                    }
 
                     const newDist = Math.abs(enemy.row - target.row) + Math.abs(enemy.col - target.col);
                     if (newDist <= enemyRange) {
                         const pred = predictCombat(enemy, target, newDist, grid, enemies);
+                        const enemyHpBefore = enemy.hp;
+                        const targetHpBefore = target.hp;
                         executeEnemyCombat(enemy, i, target, newDist);
                         if (onAction) onAction();
-                        if (onEnemyAction) await onEnemyAction('attack', enemy, target, pred);
+                        if (onEnemyAction) await onEnemyAction('attack', enemy, target, { ...pred, enemyHpBefore, targetHpBefore });
                         else await waitOrSkip(weiterBtn, 2000);
                     }
                     continue;
@@ -465,9 +478,11 @@ export async function executeEnemyTurn(grid, onAction = null, onEnemyAction = nu
 
             if (distance <= enemyRange) {
                 const pred = predictCombat(enemy, target, distance, grid, enemies);
+                const enemyHpBefore = enemy.hp;
+                const targetHpBefore = target.hp;
                 executeEnemyCombat(enemy, i, target, distance);
                 if (onAction) onAction();
-                if (onEnemyAction) await onEnemyAction('attack', enemy, target, pred);
+                if (onEnemyAction) await onEnemyAction('attack', enemy, target, { ...pred, enemyHpBefore, targetHpBefore });
                 else await waitOrSkip(weiterBtn, 2000);
                 continue;
             }
@@ -505,23 +520,27 @@ export async function executeEnemyTurn(grid, onAction = null, onEnemyAction = nu
                 const newDist = Math.abs(enemy.row - target.row) + Math.abs(enemy.col - target.col);
                 if (newDist <= enemyRange) {
                     const pred = predictCombat(enemy, target, newDist, grid, enemies);
+                    const enemyHpBefore = enemy.hp;
+                    const targetHpBefore = target.hp;
                     executeEnemyCombat(enemy, i, target, newDist);
                     if (onAction) onAction();
-                    if (onEnemyAction) await onEnemyAction('attack', enemy, target, pred);
+                    if (onEnemyAction) await onEnemyAction('attack', enemy, target, { ...pred, enemyHpBefore, targetHpBefore });
                     else await waitOrSkip(weiterBtn, 2000);
                 }
                 continue;
             }
         }
 
-        if (distance === 1) {
-            const pred = predictCombat(enemy, target, 1, grid, enemies);
-            executeEnemyCombat(enemy, i, target, 1);
-            if (onAction) onAction();
-            if (onEnemyAction) await onEnemyAction('attack', enemy, target, pred);
-            else await waitOrSkip(weiterBtn, 2000);
-            continue;
-        }
+    if (distance === 1) {
+        const pred = predictCombat(enemy, target, 1, grid, enemies);
+        const enemyHpBefore = enemy.hp;
+        const targetHpBefore = target.hp;
+        executeEnemyCombat(enemy, i, target, 1);
+        if (onAction) onAction();
+        if (onEnemyAction) await onEnemyAction('attack', enemy, target, { ...pred, enemyHpBefore, targetHpBefore });
+        else await waitOrSkip(weiterBtn, 2000);
+        continue;
+    }
 
         const adjacents = [
             { r: -1, c: 0 }, { r: 1, c: 0 }, { r: 0, c: -1 }, { r: 0, c: 1 }
@@ -563,14 +582,18 @@ export async function executeEnemyTurn(grid, onAction = null, onEnemyAction = nu
             if (onEnemyAction) await onEnemyAction('move', enemy, null, { from: fromPos, to: bestTargetPos });
             else await waitOrSkip(weiterBtn, 2000);
 
-            log(`${enemy.name} rückt auf ${target.name} vor.`, 'enemy');
+            if (enemyIsVisibleToPlayers(enemy)) {
+                log(`${enemy.name} rückt auf ${target.name} vor.`, 'enemy');
+            }
 
             const newDist = Math.abs(enemy.row - target.row) + Math.abs(enemy.col - target.col);
             if (newDist === 1) {
                 const pred = predictCombat(enemy, target, 1, grid, enemies);
+                const enemyHpBefore = enemy.hp;
+                const targetHpBefore = target.hp;
                 executeEnemyCombat(enemy, i, target, 1);
                 if (onAction) onAction();
-                if (onEnemyAction) await onEnemyAction('attack', enemy, target, pred);
+                if (onEnemyAction) await onEnemyAction('attack', enemy, target, { ...pred, enemyHpBefore, targetHpBefore });
                 else await waitOrSkip(weiterBtn, 2000);
             }
         } else {

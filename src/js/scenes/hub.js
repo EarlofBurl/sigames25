@@ -3,7 +3,7 @@
 
 import { heroes } from '../data/characters.js';
 import { equipment, getLevelUpCost, getStatsAtLevel } from '../data/equipment.js';
-import { loadGlobalState, loadHubData, saveHubData } from '../engine/storage.js';
+import { loadGlobalState, loadHubData, saveHubData, loadSaveSlots, saveToSlot, loadFromSlot, deleteSlot, formatPlayTime, formatTimestamp, getMissionDisplayName, getCurrentSlot, setCurrentSlot } from '../engine/storage.js';
 
 export class HubScene extends Phaser.Scene {
     constructor() {
@@ -12,6 +12,7 @@ export class HubScene extends Phaser.Scene {
         this.orbDisplay = null;
         this.repDisplay = null;
         this.currentView = 'default';
+        this.playTimeStart = Date.now();
     }
 
     create() {
@@ -61,6 +62,12 @@ export class HubScene extends Phaser.Scene {
         btn3.onclick = () => this.showLevelUpView();
         buttons.appendChild(btn3);
 
+        const btn4 = document.createElement('button');
+        btn4.className = 'hub-btn hub-btn-secondary';
+        btn4.textContent = '💾 Speichern & Laden';
+        btn4.onclick = () => this.showSaveLoadMenu();
+        buttons.appendChild(btn4);
+
         const backBtn = document.createElement('button');
         backBtn.className = 'hub-btn hub-btn-secondary';
         backBtn.id = 'hub-back-btn';
@@ -80,9 +87,13 @@ export class HubScene extends Phaser.Scene {
         this.btnMission = btn1;
         this.btnEquipment = btn2;
         this.btnLevelUp = btn3;
+        this.btnSaveLoad = btn4;
 
         screen.appendChild(main);
         app.appendChild(screen);
+
+        // Spielzeit-Tracking starten
+        this.playTimeStart = Date.now();
     }
 
     refreshHeader() {
@@ -92,7 +103,7 @@ export class HubScene extends Phaser.Scene {
     }
 
     highlightButton(activeBtn) {
-        [this.btnMission, this.btnEquipment, this.btnLevelUp].forEach(b => {
+        [this.btnMission, this.btnEquipment, this.btnLevelUp, this.btnSaveLoad].forEach(b => {
             if (b) b.classList.remove('hub-btn-active');
         });
         if (activeBtn) activeBtn.classList.add('hub-btn-active');
@@ -121,10 +132,150 @@ export class HubScene extends Phaser.Scene {
         document.body.appendChild(panel);
 
         panel.querySelector('#start-mission-btn').onclick = () => {
+            // Spielzeit vor Mission speichern
+            this.updatePlayTime();
             panel.remove();
             this.scene.start('CombatScene');
         };
         panel.querySelector('#close-panel-btn').onclick = () => panel.remove();
+    }
+
+    showSaveLoadMenu() {
+        this.currentView = 'saveload';
+        const backBtn = document.getElementById('hub-back-btn');
+        if (backBtn) backBtn.style.display = 'block';
+        this.highlightButton(this.btnSaveLoad);
+
+        const slots = loadSaveSlots();
+        const currentSlotNum = getCurrentSlot();
+
+        this.contentArea.style.cssText = 'flex:1;display:flex;flex-direction:column;padding:20px;';
+        this.contentArea.innerHTML = `
+            <h3 style="color:#ffd700;margin:0 0 20px 0;text-align:center;">💾 Speichern & Laden</h3>
+            <div id="save-slots-container" style="display:flex;flex-direction:column;gap:12px;flex:1;overflow-y:auto;"></div>
+        `;
+
+        const container = this.contentArea.querySelector('#save-slots-container');
+
+        slots.forEach(slot => {
+            const slotCard = document.createElement('div');
+            slotCard.style.cssText = `
+                background: ${slot.empty ? '#252525' : '#2a2a2a'};
+                border: 2px solid ${slot.slot === currentSlotNum ? '#ffd700' : (slot.empty ? '#444' : '#666')};
+                border-radius: 8px;
+                padding: 15px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            `;
+
+            // Info-Bereich
+            const infoDiv = document.createElement('div');
+            if (slot.empty) {
+                infoDiv.innerHTML = `
+                    <div style="color: #888; font-size: 16px; font-weight: bold;">Slot ${slot.slot}</div>
+                    <div style="color: #555; font-size: 12px;">Leer - Hier kannst du speichern</div>
+                `;
+            } else {
+                infoDiv.innerHTML = `
+                    <div style="color: #ffd700; font-size: 16px; font-weight: bold;">
+                        Slot ${slot.slot} ${slot.slot === currentSlotNum ? '(Aktiv)' : ''}
+                    </div>
+                    <div style="color: #aaa; font-size: 12px; margin-top: 4px;">
+                        📅 ${formatTimestamp(slot.timestamp)} | ⏱️ ${formatPlayTime(slot.playTime || 0)}
+                    </div>
+                    <div style="color: #888; font-size: 11px; margin-top: 2px;">
+                        ${getMissionDisplayName(slot.currentMission)} | ⭐ ${slot.reputation || 0} | 💎 ${slot.orbs || 0}
+                    </div>
+                `;
+            }
+            slotCard.appendChild(infoDiv);
+
+            // Button-Bereich
+            const btnDiv = document.createElement('div');
+            btnDiv.style.cssText = 'display:flex;gap:8px;';
+
+            if (slot.empty) {
+                // Speichern-Button für leeren Slot
+                const saveBtn = document.createElement('button');
+                saveBtn.className = 'cmd-btn';
+                saveBtn.textContent = '💾 Speichern';
+                saveBtn.onclick = () => {
+                    this.updatePlayTime();
+                    saveToSlot(slot.slot);
+                    this.showSaveLoadMenu(); // Neu laden
+                };
+                btnDiv.appendChild(saveBtn);
+            } else {
+                // Laden-Button
+                const loadBtn = document.createElement('button');
+                loadBtn.className = 'cmd-btn';
+                loadBtn.textContent = '⬆️ Laden';
+                loadBtn.onclick = () => {
+                    if (confirm('Möchtest du diesen Spielstand laden? Nicht gespeicherte Fortschritte gehen verloren.')) {
+                        loadFromSlot(slot.slot);
+                        this.hubData = loadHubData();
+                        this.refreshHeader();
+                        this.showSaveLoadMenu(); // Neu laden
+                    }
+                };
+                btnDiv.appendChild(loadBtn);
+
+                // Überschreiben-Button
+                const overwriteBtn = document.createElement('button');
+                overwriteBtn.className = 'cmd-btn';
+                overwriteBtn.style.cssText = 'background: #664400;';
+                overwriteBtn.textContent = '🔄 Überschreiben';
+                overwriteBtn.onclick = () => {
+                    if (confirm(`Slot ${slot.slot} wirklich überschreiben?`)) {
+                        this.updatePlayTime();
+                        saveToSlot(slot.slot);
+                        this.showSaveLoadMenu(); // Neu laden
+                    }
+                };
+                btnDiv.appendChild(overwriteBtn);
+
+                // Löschen-Button
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'cmd-btn';
+                deleteBtn.style.cssText = 'background: #440000;';
+                deleteBtn.textContent = '🗑️ Löschen';
+                deleteBtn.onclick = () => {
+                    if (confirm(`Slot ${slot.slot} wirklich löschen? Dies kann nicht rückgängig gemacht werden.`)) {
+                        deleteSlot(slot.slot);
+                        this.showSaveLoadMenu(); // Neu laden
+                    }
+                };
+                btnDiv.appendChild(deleteBtn);
+            }
+
+            slotCard.appendChild(btnDiv);
+            container.appendChild(slotCard);
+        });
+
+        // Info-Box unten
+        const infoBox = document.createElement('div');
+        infoBox.style.cssText = `
+            margin-top: 15px;
+            padding: 10px;
+            background: #1a1a1a;
+            border-radius: 5px;
+            color: #666;
+            font-size: 12px;
+            text-align: center;
+        `;
+        infoBox.textContent = currentSlotNum
+            ? `Aktiver Spielstand: Slot ${currentSlotNum} | Spielzeit wird automatisch gespeichert`
+            : 'Noch kein Spielstand geladen. Wähle einen Slot zum Speichern oder Laden.';
+        container.appendChild(infoBox);
+    }
+
+    updatePlayTime() {
+        const elapsed = Math.floor((Date.now() - this.playTimeStart) / 1000);
+        const state = loadGlobalState();
+        state.playTime = (state.playTime || 0) + elapsed;
+        localStorage.setItem('siGamesGlobal', JSON.stringify(state));
+        this.playTimeStart = Date.now(); // Reset für nächste Messung
     }
 
     showEquipmentView() {

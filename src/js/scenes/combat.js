@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { initRenderer, drawGrid, getGridData, setSelectedTarget, clearSelectedTarget, setSelectedUnit, clearSelectedUnit, setVisibilityGrid, getVisibilityData, setLocationOwner, getLocationOwner, collectOrb } from '../engine/renderer.js';
-import { GRID_SIZE } from '../config.js';
+import { initRenderer, drawGrid, getGridData, setSelectedTarget, clearSelectedTarget, setSelectedUnit, clearSelectedUnit, setVisibilityGrid, getVisibilityData, setLocationOwner, getLocationOwner, collectOrb, getTriggerAt, getTriggerProperty, initUnitSprites, registerSpriteAtlas, destroyUnitSprites, registerAllAnimations } from '../engine/renderer.js';
+import { GRID_COLS, GRID_ROWS } from '../config.js';
 import { terrainTypes, isPassable, isAdjacentToEnemy } from '../engine/terrain.js';
 import {
     initPlayerUnits, initEnemyUnits, getCurrentUnit, getCurrentUnitPosition, setCurrentUnitPosition,
@@ -99,7 +99,7 @@ export class CombatScene extends Phaser.Scene {
 
     preload() {
         const mapFile = (this.mission && this.mission.mapFile) || 'assets/maps/mission_01.tmj';
-        this.load.image('terrain_tileset', 'assets/tileset.png');
+        this.load.image('terrain_tileset', 'assets/BaseSet.png');
         this.load.tilemapTiledJSON('mission_map', mapFile);
 
         this.load.image('portrait_zarewitsch', 'assets/portraits/zarewitsch/portrait_zarewitsch_neutral.png');
@@ -107,6 +107,12 @@ export class CombatScene extends Phaser.Scene {
         this.load.image('portrait_tiktok', 'assets/portraits/enemies/portrait_enemy_TikTok.png');
         this.load.image('portrait_insta', 'assets/portraits/enemies/portrait_enemy_Insta.png');
         this.load.image('portrait_facebook', 'assets/portraits/enemies/portrait_enemy_facebook.png');
+
+        this.load.atlas('carl_the_great', 'assets/sprites/heroes/carl_the_great/spritesheet.png', 'assets/sprites/heroes/carl_the_great/spritesheet.json');
+        this.load.atlas('zarewitsch', 'assets/sprites/heroes/zarewitsch/spritesheet.png', 'assets/sprites/heroes/zarewitsch/spritesheet.json');
+        this.load.atlas('tiktok', 'assets/sprites/enemies/tiktok/spritesheet.png', 'assets/sprites/enemies/tiktok/spritesheet.json');
+        this.load.atlas('insta', 'assets/sprites/enemies/insta/spritesheet.png', 'assets/sprites/enemies/insta/spritesheet.json');
+        this.load.atlas('facebook', 'assets/sprites/enemies/facebook/spritesheet.png', 'assets/sprites/enemies/facebook/spritesheet.json');
     }
 
     create() {
@@ -179,12 +185,19 @@ export class CombatScene extends Phaser.Scene {
         initRenderer(this, this.mission);
         grid = getGridData().grid;
 
-        // Phaser canvas in map-area positionieren
+        registerSpriteAtlas('carl_the_great', 'carl_the_great');
+        registerSpriteAtlas('zarewitsch', 'zarewitsch');
+        registerSpriteAtlas('tiktok', 'tiktok');
+        registerSpriteAtlas('insta', 'insta');
+        registerSpriteAtlas('facebook', 'facebook');
+        initUnitSprites(this);
+        registerAllAnimations(this);
+
+        // Phaser canvas in map-area positionieren (scrollbar)
         const canvas = this.game.canvas;
-        canvas.style.position = 'absolute';
-        canvas.style.top = '50%';
-        canvas.style.left = '50%';
-        canvas.style.transform = 'translate(-50%, -50%)';
+        canvas.style.position = 'relative'; // WICHTIG: relative, damit overflow:auto funktioniert
+        canvas.style.display = 'block';
+        canvas.style.margin = '0 auto'; // optional zentrieren
         canvas.style.zIndex = '1';
         mapArea.appendChild(canvas);
 
@@ -260,8 +273,8 @@ export class CombatScene extends Phaser.Scene {
         const updateLocationOwnership = () => {
             const players = getPlayerUnits();
             const enemies = getEnemyUnits();
-            for (let r = 0; r < GRID_SIZE; r++) {
-                for (let c = 0; c < GRID_SIZE; c++) {
+            for (let r = 0; r < GRID_ROWS; r++) {
+                for (let c = 0; c < GRID_COLS; c++) {
                     if (grid[r] && grid[r][c] && grid[r][c].locationType) {
                         const key = `${r},${c}`;
                         const playerOnTile = players.some(u => u.row === r && u.col === c);
@@ -425,7 +438,7 @@ export class CombatScene extends Phaser.Scene {
             const col = Math.floor(pointer.x / CELL_SIZE);
             const row = Math.floor(pointer.y / CELL_SIZE);
 
-            if (row < 0 || row >= 10 || col < 0 || col >= 10) {
+            if (row < 0 || row >= GRID_ROWS || col < 0 || col >= GRID_COLS) {
                 hidePreview();
                 hideCursorSymbol();
                 return;
@@ -481,7 +494,7 @@ export class CombatScene extends Phaser.Scene {
             const col = Math.floor(pointer.x / CELL_SIZE);
             const row = Math.floor(pointer.y / CELL_SIZE);
 
-            if (row < 0 || row >= 10 || col < 0 || col >= 10) return;
+            if (row < 0 || row >= GRID_ROWS || col < 0 || col >= GRID_COLS) return;
 
             // === SPELL-TARGET MODUS ===
             if (currentSpell && selectedUnit) {
@@ -550,6 +563,28 @@ export class CombatScene extends Phaser.Scene {
 
                         updateLocationOwnership();
                         setVisibilityGrid(updateVisibility(grid, getPlayerUnits()));
+
+                        // Trigger prüfen
+                        const trigger = getTriggerAt(row, col);
+                        if (trigger && trigger.name) {
+                            const inkKnot = getTriggerProperty(trigger, 'inkKnot', '');
+                            const heals = getTriggerProperty(trigger, 'heals', false);
+                            const hasOrb = getTriggerProperty(trigger, 'hasOrb', false);
+
+                            if (trigger.type === 'city' || trigger.type === 'fortress') {
+                                const cityName = trigger.name;
+                                const owner = getLocationOwner(row, col);
+                                if (owner === 'player') {
+                                    playDialog([{ character: 'System', text: `${cityName} wurde von dir eingenommen!` }]);
+                                }
+                            } else if (inkKnot) {
+                                console.log(`[Trigger] ${trigger.name} an [${row},${col}] - inkKnot: ${inkKnot}`);
+                                playDialog([{ character: 'System', text: `Trigger: ${trigger.name}` }]);
+                            } else {
+                                console.log(`[Trigger] ${trigger.name} an [${row},${col}]`);
+                                playDialog([{ character: 'System', text: `Du hast ${trigger.name} erreicht!` }]);
+                            }
+                        }
 
                         // Einheit neu laden nach Bewegung (State ist jetzt 'moved')
                         const movedUnit = getPlayerUnits().find(u => u.id === selectedUnit.id);
@@ -712,6 +747,7 @@ export class CombatScene extends Phaser.Scene {
         destroyCombatUI();
         destroyConsole();
         destroyDialog();
+        destroyUnitSprites();
 
         // Combat Layout entfernen
         const combatLayout = document.getElementById('combat-layout');

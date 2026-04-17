@@ -11,7 +11,7 @@ export const terrainTypes = {
         isPassable: true,
         sightMod: 0
     },
-    hills: {
+    hill: {
         name: 'Hügel',
         movementCost: 2,
         defenseBonus: 1,
@@ -25,7 +25,7 @@ export const terrainTypes = {
         isPassable: true,
         sightMod: 0
     },
-    water: {
+    river: {
         name: 'Wasser',
         movementCost: Infinity,
         defenseBonus: 0,
@@ -71,6 +71,20 @@ export const terrainTypes = {
         name: 'Festung',
         movementCost: 2,
         defenseBonus: 3,
+        isPassable: true,
+        sightMod: 0
+    },
+    walls: {
+        name: 'Mauer',
+        movementCost: Infinity,
+        defenseBonus: 0,
+        isPassable: false,
+        sightMod: 0
+    },
+    gate: {
+        name: 'Tor',
+        movementCost: 1,
+        defenseBonus: 2,
         isPassable: true,
         sightMod: 0
     }
