@@ -6,7 +6,7 @@ import {
     initPlayerUnits, initEnemyUnits, getCurrentUnit, getCurrentUnitPosition, setCurrentUnitPosition,
     getCurrentUnitAttributes, setCurrentUnitMp, setCurrentUnitHasAttacked, refillCurrentUnitMp, nextUnit,
     getPlayerUnits, getEnemyUnits, setCurrentUnitIndex, applyEffectToUnit, applyEffectToEnemy,
-    setUnitTurnState, getUnitTurnState, unitAttack, unitCastSpell
+    setUnitTurnState, getUnitTurnState, unitAttack, unitCastSpell, removeEnemyUnit
 } from '../entities/units.js';
 import { log, initConsole, destroyConsole } from '../engine/console.js';
 import { initDialog, playDialog, playKnot, destroyDialog } from '../engine/dialog.js';
@@ -56,41 +56,66 @@ let onSpellCast = (caster, targetUnit, spell) => {
             duration: spell.duration, caster: caster.name,
             traitName: spell.traitName, traitStat: spell.traitStat
         });
-    } else {
-        if (spell.effect === 'social_ban') {
-            const hasTrait = targetUnit.traits && targetUnit.traits.includes('SocialMedia');
-            if (hasTrait) {
-                const enemies = getEnemyUnits();
-                const enemyIndex = enemies.findIndex(e => e.id === targetUnit.id);
-                if (enemyIndex !== -1) {
-                    const damage = 5;
-                    enemies[enemyIndex].hp = Math.max(0, enemies[enemyIndex].hp - damage);
-                    log(`${caster.name} bannt ${targetUnit.name}! ${damage} Schaden! (${enemies[enemyIndex].hp}/${enemies[enemyIndex].maxHp} HP)`, 'attack');
+    } else if (spell.effect === 'social_ban') {
+        const hasTrait = targetUnit.traits && targetUnit.traits.includes('SocialMedia');
+        if (hasTrait) {
+            const enemies = getEnemyUnits();
+            const enemyIndex = enemies.findIndex(e => e.id === targetUnit.id);
+            if (enemyIndex !== -1) {
+                const damage = 5;
+                const hpBefore = enemies[enemyIndex].hp;
+                enemies[enemyIndex].hp = Math.max(0, enemies[enemyIndex].hp - damage);
+                log(`${caster.name} bannt ${targetUnit.name}! ${damage} Schaden! (${enemies[enemyIndex].hp}/${enemies[enemyIndex].maxHp} HP)`, 'attack');
+                if (enemies[enemyIndex].hp <= 0) {
+                    removeEnemyUnit(enemyIndex);
+                    this.missionState.defeatedEnemies.push({ maxHp: enemies[enemyIndex].maxHp || 5 });
+                    log(`${targetUnit.name} wurde besiegt!`, 'attack');
+                    animateCombatResult(casterUnit, targetUnit, {
+                        leftHpBefore: casterUnit.hp,
+                        leftHpAfter: casterUnit.hp,
+                        rightHpBefore: hpBefore,
+                        rightHpAfter: 0,
+                        rightDmg: damage,
+                        title: `🚫 ${spell.name}`
+                    }, grid[targetUnit.row]?.[targetUnit.col]?.type || 'plains');
+                    drawGrid();
+                    checkMissionEnd();
+                    currentSpell = null;
+                    fillUnitPanel(casterUnit);
+                    checkAllUnitsExhausted();
+                    return;
                 }
+                animateCombatResult(casterUnit, enemies[enemyIndex], {
+                    leftHpBefore: casterUnit.hp,
+                    leftHpAfter: casterUnit.hp,
+                    rightHpBefore: hpBefore,
+                    rightHpAfter: enemies[enemyIndex].hp,
+                    rightDmg: damage,
+                    title: `🚫 ${spell.name}`
+                }, grid[targetUnit.row]?.[targetUnit.col]?.type || 'plains');
+                drawGrid();
+                checkMissionEnd();
             } else {
                 log(`${caster.name} wirkt ${spell.name}, aber ${targetUnit.name} hat kein SocialMedia-Trait!`, 'default');
+                animateSpellResult(casterUnit, targetUnit, spell, grid[targetUnit.row]?.[targetUnit.col]?.type || 'plains');
             }
-            unitCastSpell(casterUnit.id, spell.manaCost);
-            animateSpellResult(casterUnit || caster, targetUnit, spell);
-            currentSpell = null;
-            drawGrid();
-            fillUnitPanel(casterUnit || caster);
-            checkAllUnitsExhausted();
-            return;
+        } else {
+            log(`${caster.name} wirkt ${spell.name}, aber ${targetUnit.name} hat kein SocialMedia-Trait!`, 'default');
+            animateSpellResult(casterUnit, targetUnit, spell, grid[targetUnit.row]?.[targetUnit.col]?.type || 'plains');
         }
+    } else {
         applyEffectToEnemy(targetUnit.id, {
             effect: spell.effect, value: spell.value,
             duration: spell.duration, caster: caster.name,
             traitName: spell.traitName, traitStat: spell.traitStat
         });
+        animateSpellResult(casterUnit, targetUnit, spell, grid[targetUnit.row]?.[targetUnit.col]?.type || 'plains');
+        log(`${spell.name} wurde auf ${targetUnit.name} gewirkt!`, 'attack');
     }
-
-    animateSpellResult(casterUnit || caster, targetUnit, spell);
-    log(`${spell.name} wurde auf ${targetUnit.name} gewirkt!`, 'attack');
 
     currentSpell = null;
     drawGrid();
-    fillUnitPanel(casterUnit || caster);
+    fillUnitPanel(casterUnit);
     checkAllUnitsExhausted();
 };
 
@@ -119,6 +144,17 @@ export class CombatScene extends Phaser.Scene {
         this.load.atlas('tiktok', 'assets/sprites/enemies/tiktok/spritesheet.png', 'assets/sprites/enemies/tiktok/spritesheet.json');
         this.load.atlas('insta', 'assets/sprites/enemies/insta/spritesheet.png', 'assets/sprites/enemies/insta/spritesheet.json');
         this.load.atlas('facebook', 'assets/sprites/enemies/facebook/spritesheet.png', 'assets/sprites/enemies/facebook/spritesheet.json');
+
+        this.load.image('terrain_plains', 'assets/terrain_pics/plains.webp');
+        this.load.image('terrain_river', 'assets/terrain_pics/river.webp');
+        this.load.image('terrain_forest', 'assets/terrain_pics/forest.webp');
+        this.load.image('terrain_bridge', 'assets/terrain_pics/bridge.webp');
+        this.load.image('terrain_city', 'assets/terrain_pics/city.webp');
+        this.load.image('terrain_fortress', 'assets/terrain_pics/fortress.webp');
+        this.load.image('terrain_hills', 'assets/terrain_pics/hills.webp');
+        this.load.image('terrain_mountains', 'assets/terrain_pics/mountains.webp');
+        this.load.image('terrain_road', 'assets/terrain_pics/road.webp');
+        this.load.image('terrain_swamp', 'assets/terrain_pics/swamp.webp');
     }
 
     create() {
@@ -201,11 +237,22 @@ export class CombatScene extends Phaser.Scene {
 
         // Phaser canvas in map-area positionieren (scrollbar)
         const canvas = this.game.canvas;
-        canvas.style.position = 'relative'; // WICHTIG: relative, damit overflow:auto funktioniert
-        canvas.style.display = 'block';
-        canvas.style.margin = '0 auto'; // optional zentrieren
+        canvas.style.position = 'absolute';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
         canvas.style.zIndex = '1';
         mapArea.appendChild(canvas);
+
+        // Mausrad-Scrolling für map-area
+        mapArea.addEventListener('wheel', (e) => {
+            if (e.deltaX !== 0) {
+                mapArea.scrollLeft += e.deltaX;
+            }
+            if (e.deltaY !== 0) {
+                mapArea.scrollTop += e.deltaY;
+            }
+            e.preventDefault();
+        }, { passive: false });
 
         if (this.mission.playerUnits) initPlayerUnits(this.mission.playerUnits);
         if (this.mission.enemies) initEnemyUnits(this.mission.enemies);
@@ -483,7 +530,8 @@ export class CombatScene extends Phaser.Scene {
                 if (targetUnit) {
                     const dist = Math.abs(actualCaster.row - row) + Math.abs(actualCaster.col - col);
                     if (dist <= currentSpell.range) {
-                        showSpellPreview(actualCaster, targetUnit, currentSpell);
+                        const targetTerrain = grid[row]?.[col]?.type || 'plains';
+                        showSpellPreview(actualCaster, targetUnit, currentSpell, targetTerrain);
                         showCursorSymbol(pointer, { weapon: 'magic', range: 1 });
                         return;
                     }
@@ -500,7 +548,8 @@ export class CombatScene extends Phaser.Scene {
                 const distance = Math.abs(curAttr.row - row) + Math.abs(curAttr.col - col);
                 if (distance <= curAttr.range) {
                     const pred = predictCombat(curAttr, enemy, distance, grid, players);
-                    showCombatPreview(curAttr, enemy, pred);
+                    const enemyTerrain = grid[row]?.[col]?.type || 'plains';
+                    showCombatPreview(curAttr, enemy, pred, enemyTerrain);
                     showCursorSymbol(pointer, curAttr);
                 } else {
                     hidePreview();
@@ -661,7 +710,7 @@ export class CombatScene extends Phaser.Scene {
                             leftDmg: pred.canCounter ? pred.counterDmg : 0,
                             rightDmg: pred.attackDmg,
                             title: '⚔ Kampf'
-                        });
+                        }, grid[enemyPos.row]?.[enemyPos.col]?.type || 'plains');
 
                         setVisibilityGrid(updateVisibility(grid, getPlayerUnits()));
 

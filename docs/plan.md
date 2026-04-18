@@ -260,7 +260,9 @@
 - [x] **`dialog.js` auf InkJS umstellen:** Statt statischer Dialog-Arrays liest `dialog.js` die Ink-JSON-Story, spielt sie ab und rendert Text + Auswahloptionen im bestehenden Dialog-Overlay. Verzweigungen und Variablen (z.B. Reputation, besiegte Gegner) werden über `story.variablesState` übergeben.
 - [x] **Knot-basierter Einstieg:** `dialog.js` erhält eine Funktion `playKnot(storyFile, knotName)` — `CombatScene` und `HubScene` rufen diese mit dem `inkKnot`-Wert aus den Triggern auf.
 - [x] **Portrait im Dialog:** Sprechende Charaktere zeigen ihr Portrait links im Dialog-Overlay. Der sprechende Charakter wird per Ink-Tag (`# speaker: carl_the_great`) übergeben und `dialog.js` lädt das passende Portrait aus `characters.js`.
-- [ ] **Hub-Dialoge:** Team-Gespräche im Hub (zwischen Missionen) werden ebenfalls als Ink-Knots verfasst. Der Hub kann `playKnot('hub_dialogs.json', 'after_mission_01')` aufrufen.
+- [x] **Dialog-Queue:** aufeinanderfolgende `playDialog()`-Aufrufe werden gequed und nacheinander abgespielt (wichtig für Eroberung → Orb → InkKnot).
+- [ ] **Hub-Dialoge:** Team-Gespräche im Hub (zwischen Missionen) werden ebenfalls als Ink-Knots verfasst. Der Hub kann `playKnot('hub_dialogs.json', 'after_mission_01')` aufrufen. *(Framework vorhanden, Content noch zu erstellen.)*
+- [ ] **Ink-Story-Dateien:** `.ink`-Dateien schreiben und mit `inklecate` zu `.json` kompilieren. *(Content-Arbeit, kein Code.)*
 
 ***
 

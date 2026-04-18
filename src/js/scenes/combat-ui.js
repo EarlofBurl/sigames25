@@ -34,7 +34,7 @@ let terrainContainer = null;
 let previewContainer = null;
 
 let titleEl, portraitEl, typeEl, hpEl, maxHpEl, mpEl, maxMpEl, attackEl, defenseEl, weaponEl, manaEl, maxManaEl, spellsEl;
-let terrainNameEl, terrainStatsEl;
+let terrainNameEl, terrainStatsEl, terrainImgEl;
 let previewTitleEl, previewBodyEl, previewResultEl, previewVsEl;
 let previewLeftEl, previewRightEl;
 let actionPanelEl;
@@ -122,10 +122,11 @@ export function initCombatUI(unitPanelParent) {
     terrainNameEl.style.cssText = 'font-weight:bold;font-size:12px;margin-bottom:4px;';
     terrainNameEl.textContent = 'Terrain';
     terrainCard.appendChild(terrainNameEl);
-    const terrainImg = document.createElement('div');
-    terrainImg.style.cssText = 'width:100%;height:50px;background:#bbb;border-radius:4px;margin-bottom:6px;display:flex;align-items:center;justify-content:center;color:#666;font-size:20px;';
-    terrainImg.textContent = '🗺️';
-    terrainCard.appendChild(terrainImg);
+    terrainImgEl = document.createElement('img');
+    terrainImgEl.style.cssText = 'width:100%;height:50px;object-fit:cover;border-radius:4px;margin-bottom:6px;background:#bbb;';
+    terrainImgEl.src = 'assets/terrain_pics/plains.webp';
+    terrainImgEl.alt = 'Terrain';
+    terrainCard.appendChild(terrainImgEl);
     terrainStatsEl = document.createElement('div');
     terrainStatsEl.style.cssText = 'font-size:11px;line-height:1.3;';
     terrainStatsEl.innerHTML = '—';
@@ -238,29 +239,41 @@ function animateInfoCol(unit, isAttacker, hpBefore, hpAfter, wpnAdv, dmgText) {
     `;
 }
 
-export function showCombatPreview(leftUnit, rightUnit, pred) {
+export function showCombatPreview(leftUnit, rightUnit, pred, terrainType = 'plains') {
     const previewEl = document.getElementById('combat-preview');
     if (!previewEl) return;
+
+    const terrainImgMap = {
+        plains: 'plains.webp',
+        river: 'river.webp',
+        forest: 'forest.webp',
+        bridge: 'bridge.webp',
+        city: 'city.webp'
+    };
+    const terrainBg = `assets/terrain_pics/${terrainImgMap[terrainType] || 'plains.webp'}`;
+
+    previewEl.style.backgroundImage = `url(${terrainBg})`;
+    previewEl.style.backgroundSize = 'cover';
+    previewEl.style.backgroundPosition = 'center';
 
     const leftHpAfter = pred.attackerHpAfter;
     const rightHpAfter = pred.defenderHpAfter;
     const leftAdv = weaponAdvantage(leftUnit.weapon, rightUnit.weapon);
     const rightAdv = weaponAdvantage(rightUnit.weapon, leftUnit.weapon);
 
-    previewEl.style.backgroundColor = '#111';
     previewEl.style.borderColor = '#ffd700';
     previewEl.style.display = 'flex';
     previewEl.style.alignItems = 'stretch';
 
     previewEl.innerHTML = `
-        <div style="flex:1;display:flex;align-items:stretch;min-width:0;">
+        <div style="flex:1;display:flex;align-items:stretch;min-width:0;background:rgba(0,0,0,0.6);border-radius:8px;padding:4px;">
             <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;">${portraitHtml(leftUnit.portrait, 42)}</div>
             ${infoCol(leftUnit, true, leftHpAfter, leftHpAfter, leftAdv)}
         </div>
         <div style="display:flex;align-items:center;justify-content:center;width:40px;flex-shrink:0;">
             <div style="font-size:18px;color:#ffd700;font-weight:bold;">VS</div>
         </div>
-        <div style="flex:1;display:flex;align-items:stretch;min-width:0;">
+        <div style="flex:1;display:flex;align-items:stretch;min-width:0;background:rgba(0,0,0,0.6);border-radius:8px;padding:4px;">
             ${infoCol(rightUnit, false, rightHpAfter, rightHpAfter, rightAdv)}
             <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;">${portraitHtml(rightUnit.portrait, 42)}</div>
         </div>
@@ -271,6 +284,7 @@ export function hidePreview() {
     const previewEl = document.getElementById('combat-preview');
     if (previewEl) {
         previewEl.innerHTML = '<span style="color:#ffd700;font-size:16px;">⚔ Kampf-Vorschau</span>';
+        previewEl.style.backgroundImage = 'none';
         previewEl.style.backgroundColor = '#1a1a1a';
         previewEl.style.borderColor = '#ffd700';
         previewEl.style.display = 'flex';
@@ -420,15 +434,30 @@ export function fillUnitPanel(unit) {
 // ─── Terrain Info ───
 
 export function updateTerrainInfo(cell, terrainTypes) {
-    if (!terrainNameEl || !terrainStatsEl) return;
+    if (!terrainNameEl || !terrainStatsEl || !terrainImgEl) return;
     if (!cell || !terrainTypes) {
         terrainNameEl.textContent = 'Unbekannt';
         terrainStatsEl.innerHTML = 'Keine Daten';
+        terrainImgEl.src = 'assets/terrain_pics/plains.webp';
         return;
     }
     const terrain = terrainTypes[cell.type] || terrainTypes.plains;
     terrainNameEl.textContent = terrain.name || cell.type;
     terrainStatsEl.innerHTML = `Typ: ${cell.type}<br>MP-Kosten: ${terrain.movementCost || 1}<br>Verteidigung: +${terrain.defenseBonus || 0}`;
+    const terrainImgMap = {
+        plains: 'plains.webp',
+        river: 'river.webp',
+        forest: 'forest.webp',
+        bridge: 'bridge.webp',
+        city: 'city.webp',
+        fortress: 'fortress.webp',
+        hills: 'hills.webp',
+        mountains: 'mountains.webp',
+        road: 'road.webp',
+        swamp: 'swamp.webp'
+    };
+    const imgName = terrainImgMap[cell.type] || 'plains.webp';
+    terrainImgEl.src = `assets/terrain_pics/${imgName}`;
 }
 
 export function clearUnitPanel() {
@@ -437,9 +466,22 @@ export function clearUnitPanel() {
 
 // ─── Spell Preview / Cast ───
 
-export function showSpellPreview(caster, target, spell) {
+export function showSpellPreview(caster, target, spell, terrainType = 'plains') {
     const previewEl = document.getElementById('combat-preview');
     if (!previewEl) return;
+
+    const terrainImgMap = {
+        plains: 'plains.webp',
+        river: 'river.webp',
+        forest: 'forest.webp',
+        bridge: 'bridge.webp',
+        city: 'city.webp'
+    };
+    const terrainBg = `assets/terrain_pics/${terrainImgMap[terrainType] || 'plains.webp'}`;
+
+    previewEl.style.backgroundImage = `url(${terrainBg})`;
+    previewEl.style.backgroundSize = 'cover';
+    previewEl.style.backgroundPosition = 'center';
 
     const sym = spell.element === 'fire' ? '🔥' : spell.element === 'ice' ? '❄️' : spell.element === 'heal' ? '💚' : spell.element === 'dark' ? '💜' : spell.effect === 'cleanse' ? '✨' : spell.effect === 'social_ban' ? '🚫' : '✦';
     const effectColor = spell.element === 'fire' ? '#ff6633' : spell.element === 'ice' ? '#66ccff' : spell.element === 'heal' ? '#44ff44' : spell.element === 'dark' ? '#cc66ff' : spell.effect === 'cleanse' ? '#ffff44' : spell.effect === 'social_ban' ? '#ff4444' : '#cc88ff';
@@ -494,23 +536,32 @@ export function showSpellPreview(caster, target, spell) {
     previewEl.style.alignItems = 'stretch';
 
     previewEl.innerHTML = `
-        <div style="flex:1;display:flex;align-items:stretch;min-width:0;">
+        <div style="flex:1;display:flex;align-items:stretch;min-width:0;background:rgba(0,0,0,0.6);border-radius:8px;padding:4px;">
             <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;">${portraitHtml(caster.portrait, 42)}</div>
             ${casterInfo}
         </div>
         <div style="display:flex;align-items:center;justify-content:center;width:40px;flex-shrink:0;">
             <div style="font-size:22px;color:${effectColor};font-weight:bold;">${sym}</div>
         </div>
-        <div style="flex:1;display:flex;align-items:stretch;min-width:0;">
+        <div style="flex:1;display:flex;align-items:stretch;min-width:0;background:rgba(0,0,0,0.6);border-radius:8px;padding:4px;">
             ${targetInfo}
             <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;">${portraitHtml(target.portrait, 42)}</div>
         </div>
     `;
 }
 
-export async function animateCombatResult(leftUnit, rightUnit, opts) {
+export async function animateCombatResult(leftUnit, rightUnit, opts, terrainType = 'plains') {
     const previewEl = document.getElementById('combat-preview');
     if (!previewEl) return Promise.resolve();
+
+    const terrainImgMap = {
+        plains: 'plains.webp',
+        river: 'river.webp',
+        forest: 'forest.webp',
+        bridge: 'bridge.webp',
+        city: 'city.webp'
+    };
+    const terrainBg = `assets/terrain_pics/${terrainImgMap[terrainType] || 'plains.webp'}`;
 
     const leftMaxHp = leftUnit.maxHp || 10;
     const rightMaxHp = rightUnit.maxHp || 10;
@@ -526,20 +577,22 @@ export async function animateCombatResult(leftUnit, rightUnit, opts) {
     const leftAdv = weaponAdvantage(leftUnit.weapon, rightUnit.weapon);
     const rightAdv = weaponAdvantage(rightUnit.weapon, leftUnit.weapon);
 
-    previewEl.style.backgroundColor = '#111';
+    previewEl.style.backgroundImage = `url(${terrainBg})`;
+    previewEl.style.backgroundSize = 'cover';
+    previewEl.style.backgroundPosition = 'center';
     previewEl.style.borderColor = '#ffd700';
     previewEl.style.display = 'flex';
     previewEl.style.alignItems = 'stretch';
 
     previewEl.innerHTML = `
-        <div style="flex:1;display:flex;align-items:stretch;min-width:0;">
+        <div style="flex:1;display:flex;align-items:stretch;min-width:0;background:rgba(0,0,0,0.6);border-radius:8px;padding:4px;">
             <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;opacity:0;animation:slideIn 0.3s ease-out forwards;">${portraitHtml(leftUnit.portrait, 42)}</div>
             ${animateInfoCol(leftUnit, true, leftHpBefore, leftHpAfter, leftAdv, rightDmg)}
         </div>
         <div style="display:flex;align-items:center;justify-content:center;width:40px;flex-shrink:0;">
             <div style="font-size:18px;color:#ffd700;font-weight:bold;">VS</div>
         </div>
-        <div style="flex:1;display:flex;align-items:stretch;min-width:0;">
+        <div style="flex:1;display:flex;align-items:stretch;min-width:0;background:rgba(0,0,0,0.6);border-radius:8px;padding:4px;">
             ${animateInfoCol(rightUnit, false, rightHpBefore, rightHpAfter, rightAdv, leftDmg)}
             <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;opacity:0;animation:slideIn 0.3s ease-out forwards;">${portraitHtml(rightUnit.portrait, 42)}</div>
         </div>
@@ -558,9 +611,22 @@ export async function animateCombatResult(leftUnit, rightUnit, opts) {
 
 // ─── Spell Animation ───
 
-export async function animateSpellResult(caster, target, spell) {
+export async function animateSpellResult(caster, target, spell, terrainType = 'plains') {
     const previewEl = document.getElementById('combat-preview');
     if (!previewEl) return Promise.resolve();
+
+    const terrainImgMap = {
+        plains: 'plains.webp',
+        river: 'river.webp',
+        forest: 'forest.webp',
+        bridge: 'bridge.webp',
+        city: 'city.webp'
+    };
+    const terrainBg = `assets/terrain_pics/${terrainImgMap[terrainType] || 'plains.webp'}`;
+
+    previewEl.style.backgroundImage = `url(${terrainBg})`;
+    previewEl.style.backgroundSize = 'cover';
+    previewEl.style.backgroundPosition = 'center';
 
     const sym = spell.element === 'fire' ? '🔥' : spell.element === 'ice' ? '❄️' : spell.element === 'heal' ? '💚' : spell.element === 'dark' ? '💜' : spell.effect === 'cleanse' ? '✨' : spell.effect === 'social_ban' ? '🚫' : '✦';
     const effectColor = spell.element === 'fire' ? '#ff6633' : spell.element === 'ice' ? '#66ccff' : spell.element === 'heal' ? '#44ff44' : spell.element === 'dark' ? '#cc66ff' : spell.effect === 'cleanse' ? '#ffff44' : spell.effect === 'social_ban' ? '#ff4444' : '#cc88ff';
@@ -615,14 +681,14 @@ export async function animateSpellResult(caster, target, spell) {
     previewEl.style.alignItems = 'stretch';
 
     previewEl.innerHTML = `
-        <div style="flex:1;display:flex;align-items:stretch;min-width:0;">
+        <div style="flex:1;display:flex;align-items:stretch;min-width:0;background:rgba(0,0,0,0.6);border-radius:8px;padding:4px;">
             <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;opacity:0;animation:slideIn 0.3s ease-out forwards;">${portraitHtml(caster.portrait, 42)}</div>
             ${casterInfo}
         </div>
         <div style="display:flex;align-items:center;justify-content:center;width:40px;flex-shrink:0;">
             <div style="font-size:22px;color:${effectColor};font-weight:bold;">${sym}</div>
         </div>
-        <div style="flex:1;display:flex;align-items:stretch;min-width:0;">
+        <div style="flex:1;display:flex;align-items:stretch;min-width:0;background:rgba(0,0,0,0.6);border-radius:8px;padding:4px;">
             ${targetInfo}
             <div style="display:flex;align-items:center;justify-content:center;flex:1;font-size:42px;opacity:0;animation:slideIn 0.3s ease-out forwards;">${portraitHtml(target.portrait, 42)}</div>
         </div>
