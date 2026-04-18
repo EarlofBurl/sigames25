@@ -51,6 +51,7 @@ export const terrainTypes = {
         movementCost: 1,
         defenseBonus: 2,
         isPassable: true,
+        heals: true,
         sightMod: 0
     },
     swamp: {

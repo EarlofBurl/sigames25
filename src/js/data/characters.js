@@ -37,8 +37,8 @@ export const heroes = {
         color: '#ffd700',
         traits: ['light'],
         spells: [
-            { name: 'Segnen', effect: 'cleanse', value: 0, duration: 0, target: 'ally', range: 1, manaCost: 1, traitName: null, traitStat: null },
-            { name: 'Social Media Bannen', effect: 'social_ban', value: 0, duration: 0, target: 'enemy', range: 1, manaCost: 2, element: 'dark', traitName: 'gebannt', traitStat: 'atk' }
+            { name: 'Segnen', effect: 'cleanse', value: 0, duration: 0, target: 'ally', range: 1, manaCost: 2, traitName: null, traitStat: null },
+            { name: 'Social Media Bannen', effect: 'social_ban', value: 0, duration: 0, target: 'enemy', range: 1, manaCost: 3, element: 'dark', traitName: 'gebannt', traitStat: 'atk' }
         ],
         level: 1,
         growthHp: 3,

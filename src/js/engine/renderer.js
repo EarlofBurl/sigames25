@@ -152,27 +152,34 @@ export function initRenderer(phaserScene, mission) {
     if (triggersLayerData && triggersLayerData.objects) {
         for (const obj of triggersLayerData.objects) {
             if (obj.x !== undefined && obj.y !== undefined) {
-                const col = Math.floor((obj.x + (obj.width || 0) / 2) / TILE_SIZE);
-                const row = Math.floor((obj.y + (obj.height || 0) / 2) / TILE_SIZE);
+                const col = Math.floor(obj.x / TILE_SIZE);
+                const row = Math.floor(obj.y / TILE_SIZE);
+                const width = obj.width ? Math.ceil(obj.width / TILE_SIZE) : 1;
+                const height = obj.height ? Math.ceil(obj.height / TILE_SIZE) : 1;
                 const trigger = {
                     name: obj.name || '',
                     type: obj.type || '',
                     col,
                     row,
-                    width: obj.width ? Math.floor(obj.width / TILE_SIZE) : 1,
-                    height: obj.height ? Math.floor(obj.height / TILE_SIZE) : 1,
+                    width,
+                    height,
                     properties: obj.properties || {}
                 };
                 triggers.push(trigger);
-                if (col >= 0 && col < mapWidth && row >= 0 && row < mapHeight) {
-                    grid[row][col].name = obj.name || null;
-                    grid[row][col].locationType = obj.type || null;
-                    if (obj.properties) {
-                        for (const prop of obj.properties) {
-                            if (prop.name === 'hasOrb') grid[row][col].hasOrb = prop.value;
-                            if (prop.name === 'heals') grid[row][col].heals = prop.value;
+
+                for (let r = row; r < row + height && r < mapHeight; r++) {
+                    for (let c = col; c < col + width && c < mapWidth; c++) {
+                        if (r >= 0 && c >= 0) {
+                            grid[r][c].name = obj.name || null;
+                            grid[r][c].locationType = obj.type || null;
                         }
                     }
+                }
+
+                if (trigger.type === 'city' || trigger.type === 'fortress') {
+                    trigger.hasOrb = obj.properties?.find(p => p.name === 'hasOrb')?.value || false;
+                    trigger.heals = obj.properties?.find(p => p.name === 'heals')?.value || false;
+                    trigger.inkKnot = obj.properties?.find(p => p.name === 'inkKnot')?.value || '';
                 }
             }
         }
@@ -222,41 +229,44 @@ function clearLocationLabels() {
 function drawOwnershipBorders() {
     if (!gfx) return;
     const BORDER_WIDTH = 3;
-    for (let r = 0; r < mapHeight; r++) {
-        for (let c = 0; c < mapWidth; c++) {
-            const cell = grid[r][c];
-            if (!cell.locationType) continue;
-            const owner = locationOwners[`${r},${c}`] || 'neutral';
-            const x = c * CELL_SIZE;
-            const y = r * CELL_SIZE;
-            let color;
-            if (owner === 'player') color = 0x4444ff;
-            else if (owner === 'enemy') color = 0xff4444;
-            else color = 0x888888;
-            gfx.lineStyle(BORDER_WIDTH, color, 1.0);
-            gfx.strokeRect(x + 1, y + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+    for (const trigger of triggers) {
+        if (!trigger.type || trigger.type === 'trigger') continue;
+        let owner = 'neutral';
+        for (let r = trigger.row; r < trigger.row + trigger.height; r++) {
+            for (let c = trigger.col; c < trigger.col + trigger.width; c++) {
+                owner = locationOwners[`${r},${c}`] || 'neutral';
+                break;
+            }
+            if (owner !== 'neutral') break;
         }
+        let color;
+        if (owner === 'player') color = 0x4444ff;
+        else if (owner === 'enemy') color = 0xff4444;
+        else color = 0x888888;
+        const x = trigger.col * CELL_SIZE;
+        const y = trigger.row * CELL_SIZE;
+        const w = trigger.width * CELL_SIZE;
+        const h = trigger.height * CELL_SIZE;
+        gfx.lineStyle(BORDER_WIDTH, color, 1.0);
+        gfx.strokeRect(x + 1, y + 1, w - 2, h - 2);
     }
 }
 
 function drawLocationLabels() {
     if (!scene) return;
     clearLocationLabels();
-    for (let r = 0; r < mapHeight; r++) {
-        for (let c = 0; c < mapWidth; c++) {
-            const cell = grid[r][c];
-            if (!cell.name) continue;
-            const x = c * CELL_SIZE;
-            const y = r * CELL_SIZE + CELL_SIZE + 2;
-            const label = scene.add.text(x + CELL_SIZE / 2, y, cell.name, {
-                fontFamily: 'Arial', fontSize: '10px',
-                color: '#ffffff',
-                stroke: '#000000', strokeThickness: 2
-            });
-            label.setOrigin(0.5, 0);
-            label.setDepth(5);
-            locationLabels.push(label);
-        }
+    for (const trigger of triggers) {
+        if (!trigger.name || trigger.type === 'trigger') continue;
+        const x = trigger.col * CELL_SIZE + (trigger.width * CELL_SIZE) / 2;
+        const y = trigger.row * CELL_SIZE + trigger.height * CELL_SIZE + 2;
+        const label = scene.add.text(x, y, trigger.name, {
+            fontFamily: 'Arial', fontSize: '12px',
+            color: '#ffffff',
+            stroke: '#000000', strokeThickness: 3
+        });
+        label.setOrigin(0.5, 0);
+        label.setDepth(20);
+        locationLabels.push(label);
     }
 }
 
@@ -429,6 +439,10 @@ export function getTriggerProperty(trigger, propName, defaultValue = null) {
     if (!trigger || !trigger.properties) return defaultValue;
     const prop = trigger.properties.find(p => p.name === propName);
     return prop ? prop.value : defaultValue;
+}
+
+export function getTriggerByName(name) {
+    return triggers.find(t => t.name === name) || null;
 }
 
 export function registerSpriteAtlas(charKey, atlasKey) {

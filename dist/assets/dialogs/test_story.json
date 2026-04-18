@@ -1,0 +1,20 @@
+{
+  "inkVersion": 21,
+  "root": [
+    "knots",
+    {
+      "test_knot": [
+        "^Willkommen zum SI-Games 25! ",
+        "/>",
+        {"# speaker": "carl_the_great"},
+        ["^Was möchtest du tun?", "/>", "done", {"*": ".c-0", "flg": 4}],
+        [null],
+        {"c-0": ["^Erkläre das Spiel.", "/>", "done", null]}
+      ]
+    },
+    "end"
+  ],
+  "done": [
+    null
+  ]
+}

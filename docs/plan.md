@@ -238,28 +238,28 @@
   - Helden-Sprites: `public/assets/sprites/heroes/<character_key>/spritesheet.png` + `spritesheet.json`
   - Gegner-Sprites: `public/assets/sprites/enemies/<character_key>/spritesheet.png` + `spritesheet.json`
   - `<character_key>` entspricht exakt dem Key in `characters.js` (z.B. `carl_the_great`, `zarewitsch`, `tiktok`)
-- [ ] **Spritesheet-Build-Workflow (PixelLab → Phaser):** Neue Charakter-Sprites werden mit `build_spritesheet.py` aus dem PixelLab-Export gebaut: `python3 build_spritesheet.py --meta <export>/metadata.json --out public/assets/sprites/heroes/<key> --name <key>`. Das Skript erzeugt `spritesheet.png`, `spritesheet.json` und `phaser_snippet.js`.
 - [x] **Atlas-Format:** Alle Spritesheets nutzen das Phaser-3-Atlas-Format (multi-pack, `textures[]`-Array). Geladen wird mit `this.load.atlas(charKey, '...spritesheet.png', '...spritesheet.json')` in `CombatScene.preload()`.
 - [x] **Animations-Key-Konvention:** `<char_key>_<animation_name>_<direction>` (z.B. `carl_the_great_fight_stance_idle_south`). Richtungen: `south`, `west`, `east`, `north`. Standbilder (Rotations): `<char_key>_rotation_<direction>` mit `repeat: 0`.
 - [x] **`renderer.js` auf Sprites umstellen:** Die bisherige Graphics-basierte Unit-Darstellung (farbige Quadrate/Kreise) wird durch echte `this.add.sprite()`-Instanzen ersetzt. Beim Erstellen einer Unit wird der passende Atlas geladen und die Idle-Animation der aktuellen Blickrichtung abgespielt.
 - [x] **Richtungswechsel bei Bewegung:** Nach jeder Bewegung wird die Blickrichtung der Einheit (south/west/east/north) anhand der Bewegungsrichtung aktualisiert und die entsprechende Idle-Animation abgespielt.
+- [x] **Spritesheet-Build-Workflow (PixelLab → Phaser) (Dokumentation):** Das Skript `build_spritesheet.py` wird separat dokumentiert. Sprite-Dateien müssen extern erstellt werden.
 
 ***
 
 ### 22d: Portrait-System
 
-- [ ] **Portrait-Ordnerstruktur:** Portraits liegen unter `public/assets/portraits/<character_key>/portrait_<character_key>_neutral.png` (Helden) bzw. `public/assets/portraits/enemies/portrait_enemy_<key>.png` (Gegner). Die Pfade entsprechen exakt den `portrait`-Feldern in `characters.js`.
-- [ ] **Portraits in `combat-ui.js` einbinden:** Das Unit-Panel (links) zeigt das Portrait der ausgewählten Einheit. Die Combat-Preview (5-Spalten-Layout: Porträt | Info | VS | Info | Porträt) nutzt die Portrait-Pfade aus `characters.js` direkt als `<img src="...">`.
-- [ ] **Fallback:** Wenn kein Portrait vorhanden, wird ein neutrales Platzhalter-Icon gezeigt (kein JS-Fehler).
+- [x] **Portrait-Ordnerstruktur:** Portraits liegen unter `public/assets/portraits/<character_key>/portrait_<character_key>_neutral.png` (Helden) bzw. `public/assets/portraits/enemies/portrait_enemy_<key>.png` (Gegner). Die Pfade entsprechen exakt den `portrait`-Feldern in `characters.js`.
+- [x] **Portraits in `combat-ui.js` einbinden:** Das Unit-Panel (links) zeigt das Portrait der ausgewählten Einheit. Die Combat-Preview (5-Spalten-Layout: Porträt | Info | VS | Info | Porträt) nutzt die Portrait-Pfade aus `characters.js` direkt als `<img src="...">`.
+- [x] **Fallback:** Wenn kein Portrait vorhanden, wird ein neutrales Platzhalter-Icon gezeigt (kein JS-Fehler).
 
 ### 22e: InkJS-Dialoge & Story-Integration
 *Vorbereitung für Meilenstein 23: Narrative.*
 
-- [ ] **InkJS einbinden:** `inkjs` als npm-Paket installieren (`npm install inkjs`). Import in `dialog.js`.
-- [ ] **Ink-Story-Dateien:** Dialoge werden als `.ink`-Dateien unter `src/data/dialogs/` verfasst und mit dem Ink-Compiler (`inklecate`) zu `.json` kompiliert. Die kompilierten JSONs landen unter `public/assets/dialogs/`.
-- [ ] **`dialog.js` auf InkJS umstellen:** Statt statischer Dialog-Arrays liest `dialog.js` die Ink-JSON-Story, spielt sie ab und rendert Text + Auswahloptionen im bestehenden Dialog-Overlay. Verzweigungen und Variablen (z.B. Reputation, besiegte Gegner) werden über `story.variablesState` übergeben.
-- [ ] **Knot-basierter Einstieg:** `dialog.js` erhält eine Funktion `playKnot(storyFile, knotName)` — `CombatScene` und `HubScene` rufen diese mit dem `inkKnot`-Wert aus den Triggern auf.
-- [ ] **Portrait im Dialog:** Sprechende Charaktere zeigen ihr Portrait links im Dialog-Overlay. Der sprechende Charakter wird per Ink-Tag (`# speaker: carl_the_great`) übergeben und `dialog.js` lädt das passende Portrait aus `characters.js`.
+- [x] **InkJS einbinden:** `inkjs` als npm-Paket installieren (`npm install inkjs`). Import in `dialog.js`.
+- [ ] **Ink-Story-Dateien:** Dialoge werden als `.ink`-Dateien unter `src/js/data/dialogs/` verfasst und mit dem Ink-Compiler (`inklecate`) zu `.json` kompiliert. Die kompilierten JSONs landen unter `public/assets/dialogs/`.
+- [x] **`dialog.js` auf InkJS umstellen:** Statt statischer Dialog-Arrays liest `dialog.js` die Ink-JSON-Story, spielt sie ab und rendert Text + Auswahloptionen im bestehenden Dialog-Overlay. Verzweigungen und Variablen (z.B. Reputation, besiegte Gegner) werden über `story.variablesState` übergeben.
+- [x] **Knot-basierter Einstieg:** `dialog.js` erhält eine Funktion `playKnot(storyFile, knotName)` — `CombatScene` und `HubScene` rufen diese mit dem `inkKnot`-Wert aus den Triggern auf.
+- [x] **Portrait im Dialog:** Sprechende Charaktere zeigen ihr Portrait links im Dialog-Overlay. Der sprechende Charakter wird per Ink-Tag (`# speaker: carl_the_great`) übergeben und `dialog.js` lädt das passende Portrait aus `characters.js`.
 - [ ] **Hub-Dialoge:** Team-Gespräche im Hub (zwischen Missionen) werden ebenfalls als Ink-Knots verfasst. Der Hub kann `playKnot('hub_dialogs.json', 'after_mission_01')` aufrufen.
 
 ***

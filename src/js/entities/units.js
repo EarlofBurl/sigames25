@@ -315,8 +315,7 @@ export function unitAttack(unitId) {
 export function refillCurrentUnitMp() {
     state.playerUnits.forEach(unit => {
         unit.mp = unit.maxMp;
-        const regen = Math.max(1, Math.floor(unit.maxMana * 0.3));
-        unit.mana = Math.min(unit.maxMana, unit.mana + regen);
+        unit.mana = Math.min(unit.maxMana, unit.mana + 2);
         unit.hasAttacked = false;
         unit.hasMoved = false;
         unit.hasCast = false;

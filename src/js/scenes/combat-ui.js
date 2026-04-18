@@ -340,9 +340,10 @@ export function fillUnitPanel(unit) {
     weaponEl.innerHTML = `Waffe: <span id="ui-weapon-val">${wName}</span>`;
 
     // Active traits
-    let traitsHtml = '';
+    let traitsDiv = null;
     if (unit.activeEffects && unit.activeEffects.length > 0) {
-        traitsHtml = '<div style="margin-top:6px;padding-top:6px;border-top:1px solid #333;font-size:10px;">';
+        traitsDiv = document.createElement('div');
+        traitsDiv.style.cssText = 'margin-top:6px;padding-top:6px;border-top:1px solid #333;font-size:10px;';
         unit.activeEffects.forEach(effect => {
             if (effect.effect === 'heal') return;
             const isPositive = effect.effect === 'buff_attack' || effect.effect === 'buff_defense';
@@ -352,26 +353,34 @@ export function fillUnitPanel(unit) {
             const value = effect.value !== undefined ? `${sign}${effect.value} ${effect.traitStat || effect.effect.replace('buff_', '').replace('debuff_', '')}` : '';
             const name = effect.traitName || effect.effect;
             const dur = effect.duration > 0 ? ` (${effect.duration})` : '';
-            traitsHtml += `<div style="color:${color};margin-bottom:2px;">◆ ${name} ${value}${dur}</div>`;
+            const effectLine = document.createElement('div');
+            effectLine.style.cssText = `color:${color};margin-bottom:2px;`;
+            effectLine.textContent = `◆ ${name} ${value}${dur}`;
+            traitsDiv.appendChild(effectLine);
         });
-        traitsHtml += '</div>';
     }
 
     // Spells
     spellsEl.innerHTML = '';
     if (unit.spells && unit.spells.length > 0) {
-        unit.spells.forEach(spell => {
+        unit.spells.forEach((spell, idx) => {
             const btn = document.createElement('button');
             btn.className = 'spell-btn';
             btn.textContent = `${spell.name}`;
             btn.title = `Mana: ${spell.manaCost || 0}`;
-            btn.onclick = () => {
-                if (onSpellSelect) onSpellSelect(unit, spell);
-            };
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                if (onSpellSelect) {
+                    onSpellSelect(unit, spell);
+                }
+            }, true);
             spellsEl.appendChild(btn);
         });
     }
-    spellsEl.innerHTML += traitsHtml;
+    if (traitsDiv) {
+        spellsEl.appendChild(traitsDiv);
+    }
 
     // Action buttons
     actionPanelEl.innerHTML = '';
@@ -444,7 +453,7 @@ export function showSpellPreview(caster, target, spell) {
     } else if (spell.effect === 'debuff_attack' || spell.effect === 'debuff_defense') {
         spellEffect = `-${spell.value || 0} ${spell.effect.replace('debuff_', '')}`;
     } else if (spell.effect === 'social_ban') {
-        spellEffect = '🚫 Bannt SocialMedia!';
+        spellEffect = '🚫 5 Schaden (SocialMedia)';
     } else {
         spellEffect = spell.target === 'ally'
             ? `+${spell.value || 0} ${spell.effect}`
@@ -565,7 +574,7 @@ export async function animateSpellResult(caster, target, spell) {
     } else if (spell.effect === 'debuff_attack' || spell.effect === 'debuff_defense') {
         spellEffect = `-${spell.value || 0} ${spell.effect.replace('debuff_', '')}`;
     } else if (spell.effect === 'social_ban') {
-        spellEffect = '🚫 Bannt SocialMedia!';
+        spellEffect = '🚫 5 Schaden (SocialMedia)';
     } else {
         spellEffect = spell.target === 'ally'
             ? `+${spell.value || 0} ${spell.effect}`

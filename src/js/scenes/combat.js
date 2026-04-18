@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { initRenderer, drawGrid, getGridData, setSelectedTarget, clearSelectedTarget, setSelectedUnit, clearSelectedUnit, setVisibilityGrid, getVisibilityData, setLocationOwner, getLocationOwner, collectOrb, getTriggerAt, getTriggerProperty, initUnitSprites, registerSpriteAtlas, destroyUnitSprites, registerAllAnimations } from '../engine/renderer.js';
+import { initRenderer, drawGrid, getGridData, setSelectedTarget, clearSelectedTarget, setSelectedUnit, clearSelectedUnit, setVisibilityGrid, getVisibilityData, setLocationOwner, getLocationOwner, collectOrb, getTriggerAt, getTriggerProperty, initUnitSprites, registerSpriteAtlas, destroyUnitSprites, registerAllAnimations, getTriggers } from '../engine/renderer.js';
 import { GRID_COLS, GRID_ROWS } from '../config.js';
 import { terrainTypes, isPassable, isAdjacentToEnemy } from '../engine/terrain.js';
 import {
@@ -9,7 +9,7 @@ import {
     setUnitTurnState, getUnitTurnState, unitAttack, unitCastSpell
 } from '../entities/units.js';
 import { log, initConsole, destroyConsole } from '../engine/console.js';
-import { initDialog, playDialog, destroyDialog } from '../engine/dialog.js';
+import { initDialog, playDialog, playKnot, destroyDialog } from '../engine/dialog.js';
 import { initCombatUI, clearUnitPanel, fillUnitPanel, checkAllUnitsExhausted, setSpellCastCallback, setSpellSelectCallback, getNextUnitButton, updateTerrainInfo, destroyCombatUI, showCombatPreview, animateCombatResult, showSpellPreview, animateSpellResult, hidePreview, showEnemyAction, setActionCallbacks, showCursorSymbol, hideCursorSymbol } from './combat-ui.js';
 import { executeCombat, predictCombat } from '../engine/combat-system.js';
 import { findPathAndCost } from '../engine/movement-system.js';
@@ -35,10 +35,15 @@ let onSpellCast = (caster, targetUnit, spell) => {
         return;
     }
 
-    log(`${caster.name} wirkt ${spell.name} auf ${targetUnit.name}!`, 'default');
-
     const playerUnits = getPlayerUnits();
     const casterUnit = playerUnits.find(u => u.id === caster.id);
+    if (!casterUnit || casterUnit.hasAttacked || casterUnit.turnState === 'acted') {
+        log(`${caster.name} hat diese Runde schon gehandelt!`, 'error');
+        return;
+    }
+
+    log(`${caster.name} wirkt ${spell.name} auf ${targetUnit.name}!`, 'default');
+
     if (casterUnit) {
         // Zauber kostet Mana, nicht MP
         const manaCost = spell.manaCost !== undefined ? spell.manaCost : 0;
@@ -58,11 +63,12 @@ let onSpellCast = (caster, targetUnit, spell) => {
                 const enemies = getEnemyUnits();
                 const enemyIndex = enemies.findIndex(e => e.id === targetUnit.id);
                 if (enemyIndex !== -1) {
-                    enemies[enemyIndex].traits = enemies[enemyIndex].traits.filter(t => t !== 'SocialMedia');
-                    log(`${caster.name} bannt ${targetUnit.name}! SocialMedia-Trait entfernt!`, 'attack');
+                    const damage = 5;
+                    enemies[enemyIndex].hp = Math.max(0, enemies[enemyIndex].hp - damage);
+                    log(`${caster.name} bannt ${targetUnit.name}! ${damage} Schaden! (${enemies[enemyIndex].hp}/${enemies[enemyIndex].maxHp} HP)`, 'attack');
                 }
             } else {
-                log(`${caster.name} wirkt ${spell.name}, aber ${targetUnit.name} ist kein SocialMedia-Trait!`, 'default');
+                log(`${caster.name} wirkt ${spell.name}, aber ${targetUnit.name} hat kein SocialMedia-Trait!`, 'default');
             }
             unitCastSpell(casterUnit.id, spell.manaCost);
             animateSpellResult(casterUnit || caster, targetUnit, spell);
@@ -251,6 +257,11 @@ export class CombatScene extends Phaser.Scene {
                 return;
             }
 
+            if (caster.hasAttacked || caster.turnState === 'acted') {
+                log(`${caster.name} hat diese Runde schon gehandelt!`, 'error');
+                return;
+            }
+
             const players = getPlayerUnits();
             const actualUnit = players.find(u => u.id === caster.id);
 
@@ -273,21 +284,35 @@ export class CombatScene extends Phaser.Scene {
         const updateLocationOwnership = () => {
             const players = getPlayerUnits();
             const enemies = getEnemyUnits();
-            for (let r = 0; r < GRID_ROWS; r++) {
-                for (let c = 0; c < GRID_COLS; c++) {
-                    if (grid[r] && grid[r][c] && grid[r][c].locationType) {
-                        const key = `${r},${c}`;
-                        const playerOnTile = players.some(u => u.row === r && u.col === c);
-                        const enemyOnTile = enemies.some(e => e.row === r && e.col === c);
+            const triggers = getTriggers();
 
-                        if (playerOnTile) {
-                            setLocationOwner(r, c, 'player');
-                            this.missionState.capturedLocations[key] = 'player';
-                        } else if (enemyOnTile) {
-                            setLocationOwner(r, c, 'enemy');
-                            this.missionState.capturedLocations[key] = 'enemy';
-                        } else if (!this.missionState.capturedLocations.hasOwnProperty(key)) {
-                            setLocationOwner(r, c, 'neutral');
+            const cityTriggers = triggers.filter(t => t.type === 'city' || t.type === 'fortress');
+
+            for (const city of cityTriggers) {
+                const { col: cx, row: cy, width = 1, height = 1, name: cityName } = city;
+
+                const playerInCity = players.some(u =>
+                    u.row >= cy && u.row < cy + height && u.col >= cx && u.col < cx + width
+                );
+                const enemyInCity = enemies.some(e =>
+                    e.row >= cy && e.row < cy + height && e.col >= cx && e.col < cx + width
+                );
+
+                let owner = 'neutral';
+                if (playerInCity && enemyInCity) {
+                    owner = 'neutral';
+                } else if (playerInCity) {
+                    owner = 'player';
+                } else if (enemyInCity) {
+                    owner = 'enemy';
+                }
+
+                this.missionState.capturedLocations[cityName] = owner;
+
+                for (let r = cy; r < cy + height; r++) {
+                    for (let c = cx; c < cx + width; c++) {
+                        if (grid[r] && grid[r][c]) {
+                            setLocationOwner(r, c, owner);
                         }
                     }
                 }
@@ -320,7 +345,7 @@ export class CombatScene extends Phaser.Scene {
             refillCurrentUnitMp();
             turnCounter++;
             if (turnCounterElement) turnCounterElement.textContent = turnCounter;
-            log(`Runde ${turnCounter} gestartet. Alle MP und Mana aufgefüllt.`);
+            log(`Runde ${turnCounter} gestartet. Alle MP und +2 Mana aufgefüllt.`);
 
             updateLocationOwnership();
             setVisibilityGrid(updateVisibility(grid, getPlayerUnits()));
@@ -553,36 +578,36 @@ export class CombatScene extends Phaser.Scene {
                         // Bewegung zu erreichbarem Feld
                         setCurrentUnitPosition(row, col);
                         setCurrentUnitMp(getCurrentUnitAttributes().mp - selectedTarget.cost);
-
-                        // Orb einsammeln
-                        const orbCollected = collectOrb(row, col);
-                        if (orbCollected) {
-                            this.missionState.collectedOrbs.push({ row, col });
-                            playDialog([{ character: 'System', text: 'Ausrüstungs-Orb gefunden!' }]);
+                        // Alten Besitzer merken
+                        const trigger = getTriggerAt(row, col);
+                        let oldOwner = 'neutral';
+                        if (trigger && trigger.name) {
+                            oldOwner = this.missionState.capturedLocations[trigger.name] || 'neutral';
                         }
 
                         updateLocationOwnership();
                         setVisibilityGrid(updateVisibility(grid, getPlayerUnits()));
 
                         // Trigger prüfen
-                        const trigger = getTriggerAt(row, col);
                         if (trigger && trigger.name) {
-                            const inkKnot = getTriggerProperty(trigger, 'inkKnot', '');
-                            const heals = getTriggerProperty(trigger, 'heals', false);
-                            const hasOrb = getTriggerProperty(trigger, 'hasOrb', false);
-
                             if (trigger.type === 'city' || trigger.type === 'fortress') {
                                 const cityName = trigger.name;
-                                const owner = getLocationOwner(row, col);
-                                if (owner === 'player') {
+                                const newOwner = this.missionState.capturedLocations[cityName];
+                                if (oldOwner !== 'player' && newOwner === 'player') {
                                     playDialog([{ character: 'System', text: `${cityName} wurde von dir eingenommen!` }]);
+                                    if (trigger.hasOrb && !this.missionState.orbsCollected?.includes(cityName)) {
+                                        if (!this.missionState.orbsCollected) this.missionState.orbsCollected = [];
+                                        this.missionState.orbsCollected.push(cityName);
+                                        playDialog([{ character: 'System', text: 'Ausrüstungs-Orb gefunden!' }]);
+                                    }
+                                    if (trigger.inkKnot) {
+                                        playKnot(`assets/dialogs/${trigger.inkKnot}.json`, 'start');
+                                    }
+                                } else if (oldOwner === 'player' && newOwner === 'neutral') {
+                                    playDialog([{ character: 'System', text: `${cityName} ist jetzt umkämpft!` }]);
                                 }
-                            } else if (inkKnot) {
-                                console.log(`[Trigger] ${trigger.name} an [${row},${col}] - inkKnot: ${inkKnot}`);
-                                playDialog([{ character: 'System', text: `Trigger: ${trigger.name}` }]);
-                            } else {
-                                console.log(`[Trigger] ${trigger.name} an [${row},${col}]`);
-                                playDialog([{ character: 'System', text: `Du hast ${trigger.name} erreicht!` }]);
+                            } else if (trigger.inkKnot) {
+                                playKnot(`assets/dialogs/${trigger.inkKnot}.json`, 'start');
                             }
                         }
 
@@ -709,9 +734,13 @@ export class CombatScene extends Phaser.Scene {
 
                     const res = findPathAndCost(curPos, { row, col }, grid, curAttr.mp, selectedUnit);
                     const zoc = isAdjacentToEnemy(row, col, selectedUnit);
+                    const isSameTile = row === curPos.row && col === curPos.col;
+                    const actualCost = isSameTile ? 0 : res.cost;
+                    const hasValidPath = res.path && res.path.length > 0;
+                    const canAfford = res.cost <= curAttr.mp;
                     selectedTarget = {
-                        row, col, cost: res.cost, path: res.path, isZoC: zoc,
-                        type: (res.path && res.cost <= curAttr.mp && fieldVisible) ? 'reachable' : 'unreachable'
+                        row, col, cost: actualCost, path: res.path, isZoC: zoc,
+                        type: (hasValidPath && canAfford && fieldVisible) ? 'reachable' : 'unreachable'
                     };
                 }
 
